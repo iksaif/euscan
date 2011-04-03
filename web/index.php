@@ -35,7 +35,7 @@ if ($act == "home") {
     $color = $new == 0 ? 'green' : 'red';
     echo "<tr>";
     echo "<td><a href=\"?act=packages&amp;cat={$row['category']}\">{$row['category']}</a></td>";
-    echo "<td>{$row['versions']}</td>";
+    echo "<td>{$row['ebuilds']}</td>";
     echo "<td style=\"color: $color\">$new</td>";
     echo "</tr>";
   }
@@ -56,7 +56,7 @@ if ($act == "home") {
     $color = $new == 0 ? 'green' : 'red';
     echo "<tr>";
     echo "<td><a href=\"?act=packages&amp;herd={$row['herd']}\">{$row['herd']}</a></td>";
-    echo "<td>{$row['versions']}</td>";
+    echo "<td>{$row['ebuilds']}</td>";
     echo "<td style=\"color: $color\">$new</td>";
     echo "</tr>";
   }
@@ -77,7 +77,7 @@ if ($act == "home") {
     $color = $new == 0 ? 'green' : 'red';
     echo "<tr>";
     echo "<td><a href=\"?act=packages&amp;maintainer={$row['maintainer']}\">{$row['maintainer']}</a></td>";
-    echo "<td>{$row['versions']}</td>";
+    echo "<td>{$row['ebuilds']}</td>";
     echo "<td style=\"color: $color\">$new</td>";
     echo "</tr>";
   }
@@ -95,7 +95,7 @@ if ($act == "home") {
     $color = $new == 0 ? 'green' : 'red';
     echo "<tr>";
     echo "<td><a href=\"?act=packages&amp;cat={$row['category']}\">{$row['category']}</a></td>";
-    echo "<td>{$row['versions']}</td>";
+    echo "<td>{$row['ebuilds']}</td>";
     echo "<td style=\"color: $color\">$new</td>";
     echo "</tr>";
   }
@@ -138,7 +138,7 @@ if ($act == "home") {
       $color = $new == 0 ? 'green' : 'red';
       echo "<tr>";
       echo "<td><a href=\"?act=package&amp;pkg=$catpkg\">$catpkg</td>";
-      echo "<td>{$row['versions']}</td>";
+      echo "<td>{$row['ebuilds']}</td>";
       echo "<td style=\"color: $color\">$new</td>";
       echo "</tr>";
     }
@@ -159,10 +159,12 @@ if ($act == "home") {
   $infos = $infos->fetchArray();
 
   if ($infos) {
+    echo "<h3>{$infos['category']}/${infos['package']}</h3>";
+
     $sql = "SELECT * FROM versions WHERE package_id = ${infos['id']} AND packaged = 1";
     $results = $db->query($sql);
 
-    echo '<p>Packaged versions:</p><ul>';
+    echo '<h3>Packaged versions:</h3><ul>';
     while ($version = $results->fetchArray()) {
       echo "<li>${version['version']}-${version['revision']}:${version['slot']}</li>";
     }
@@ -173,7 +175,7 @@ if ($act == "home") {
     $results = $db->query($sql);
 
     echo '</ul>';
-    echo '<p>Upstream versions:</p><ul>';
+    echo '<h3>Upstream versions:</h3><ul>';
 
     while ($version = $results->fetchArray()) {
       echo "<li>${version['version']} - ${version['url']}</li>";
