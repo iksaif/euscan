@@ -1,45 +1,56 @@
 #!/usr/bin/python
-##############################################################################
-# $Header: $
-##############################################################################
-# Distributed under the terms of the GNU General Public License, v2 or later
-# Author: Corentin Chary <corentin.chary@gmail.com>
 
-# Gentoo new upstream release scan tool.
+"""Copyright 2011 Gentoo Foundation
+Distributed under the terms of the GNU General Public License v2
+"""
+
+from __future__ import print_function
+
+
+# Meta:
+__author__ = "Corentin Chary (iksaif)"
+__email__ = "corentin.chary@gmail.com"
+__version__ = "git"
+__productname__ = "euscan"
+__description__ = "A tool to detect new upstream releases."
+
+# =======
+# Imports
+# =======
 
 import os
 import sys
 import re
-import StringIO
-from stat import *
-from xml.sax import saxutils, make_parser, handler
-from xml.sax.handler import feature_namespaces
-
-import urllib
+import time
+import getopt
+import errno
+import random
 import urllib2
+import StringIO
 
 import pkg_resources
 
 import portage
-from portage.output import *
+from portage.output import white, yellow, turquoise, green, teal, red, EOutput
 from portage.dbapi.porttree import _parse_uri_map
-from portage.exception import InvalidDependString
 
-__version__ = "svn"
+import gentoolkit.pprinter as pp
+from gentoolkit import errors
+from gentoolkit.query import Query
+from gentoolkit.eclean.search import (port_settings)
 
-settings = {
-	"brute-force-level" : 2,
-	"brute-force"       : True,
-	"brute-force-crazy" : True,
-	"scan-dir"          : True,
-	"format"            : "pretty",
-	"verbose"           : True,
-	"stop-when-found"   : False,
-	"check-all-files"   : False,
-}
+# =======
+# Globals
+# =======
 
-output = EOutput()
-output.quiet = not settings['verbose']
+QUERY_OPTS = {"include_masked": True}
+
+BRUTEFORCE_BLACKLIST_PACKAGES = ['dev-util/patchelf', 'net-zope/plonepopoll']
+BRUTEFORCE_BLACKLIST_URLS = ['http://www.dockapps.org/download.php/id/(.*)']
+
+# =========
+# Functions
+# =========
 
 def cast_int_components(version):
         for i, obj in enumerate(version):
@@ -151,7 +162,7 @@ def gen_versions(components, level):
 
 	return versions
 
-def tryurl(fileurl):
+def tryurl(fileurl, output):
 	result = False
 
 	output.ebegin("Trying: " + fileurl)
@@ -170,7 +181,7 @@ def tryurl(fileurl):
 			result = False
 		else:
 			result = True
-	except:
+	except urllib2.URLError:
 		retult = False
 
 	output.eend(errno.ENOENT if not result else 0)
@@ -216,7 +227,7 @@ def generate_scan_paths(url):
 			path += chunk
         return steps
 
-def scan_directory_recursive(url, steps, vmin, vmax):
+def scan_directory_recursive(url, steps, vmin, vmax, output):
 	if not steps:
 		return []
 
@@ -229,7 +240,7 @@ def scan_directory_recursive(url, steps, vmin, vmax):
 
 	try:
 		fp = urllib2.urlopen(url, None, 5)
-	except Exception, err:
+	except urllib2.URLError:
 		return []
 
 	data = fp.read()
@@ -277,20 +288,19 @@ def scan_directory_recursive(url, steps, vmin, vmax):
 
 		versions.append((path, version))
 		if steps:
-			ret = scan_directory_recursive(path, steps, vmin, vmax)
+			ret = scan_directory_recursive(path, steps, vmin, vmax, output)
 			versions.extend(ret)
 	return versions
 
-def scan_directory(cpv, fileurl, limit=None):
+def scan_directory(cpv, fileurl, options, output, limit=None):
 	# Ftp: list dir
 	# Handle mirrors
-	if not settings["scan-dir"]:
+	if not options["scan-dir"]:
 		return []
 
 	catpkg, ver, rev = portage.pkgsplit(cpv)
 
 	template = template_from_url(fileurl, ver)
-
 	if '${' not in template:
 		output.ewarn("Url doesn't seems to depend on version: %s not found in %s"
 			     % (ver, fileurl))
@@ -301,16 +311,26 @@ def scan_directory(cpv, fileurl, limit=None):
 	vmin = parse_version(ver)
 
 	steps = generate_scan_paths(template)
-	return scan_directory_recursive("", steps, vmin, limit)
+	return scan_directory_recursive("", steps, vmin, limit, output)
 
-def brute_force(cpv, fileurl, limit=None):
-	if not settings["brute-force"]:
+def brute_force(cpv, fileurl, options, output, limit=None):
+	if options["brute-force"] <= 0:
 		return []
 
 	catpkg, ver, rev = portage.pkgsplit(cpv)
 
+	for bp in BRUTEFORCE_BLACKLIST_PACKAGES:
+		if re.match(bp, catpkg):
+			output.ewarn("%s is blacklisted by rule %s" % (catpkg, bp))
+			return []
+
+	for bp in BRUTEFORCE_BLACKLIST_URLS:
+		if re.match(bp, fileurl):
+			output.ewarn("%s is blacklisted by rule %s" % (catpkg, bp))
+			return []
+
 	components = split_version(ver)
-	versions = gen_versions(components, settings["brute-force-level"])
+	versions = gen_versions(components, options["brute-force"])
 
 	output.einfo("Generating version from " + ver)
 
@@ -320,9 +340,9 @@ def brute_force(cpv, fileurl, limit=None):
 
 	template = template_from_url(fileurl, ver)
 
-	if '${' not in template:
-		output.ewarn("Url doesn't seems to depend on version: %s not found in %s"
-			     % (fileurl, ver))
+	if '${PV}' not in template:
+		output.ewarn("Url doesn't seems to depend on full version: %s not found in %s"
+			     % (ver, fileurl))
 		return []
 	else:
 		output.einfo("Brute forcing: %s" % template)
@@ -331,6 +351,7 @@ def brute_force(cpv, fileurl, limit=None):
 
 	i = 0
 	done = []
+
 	while i < len(versions):
 		components = versions[i]
 		i += 1
@@ -346,44 +367,233 @@ def brute_force(cpv, fileurl, limit=None):
 
 		url = url_from_template(template, vstring)
 
-		if not tryurl(url):
+		if not tryurl(url, output):
 			continue
 
 		result.append([url, vstring])
 
-		if settings["brute-force-crazy"]:
-			for v in gen_versions(components, settings["brute-force-level"]):
+		if options["brute-force-recursive"]:
+			for v in gen_versions(components, options["brute-force"]):
 				if v not in versions and tuple(v) not in done:
 					versions.append(v)
 
-		if settings["stop-when-found"]:
+		if options["oneshot"]:
 			break
 
 	return result
 
-def euscan(cpv, portdir):
-	catpkg, ver, rev = portage.pkgsplit(cpv)
 
-	if portdir:
-		portdb = portage.portdbapi(portdir)
+def parseMirror(uri, output):
+	mirrors = portage.settings.thirdpartymirrors()
+
+	if not uri.startswith("mirror://"):
+		return uri
+
+	eidx = uri.find("/", 9)
+	if eidx == -1:
+		output.ewarn("Invalid mirror definition in SRC_URI:\n")
+		output.ewarn("  %s\n" % (uri))
+		return None
+
+	mirrorname = uri[9:eidx]
+	path = uri[eidx+1:]
+
+	if mirrorname in mirrors:
+		uri = mirrors[mirrorname][0].strip("/") + "/" + path
 	else:
-		portdb = portage.portdbapi()
+		output.ewarn("No known mirror by the name: %s\n" % (mirrorname))
+		return None
 
-	src_uri, repo = portdb.aux_get(cpv, ['SRC_URI', 'repository'])
+        return uri
 
-	metadata = {
-		"EAPI"    : portage.settings["EAPI"],
-		"SRC_URI" : src_uri,
-		}
-	use = frozenset(portage.settings["PORTAGE_USE"].split())
+def setupSignals():
+    """ This block ensures that ^C interrupts are handled quietly. """
+    import signal
+
+    def exithandler(signum,frame):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+	print ()
+	sys.exit(errno.EINTR)
+
+    signal.signal(signal.SIGINT, exithandler)
+    signal.signal(signal.SIGTERM, exithandler)
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+
+def printVersion():
+	"""Output the version info."""
+	print( "%s (%s) - %s" \
+			% (__productname__, __version__, __description__))
+	print()
+	print("Author: %s <%s>" % (__author__,__email__))
+	print("Copyright 2011 Gentoo Foundation")
+	print("Distributed under the terms of the GNU General Public License v2")
+
+
+def printUsage(_error=None, help=None):
+	"""Print help message. May also print partial help to stderr if an
+	error from {'options'} is specified."""
+
+	out = sys.stdout
+	if _error:
+		out = sys.stderr
+	if not _error in ('global-options', 'packages',):
+		_error = None
+	if not _error and not help: help = 'all'
+	if _error in ('global-options',):
+		print( pp.error("Wrong option on command line."), file=out)
+		print( file=out)
+	if _error in ('packages',):
+		print( pp.error("You need to specify exactly one package."), file=out)
+		print( file=out)
+	print( white("Usage:"), file=out)
+	if _error in ('global-options', 'packages',) or help == 'all':
+		print( " "+turquoise(__productname__),
+			yellow("[options]"),
+			green("<package>"), file=out)
+	if _error in ('global-options',) or help == 'all':
+	   	print( " "+turquoise(__productname__),
+	   	        yellow("[--help, --version]"), file=out)
+
+	print(file=out)
+	if _error in ('global-options',) or help:
+		print( "Available ", yellow("options")+":", file=out)
+		print( yellow(" -C, --nocolor")+
+			"             - turn off colors on output", file=out)
+		print( yellow(" -q, --quiet")+
+			"               - be as quiet as possible", file=out)
+		print( yellow(" -h, --help")+ \
+			"                - display the help screen", file=out)
+		print( yellow(" -V, --version")+
+			"             - display version info", file=out)
+		print( file=out)
+		print( yellow(" -1, --oneshot")+
+			"             - stop as soon as a new version is found", file=out)
+		print( yellow(" -b, --brute-force=<level>")+
+			" - define the brute force "+yellow("<level>")+" (default: 2)\n" +
+			" " * 29  + "bigger levels will generate more versions numbers\n" +
+			" " * 29  + "0 means disabled", file=out)
+		print( file=out)
+ 	if _error in ('packages',) or help:
+		print( green(" package")+
+			"                   - the package (or ebuild) you want to scan", file=out)
+		print( file=out)
+	#print( "More detailed instruction can be found in",
+	#		turquoise("`man %s`" % __productname__), file=out)
+
+
+class ParseArgsException(Exception):
+	"""For parseArgs() -> main() communications."""
+	def __init__(self, value):
+		self.value = value # sdfgsdfsdfsd
+	def __str__(self):
+		return repr(self.value)
+
+
+def parseArgs(options={}):
+	"""Parse the command line arguments. Raise exceptions on
+	errors. Returns package and affect the options dict.
+	"""
+
+	def optionSwitch(option,opts):
+		"""local function for interpreting command line options
+		and setting options accordingly"""
+		return_code = True
+		for o, a in opts:
+			if o in ("-h", "--help"):
+			   	raise ParseArgsException('help')
+			elif o in ("-V", "--version"):
+				raise ParseArgsException('version')
+			elif o in ("-C", "--nocolor"):
+				options['nocolor'] = True
+				pp.output.nocolor()
+			elif o in ("-q", "--quiet"):
+				options['quiet'] = True
+				options['verbose'] = False
+			elif o in ("-1", "--oneshot"):
+				options['oneshot'] = True
+			elif o in ("-b", "--brute-force"):
+				options['brute-force'] = int(a)
+			elif o in ("-v", "--verbose") and not options['quiet']:
+					options['verbose'] = True
+			else:
+				return_code = False
+
+		return return_code
+
+	# here are the different allowed command line options (getopt args)
+	getopt_options = {'short':{}, 'long':{}}
+	getopt_options['short']['global'] = "hVCqv1b:"
+	getopt_options['long']['global'] = ["help", "version", "nocolor", "quiet",
+					    "verbose", "oneshot", "brute-force="]
+	# set default options, except 'nocolor', which is set in main()
+	options['quiet'] = False
+	options['verbose'] = False
+	options['brute-force'] = 2
+	options['oneshot'] = False
+	options['brute-force-recursive'] = True # FIXME add an option
+	options['scan-dir'] = True # FIXME add an option
+
+	short_opts = getopt_options['short']['global']
+	long_opts = getopt_options['long']['global']
+	opts_mode = 'global'
+
+	# apply getopts to command line, show partial help on failure
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], short_opts, long_opts)
+	except:
+		raise ParseArgsException(opts_mode+'-options')
+
+	# set options accordingly
+	optionSwitch(options,opts)
+
+	if len(args) != 1:
+	   	raise ParseArgsException('packages')
+
+	return args[0]
+
+
+def scanUpstream(options, package, output):
+        matches = Query(package).find(
+                include_masked=QUERY_OPTS['include_masked'],
+                in_installed=False
+        )
+
+        if not matches:
+                sys.stderr.write(pp.warn("No package matching '%s'" % pp.pkgquery(package)))
+                sys.exit(errno.ENOENT)
+
+	matches = sorted(matches)
+        pkg = matches.pop()
+	if pkg.version == '9999':
+		pkg = matches.pop()
+
+        pp.uprint(" * %s [%s]" % (pp.cpv(pkg.cpv), pp.section(pkg.repo_name())))
+	pp.uprint()
+
+        ebuild_path = pkg.ebuild_path()
+        if ebuild_path:
+                pp.uprint('Ebuild: ' + pp.path(os.path.normpath(ebuild_path)))
+
+        pp.uprint('Repository: ' + pkg.repo_name())
+        pp.uprint('Homepage: ' + pkg.environment("HOMEPAGE"))
+        pp.uprint('Description: ' + pkg.environment("DESCRIPTION"))
+	pp.uprint()
+
+	cpv = pkg.cpv
+        metadata = {
+		"EAPI"    : port_settings["EAPI"],
+		"SRC_URI" : pkg.environment("SRC_URI", False),
+	}
+	use = frozenset(port_settings["PORTAGE_USE"].split())
 	try:
 		alist = _parse_uri_map(cpv, metadata, use=use)
 		aalist = _parse_uri_map(cpv, metadata)
 	except InvalidDependString as e:
-		red("!!! %s\n" % str(e))
-		red(_("!!! Invalid SRC_URI for '%s'.\n") % cpv)
-		del e
-		return
+                sys.stderr.write(pp.warn("%s\n" % str(e)))
+                sys.stderr.write(pp.warn("Invalid SRC_URI for '%s'" % pp.pkgquery(cpv)))
+                sys.exit(errno.ENOENT)
 
 	if "mirror" in portage.settings.features:
 		fetchme = aalist
@@ -394,23 +604,18 @@ def euscan(cpv, portdir):
 
 	for filename in fetchme:
 		for fileurl in fetchme[filename]:
-			if fileurl.startswith('mirror://'):
-				output.eerror('mirror:// scheme not supported (%s)' % fileurl)
-				continue
+                        fileurl = parseMirror(fileurl, output)
 
 			# Try list dir
-			versions.extend(scan_directory(cpv, fileurl))
+			versions.extend(scan_directory(cpv, fileurl, options, output))
 
-			if versions and settings['stop-when-found']:
+			if versions and options['oneshot']:
 				break
 
 			# Try manual bump
-			versions.extend(brute_force(cpv, fileurl))
+			versions.extend(brute_force(cpv, fileurl, options, output))
 
-			if versions and settings['stop-when-found']:
-				break
-
-			if versions and not settings["check-all-files"]:
+			if versions and options['oneshot']:
 				break
 
 	newversions = {}
@@ -420,126 +625,51 @@ def euscan(cpv, portdir):
 			continue
 		newversions[version] = url
 
+	print ()
+
 	for version in newversions:
-		print darkgreen("New Upstream Version: ") + green("%s" % version) + " %s" % newversions[version]
+		print ("Upstream Version: " + pp.number("%s" % version) + pp.path(" %s" % newversions[version]))
+	if not len(newversions):
+		print (pp.warn("Didn't find any new version, check package's homepage for " +
+			       "more informations"));
 	return versions
 
-class Metadata_XML(handler.ContentHandler):
-	_inside_herd="No"
-	_inside_maintainer="No"
-	_inside_email="No"
-	_inside_longdescription="No"
 
-	_herd = []
-	_maintainers = []
-	_longdescription = ""
+def main():
+	"""Parse command line and execute all actions."""
+	# set default options
+	options = {}
+	options['nocolor'] = (port_settings["NOCOLOR"] in ('yes','true')
+		or not sys.stdout.isatty())
+	if options['nocolor']:
+		pp.output.nocolor()
+	# parse command line options and actions
+	try:
+		package = parseArgs(options)
+	# filter exception to know what message to display
+	except ParseArgsException as e:
+		if e.value == 'help':
+			printUsage(help='all')
+			sys.exit(0)
+		elif e.value[:5] == 'help-':
+			printUsage(help=e.value[5:])
+			sys.exit(0)
+		elif e.value == 'version':
+			printVersion()
+			sys.exit(0)
+		else:
+			printUsage(e.value)
+			sys.exit(errno.EINVAL)
 
-	def startElement(self, tag, attr):
-		if tag == "herd":
-			self._inside_herd="Yes"
-		if tag == "longdescription":
-			self._inside_longdescription="Yes"
-		if tag == "maintainer":
-			self._inside_maintainer="Yes"
-		if tag == "email":
-			self._inside_email="Yes"
-
-	def endElement(self, tag):
-		if tag == "herd":
-			self._inside_herd="No"
-		if tag == "longdescription":
-			self._inside_longdescription="No"
-		if tag == "maintainer":
-			self._inside_maintainer="No"
-		if tag == "email":
-			self._inside_email="No"
-
-	def characters(self, contents):
-		if self._inside_herd == "Yes":
-			self._herd.append(contents)
-
-		if self._inside_longdescription == "Yes":
-			self._longdescription = contents
-
-		if self._inside_maintainer=="Yes" and self._inside_email=="Yes":
-			self._maintainers.append(contents)
+	output = EOutput(options['quiet'])
+	scanUpstream(options, package, output)
 
 
-def check_metadata(cpv, portdir = None):
-	"""Checks that the primary maintainer is still an active dev and list the herd the package belongs to"""
-	if not portdir:
-		portdb = portage.portdbapi()
-		repo, = portdb.aux_get(cpv, ['repository'])
-		portdir = portdb.getRepositoryPath(repo)
-
-	metadata_file = portdir + "/" + portage.pkgsplit(cpv)[0] + "/metadata.xml"
-
-	if not os.path.exists(metadata_file):
-		print darkgreen("Maintainer: ") + red("Error (Missing metadata.xml)")
-		return 1
-
-	parser = make_parser()
-	handler = Metadata_XML()
-	handler._maintainers = []
-	parser.setContentHandler(handler)
-	parser.parse( metadata_file )
-
-	if handler._herd:
-		herds = ", ".join(handler._herd)
-		print darkgreen("Herd: ") + herds
-	else:
-		print darkgreen("Herd: ") + red("Error (No Herd)")
-		return 1
-
-
-	if handler._maintainers:
-		print darkgreen("Maintainer: ") + ", ".join(handler._maintainers)
-	else:
-		print darkgreen("Maintainer: ") + "none"
-
-	if len(handler._longdescription) > 1:
-		print darkgreen("Description: ") + handler._longdescription
-	print darkgreen("Location: ") + os.path.normpath(portdir + "/" + portage.pkgsplit(cpv)[0])
-
-
-def usage(code):
-	"""Prints the uage information for this script"""
-	print green("euscan"), "(%s)" % __version__
-	print
-	print "Usage: euscan [ebuild|[package-cat/]package[-version]]"
-	sys.exit(code)
-
-
-# default color setup
-if ( not sys.stdout.isatty() ) or ( portage.settings["NOCOLOR"] in ["yes","true"] ):
-	nocolor()
-
-def fc(x,y):
-	return cmp(y[0], x[0])
-
-def main ():
-	if len( sys.argv ) < 2:
-		usage(1)
-
-	for pkg in sys.argv[1:]:
-		#try:
-			if pkg.endswith('.ebuild'):
-				portdir = os.path.dirname(os.path.dirname(os.path.dirname(pkg)))
-				package_list = os.path.basname(pkg)
-			else:
-				portdir = None
-				print pkg
-				package_list = portage.portdb.xmatch("match-all", pkg)
-
-			for cpv in package_list:
-				print darkgreen("Package: ") + cpv
-				#check_metadata(cpv, portdir)
-				euscan(cpv, portdir)
-				print ""
-		#except Exception, err:
-		#	print red("Error: "+pkg+"\n")
-		#	print err
-
-
-if __name__ == '__main__':
-	main()
+if __name__ == "__main__":
+	try:
+                setupSignals()
+		main()
+	except KeyboardInterrupt:
+		print( "Aborted.")
+		sys.exit(errno.EINTR)
+	sys.exit(0)
