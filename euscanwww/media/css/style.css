@@ -1,0 +1,422 @@
+body
+{
+  margin: 0;
+  padding: 0;
+  font-size: 0.8em;
+  font-family: Dejavu, Verdana, "Bitstream Vera Sans", "Lucida Grande", "Trebuchet MS", sans-serif;
+  color: #535353;
+  background: #E3E3E2;
+  }
+
+img
+{
+  border: none;
+  }
+
+h1
+{
+  margin-top: 0;
+  color: #369;
+  font-size: 1.6em;
+}
+
+a:link, a:visited
+{
+  text-decoration: none;
+  font-weight: bold;
+  color: #ff8c00;
+  }
+
+a:hover, a:active
+{
+  font-weight: bold;
+  color: #ff4500;
+  text-decoration: underline;
+  }
+
+#header {
+    background: #ffffff;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#content {
+    background: #ffffff;
+    padding: 10px;
+    margin-top: 10px;
+/*    margin-right: auto;
+    margin-left: auto;
+*/
+    margin-left: 20%;
+    margin-right: 250px;
+    max-width: 60em;
+
+    border: solid 1px #DBDBDA;
+    background: #FEFEFE;
+
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+
+#menu {
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+
+}
+
+#menu, #menu_dl {
+	width:100%;
+        border-bottom: 1px dotted #663300;
+	margin-top: 5px;
+	background: #252525;
+}
+
+#menu a {
+    color: #fff;
+}
+
+#menu li
+{
+  list-style-type: none;
+ }
+#menus {
+    width: 200px;
+    position:absolute;
+    top:30px;
+    right:20px;
+
+/*
+    position: fixed;
+    right: 10px;
+    top: 2em;
+    width: 20%;
+*/
+}
+
+/*
+code, pre{
+	background-color:transparent;
+	font-family:"Courier New",Courier,monospace;
+	font-size:small;
+}
+*/
+
+a{
+	color: #3F4C66;
+}
+
+a:link, a:visited, a:active {
+	color: #3F4C66;
+	text-decoration: none;
+}
+a:hover {
+	color: #4C5C7B;
+	text-decoration: underline;
+}
+
+abbr:hover {
+	text-decoration: underline;
+}
+
+pre{
+	border-left:5px solid;
+	padding:0.5em 1em;
+	margin-left:2em;
+}
+
+dt {
+	font-weight: bold;
+}
+
+dd {
+	border-left: 1px solid #ccc;
+	margin: 5px;
+	padding: 5px;
+}
+
+table {
+	border:3px solid #55534E;
+	border-collapse:collapse;
+	width:90%;
+	margin:auto;
+}
+
+thead, tfoot {
+	border:1px solid #55534E;
+}
+
+tbody {
+	background-color:#FFFFFF;
+	border:1px solid #55534E;
+}
+tbody tr.even {
+	background-color: #eee;
+}
+tbody tr.odd  {
+	background-color: #fff;
+}
+tbody tr:hover {
+	background: #DFD9CD;	
+}
+
+
+th {
+	border:1px dotted #55534E;
+	padding:5px;
+	background-color: #DFD9CD;
+}
+
+td {
+	border:1px solid #55534E;
+	padding:5px;
+	text-align:left;
+}
+
+h1 {
+	width: 20em;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.ok {
+	color:#15B100;
+}
+.bad {
+	color:#FFFFFF;
+}
+hr
+{
+  margin: 0.3em 1em 0.3em 1em;
+  height: 1px;
+  border: #bcbcbc dashed;
+  border-width: 0 0 1px 0;
+  }
+
+
+table
+{
+    width: 80%;
+    border-collapse: collapse;
+    font-size: 1em;
+    margin-left: auto;
+    margin-right: auto;
+    background: #F5F5F5;
+    text-align: left;
+}
+
+td
+{
+  vertical-align: top;
+  }
+
+th
+{
+  text-align: center;
+  border-bottom: 3px solid;
+ }
+
+#logos, #footer
+{
+    margin: 10px;
+    text-align: center;
+    background: #FFF;
+    font-size: 0.8em;
+    margin-right: auto;
+    margin-left:auto;
+    width: 60em;
+    padding: 10px;
+
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+
+ }
+
+.err,.ok,.inf
+{
+  margin: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
+  font-weight:bold;
+  border: 1px dotted #5682AD;
+  }
+
+.err
+{
+  border-color: #F00;
+  color: #F00;
+ }
+
+.ok
+{
+  border-color: #262;
+  color: #262;
+  }
+
+.logo {
+    float: right;
+}
+
+.clear {
+    clear: both;
+}
+
+.download a {
+    color: #1c1c1c;
+}
+
+.download {
+    background: url('download-bg.png') no-repeat;
+    color: #1c1c1c;
+    padding: 1em;
+    float: right;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    background-size: 100% 100%;
+    -moz-background-size: 100% 100%;
+    -webkit-background-size: 100% 100%;
+}
+
+.ubuntu {
+    background: url('dev/img/ubuntu.png') no-repeat;
+    padding-left: 20px;
+}
+
+.debian {
+    background: url('dev/img/debian.png') no-repeat;
+    padding-left: 20px;
+}
+
+.gentoo {
+    background: url('dev/img/gentoo.png') no-repeat;
+    padding-left: 20px;
+}
+
+.osx {
+    background: url('dev/img/osx.png') no-repeat;
+    padding-left: 20px;
+}
+
+.win32 {
+    background: url('dev/img/win32.png') no-repeat;
+    padding-left: 20px;
+}
+
+.maemo {
+    background: url('dev/img/maemo.png') no-repeat;
+    padding-left: 20px;
+}
+
+.symbian {
+    background: url('dev/img/symbian.png') no-repeat;
+    padding-left: 20px;
+}
+
+.os2 {
+    background: url('dev/img/os2.png') no-repeat;
+    padding-left: 20px;
+}
+
+
+pre code[class]:after {
+  content: 'highlight: ' attr(class);
+  display: block; text-align: right;
+  font-size: smaller;
+  color: #CCC; background: white;
+  border-top: solid 1px;
+  padding-top: 0.5em;
+}
+
+pre code {
+  display: block;
+  background: #F0F0F0;
+}
+
+pre code,
+pre .ruby .subst,
+pre .xml .title,
+pre .lisp .title {
+  color: black;
+}
+
+pre .string,
+pre .title,
+pre .parent,
+pre .tag .attribute .value,
+pre .rules .value,
+pre .rules .value .number,
+pre .preprocessor,
+pre .ruby .symbol,
+pre .instancevar,
+pre .aggregate,
+pre .template_tag,
+pre .django .variable,
+pre .smalltalk .class,
+pre .addition,
+pre .flow,
+pre .stream,
+pre .bash .variable,
+pre .apache .tag,
+pre .apache .cbracket {
+  color: #800;
+}
+
+pre .comment,
+pre .annotation,
+pre .template_comment,
+pre .diff .header,
+pre .chunk {
+  color: #888;
+}
+
+pre .number,
+pre .date,
+pre .regexp,
+pre .literal,
+pre .smalltalk .symbol,
+pre .smalltalk .char,
+pre .change {
+  color: #080;
+}
+
+pre .label,
+pre .javadoc,
+pre .ruby .string,
+pre .decorator,
+pre .filter .argument,
+pre .localvars,
+pre .array,
+pre .attr_selector,
+pre .pseudo,
+pre .pi,
+pre .doctype,
+pre .deletion,
+pre .envvar,
+pre .shebang,
+pre .apache .sqbracket {
+  color: #88F;
+}
+
+pre .keyword,
+pre .id,
+pre .phpdoc,
+pre .title,
+pre .built_in,
+pre .aggregate,
+pre .smalltalk .class,
+pre .winutils,
+pre .bash .variable,
+pre .apache .tag {
+  font-weight: bold;
+}
+
+pre .html .css,
+pre .html .javascript,
+pre .html .vbscript {
+  opacity: 0.5;
+}
