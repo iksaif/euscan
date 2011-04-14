@@ -137,43 +137,6 @@ dd {
 	padding: 5px;
 }
 
-table {
-	border:3px solid #55534E;
-	border-collapse:collapse;
-	width:90%;
-	margin:auto;
-}
-
-thead, tfoot {
-	border:1px solid #55534E;
-}
-
-tbody {
-	background-color:#FFFFFF;
-	border:1px solid #55534E;
-}
-tbody tr.even {
-	background-color: #eee;
-}
-tbody tr.odd  {
-	background-color: #fff;
-}
-tbody tr:hover {
-	background: #DFD9CD;	
-}
-
-
-th {
-	border:1px dotted #55534E;
-	padding:5px;
-	background-color: #DFD9CD;
-}
-
-td {
-	border:1px solid #55534E;
-	padding:5px;
-	text-align:left;
-}
 
 h1 {
 	width: 20em;
@@ -184,9 +147,11 @@ h1 {
 .ok {
 	color:#15B100;
 }
+
 .bad {
 	color:#FFFFFF;
 }
+
 hr
 {
   margin: 0.3em 1em 0.3em 1em;

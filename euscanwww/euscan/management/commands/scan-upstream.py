@@ -138,7 +138,7 @@ class Command(BaseCommand):
                 sys.stdout.write('[u] %s/%s-%s %s\n' % (package.category, package.name,
                                                         ver, url))
 
-            obj.url = url
+            obj.urls = url
             obj.packaged = False
             obj.save()
 

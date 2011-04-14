@@ -1,8 +1,9 @@
-?xml version="1.0" encoding="utf8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr">
+<?xml version="1.0" encoding="utf8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr">
   <head>
     <title>{% block title %}euscan{% endblock %}</title>
-    <meta http-equiv="Content-Type" content="text/html" charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset="utf-8" />
     {% block css %}
     <link rel="stylesheet" type="text/css" href="{{MEDIA_URL}}img/style.css" media="screen" title="Normal" />
     {% endblock %}
@@ -14,7 +15,9 @@
       {% block header %}<h1>euscan</h1>{% endblock %}
     </div>
     <div id="content">
-      {% block content %}{% endblock %}
+      {% block content %}
+      {% endblock %}
+    </div>
     <div id="menus">
       {% block menus %}
       <div id="menu">

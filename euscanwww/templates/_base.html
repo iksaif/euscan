@@ -15,14 +15,15 @@
     </div>
     <div id="content">
       {% block content %}{% endblock %}
+    </div>
     <div id="menus">
       {% block menus %}
       <div id="menu">
 	<ul>
 	  {% block menu %}
-	  <li><a href="categories/">Categories</a></li>
-	  <li><a href="herds/">Herds</a></li>
-	  <li><a href="maintainers/">Maintainers</a></li>
+	  <li><a href="/categories/">Categories</a></li>
+	  <li><a href="/herds/">Herds</a></li>
+	  <li><a href="/maintainers/">Maintainers</a></li>
 	  {% endblock %}
 	</ul>
       </div>

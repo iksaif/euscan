@@ -1,0 +1,38 @@
+{% extends "euscan/_datatable.html" %}
+
+{% load sub %}
+{% load mul %}
+
+{% block title %}
+{{ block.super }} - {{ category }}
+{% endblock %}
+
+{% block content %}
+<h2>Category: {{ category }}</h2>
+<table id="table" class="display">
+  <thead>
+    <th>Package</th>
+    <th>Ebuilds</th>
+    <th>Unpackaged</th>
+  </thead>
+  <tbody>
+  {% for package in packages %}
+  {% if package.n_versions == package.n_packaged %}
+  <tr class="gradeA">
+  {% else %}{% if package.n_versions < package.n_packaged|mul:2 %}
+  <tr class="gradeC">
+  {% else %}
+  <tr class="gradeX">
+  {% endif %}{% endif %}
+    <td>
+      <a href="{% url euscan.views.package package.category package.name %}">
+	{{ package.category }}/{{ package.name }}
+      </a>
+    </td>
+    <td>{{ package.n_packaged }}</td>
+    <td>{{ package.n_versions|sub:package.n_packaged }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

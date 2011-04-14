@@ -1,5 +1,6 @@
 from annoying.decorators import render_to
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Max
 
 from euscan.models import Version, Package, Herd, Maintainer, EuscanResult
@@ -9,7 +10,8 @@ def index(request):
     ctx = {}
     ctx['n_packaged'] = Package.objects.aggregate(Sum('n_packaged'))['n_packaged__sum']
     ctx['n_versions'] = Package.objects.aggregate(Sum('n_versions'))['n_versions__sum']
-    ctx['n_upstream'] = ctx['n_versions'] - ctx['n_packaged']
+    if ctx['n_versions'] is not None and ctx['n_pacaged'] is not None:
+        ctx['n_upstream'] = ctx['n_versions'] - ctx['n_packaged']
     ctx['n_packages'] = Package.objects.count()
     ctx['n_herds'] = Herd.objects.count()
     ctx['n_maintainers'] = Maintainer.objects.count()
@@ -27,7 +29,10 @@ def categories(request):
 
 @render_to('euscan/category.html')
 def category(request, category):
-    return {}
+    packages = Package.objects.filter(category=category)
+    if not packages:
+        raise Http404
+    return { 'category' : category, 'packages' : packages }
 
 @render_to('euscan/herds.html')
 def herds(request):
@@ -47,4 +52,7 @@ def maintainer(request, maintainer_id):
 
 @render_to('euscan/package.html')
 def package(request, category, package):
-    return {}
+    package = get_object_or_404(Package, category=category, name=package)
+    packaged = Version.objects.filter(package=package, packaged=True)
+    upstream = Version.objects.filter(package=package, packaged=False)
+    return { 'package' : package, 'packaged' : packaged, 'upstream' : upstream }
