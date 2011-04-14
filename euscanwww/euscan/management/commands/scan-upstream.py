@@ -4,6 +4,7 @@ import sys
 import os
 import re
 
+from StringIO import StringIO
 from datetime import datetime
 from portage import versions
 from optparse import make_option
@@ -21,11 +22,11 @@ class Command(BaseCommand):
             dest='all',
             default=False,
             help='Scan all packages'),
-        make_option('--parallel',
+        make_option('--feed',
             action='store_true',
-            dest='parallel',
+            dest='feed',
             default=False,
-            help='Use GNU Parallel'),
+            help='Read euscan output from stdin'),
         make_option('--quiet',
             action='store_true',
             dest='quiet',
@@ -36,8 +37,12 @@ class Command(BaseCommand):
     help = 'Scans metadata and fills database'
 
     def handle(self, *args, **options):
-        if len(args) == 0 and options['all'] == False:
+        if len(args) == 0 and options['all'] == False and options['feed'] == False:
             raise CommandError('You must specify a package or use --all')
+
+        if options['feed']:
+            self.parse_output(options, sys.stdin)
+            return
 
         if not options['quiet']:
             self.stdout.write('Scanning upstream...\n')
@@ -57,22 +62,13 @@ class Command(BaseCommand):
 
     @commit_on_success
     def scan(self, options, packages=None):
-        if options['parallel']:
-            jobs = '\n'.join(packages)
-            cmd = ['gparallel', '--jobs', '150%', 'euscan']
+        for package in packages:
+            cmd = ['euscan', package]
 
-            fp = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            output = fp.communicate(jobs)[0]
+            fp = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            output = StringIO(fp.communicate()[0])
 
             self.parse_output(options, output)
-        else:
-            for package in packages:
-                cmd = ['euscan', package]
-
-                fp = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-                output = fp.communicate()[0]
-
-                self.parse_output(options, output)
 
     def parse_output(self, options, output):
         from portage.versions import _cp
@@ -83,7 +79,10 @@ class Command(BaseCommand):
         package = None
         log = ""
 
-        for line in output.split('\n'):
+        while True:
+            line = output.readline()
+            if line == '':
+                break
             match = package_re.match(line)
             if match:
                 if package:
@@ -143,5 +142,6 @@ class Command(BaseCommand):
             obj.packaged = False
             obj.save()
 
-        package.n_versions += 1
-        package.save()
+        if created:
+            package.n_versions += 1
+            package.save()

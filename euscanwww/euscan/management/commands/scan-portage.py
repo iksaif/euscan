@@ -141,9 +141,14 @@ class Command(BaseCommand):
         obj, created = Version.objects.get_or_create(package=package, slot=slot,
                                                      revision=rev, version=ver,
                                                      overlay=overlay)
+
+        if created or not package.n_packaged:
+            package.n_packaged += 1
+        if created:
+            package.n_versions += 1
+
+        package.save()
+
         obj.packaged = True
         obj.save()
 
-        package.n_versions += 1
-        package.n_packaged += 1
-        package.save()

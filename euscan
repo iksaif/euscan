@@ -45,6 +45,8 @@ from gentoolkit.eclean.search import (port_settings)
 
 QUERY_OPTS = {"include_masked": True}
 
+SCANDIR_BLACKLIST_URLS = ['mirror://rubygems/(.*)', 'mirror://gentoo/(.*)']
+
 BRUTEFORCE_BLACKLIST_PACKAGES = ['dev-util/patchelf', 'net-zope/plonepopoll']
 BRUTEFORCE_BLACKLIST_URLS = ['http://www.dockapps.org/download.php/id/(.*)']
 
@@ -182,7 +184,9 @@ def tryurl(fileurl, output):
 		else:
 			result = True
 	except urllib2.URLError:
-		retult = False
+		result = False
+	except IOError:
+		result = False
 
 	output.eend(errno.ENOENT if not result else 0)
 
@@ -241,6 +245,8 @@ def scan_directory_recursive(url, steps, vmin, vmax, output):
 	try:
 		fp = urllib2.urlopen(url, None, 5)
 	except urllib2.URLError:
+		return []
+	except IOError:
 		return []
 
 	data = fp.read()
@@ -302,7 +308,7 @@ def scan_directory(cpv, fileurl, options, output, limit=None):
 
 	template = template_from_url(fileurl, ver)
 	if '${' not in template:
-		output.ewarn("Url doesn't seems to depend on version: %s not found in %s"
+		output.einfo("Url doesn't seems to depend on version: %s not found in %s"
 			     % (ver, fileurl))
 		return []
 	else:
@@ -321,12 +327,12 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 
 	for bp in BRUTEFORCE_BLACKLIST_PACKAGES:
 		if re.match(bp, catpkg):
-			output.ewarn("%s is blacklisted by rule %s" % (catpkg, bp))
+			output.einfo("%s is blacklisted by rule %s" % (catpkg, bp))
 			return []
 
 	for bp in BRUTEFORCE_BLACKLIST_URLS:
 		if re.match(bp, fileurl):
-			output.ewarn("%s is blacklisted by rule %s" % (catpkg, bp))
+			output.einfo("%s is blacklisted by rule %s" % (catpkg, bp))
 			return []
 
 	components = split_version(ver)
@@ -335,13 +341,13 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 	output.einfo("Generating version from " + ver)
 
 	if not versions:
-		output.ewarn("Can't generate new versions from " + ver)
+		output.einfo("Can't generate new versions from " + ver)
 		return []
 
 	template = template_from_url(fileurl, ver)
 
 	if '${PV}' not in template:
-		output.ewarn("Url doesn't seems to depend on full version: %s not found in %s"
+		output.einfo("Url doesn't seems to depend on full version: %s not found in %s"
 			     % (ver, fileurl))
 		return []
 	else:
@@ -384,6 +390,8 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 
 
 def parseMirror(uri, output):
+	from random import shuffle
+
 	mirrors = portage.settings.thirdpartymirrors()
 
 	if not uri.startswith("mirror://"):
@@ -391,17 +399,19 @@ def parseMirror(uri, output):
 
 	eidx = uri.find("/", 9)
 	if eidx == -1:
-		output.ewarn("Invalid mirror definition in SRC_URI:\n")
-		output.ewarn("  %s\n" % (uri))
+		output.einfo("Invalid mirror definition in SRC_URI:\n")
+		output.einfo("  %s\n" % (uri))
 		return None
 
 	mirrorname = uri[9:eidx]
 	path = uri[eidx+1:]
 
 	if mirrorname in mirrors:
-		uri = mirrors[mirrorname][0].strip("/") + "/" + path
+		mirrors = mirrors[mirrorname]
+		shuffle(mirrors)
+		uri = mirrors[0].strip("/") + "/" + path
 	else:
-		output.ewarn("No known mirror by the name: %s\n" % (mirrorname))
+		output.einfo("No known mirror by the name: %s\n" % (mirrorname))
 		return None
 
         return uri
@@ -567,7 +577,11 @@ def scanUpstream(options, package, output):
 	matches = sorted(matches)
         pkg = matches.pop()
 	if pkg.version == '9999':
-		pkg = matches.pop()
+		if len(matches) == 0:
+			sys.stderr.write(pp.warn("Package '%s' only have a dev version (9999)" % pp.pkgquery(package)))
+			sys.exit(errno.ENOENT)
+		else:
+			pkg = matches.pop()
 
         pp.uprint(" * %s [%s]" % (pp.cpv(pkg.cpv), pp.section(pkg.repo_name())))
 	pp.uprint()
@@ -582,7 +596,7 @@ def scanUpstream(options, package, output):
 	pp.uprint()
 
 	cpv = pkg.cpv
-        metadata = {
+	metadata = {
 		"EAPI"    : port_settings["EAPI"],
 		"SRC_URI" : pkg.environment("SRC_URI", False),
 	}
@@ -604,16 +618,29 @@ def scanUpstream(options, package, output):
 
 	for filename in fetchme:
 		for fileurl in fetchme[filename]:
-                        fileurl = parseMirror(fileurl, output)
+			skipscan = False
 
-			# Try list dir
-			versions.extend(scan_directory(cpv, fileurl, options, output))
+			if '://' not in fileurl:
+				output.einfo("Invalid url '%s'" % fileurl)
+				continue
+
+			for bp in SCANDIR_BLACKLIST_URLS:
+				if re.match(bp, fileurl):
+					output.einfo("%s is blacklisted by rule %s" % (fileurl, bp))
+					skipscan = True
+
+                        url = parseMirror(fileurl, output)
+
+
+			# Try list dir, but not for gentoo mirrors, it's too slow
+			if not skipscan:
+				versions.extend(scan_directory(cpv, url, options, output))
 
 			if versions and options['oneshot']:
 				break
 
 			# Try manual bump
-			versions.extend(brute_force(cpv, fileurl, options, output))
+			versions.extend(brute_force(cpv, url, options, output))
 
 			if versions and options['oneshot']:
 				break

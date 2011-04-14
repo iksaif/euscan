@@ -1,0 +1,21 @@
+{% extends "_base.html" %}
+
+{% block css %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{{MEDIA_URL}}css/table.css" media="screen" title="Normal" />
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script type="text/javascript" language="javascript" src="{{MEDIA_URL}}js/jquery.js"></script>
+<script type="text/javascript" language="javascript" src="{{MEDIA_URL}}js/jquery.dataTables.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+    $('#table').dataTable( {
+    "bPaginate": false,
+     "bInfo": false,
+    } );
+  });
+</script>
+{% endblock %}

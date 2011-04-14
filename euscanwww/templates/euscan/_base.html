@@ -4,7 +4,7 @@
     <title>{% block title %}euscan{% endblock %}</title>
     <meta http-equiv="Content-Type" content="text/html" charset="utf-8" />
     {% block css %}
-    <link rel="stylesheet" type="text/css" href="{{MEDIA_ROOT}}img/style.css" media="screen" title="Normal" />
+    <link rel="stylesheet" type="text/css" href="{{MEDIA_URL}}img/style.css" media="screen" title="Normal" />
     {% endblock %}
     {% block javascript %}
     {% endblock %}
@@ -31,10 +31,10 @@
     <div id="footer">
       Powered by:
       <a href="http://kernel.org" titke="Linux Kernel">
-	<img  src="{{MEDIA_ROOT}}img/linux.png" alt="Linux" />
+	<img  src="{{MEDIA_URL}}img/linux.png" alt="Linux" />
       </a>
       <a href="http://gentoo.org" title="Gentoo">
-	<img  src="{{MEDIA_ROOT}}img/gentoo.png" alt="Gentoo Linux" />
+	<img  src="{{MEDIA_URL}}img/gentoo.png" alt="Gentoo Linux" />
       </a>
       -
       Copyright (C) 2011 <strong>Corentin Chary</strong>
