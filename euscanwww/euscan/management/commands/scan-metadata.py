@@ -12,7 +12,7 @@ from django.core.management.base import BaseCommand, CommandError
 from euscanwww.euscan.models import Package, Herd, Maintainer
 
 from gentoolkit.query import Query
-from gentoolkit.eclean.search import (port_settings)
+from gentoolkit.errors import GentoolkitFatalError
 
 class Command(BaseCommand):
     _overlays = {}
@@ -37,7 +37,7 @@ class Command(BaseCommand):
             raise CommandError('You must specify a package or use --all')
 
         if not options['quiet']:
-            self.stdout.write('Scanning portage tree...\n')
+            self.stdout.write('Scanning metadata...\n')
 
         if len(args) == 0:
             for pkg in Package.objects.all():
@@ -62,21 +62,25 @@ class Command(BaseCommand):
 
 	matches = sorted(matches)
         pkg = matches.pop()
-	if pkg.version == '9999':
+	if pkg.version == '9999' and len(matches):
 		pkg = matches.pop()
 
         obj, created = Package.objects.get_or_create(category=pkg.category, name=pkg.name)
 
-        obj.homepage = pkg.environment("HOMEPAGE")
-        obj.description = pkg.environment("DESCRIPTION")
+        try:
+            obj.homepage = pkg.environment("HOMEPAGE")
+            obj.description = pkg.environment("DESCRIPTION")
+        except GentoolkitFatalError, err:
+            sys.stderr.write(self.style.ERROR("Gentoolkit fatal error: '%s'\n" % str(err)))
 
-        for herd in pkg.metadata.herds(True):
-            herd = self.store_herd(options, herd[0], herd[1])
-            obj.herds.add(herd)
+        if pkg.metadata:
+            for herd in pkg.metadata.herds(True):
+                herd = self.store_herd(options, herd[0], herd[1])
+                obj.herds.add(herd)
 
-        for maintainer in pkg.metadata.maintainers():
-            maintainer = self.store_maintainer(options, maintainer.name, maintainer.email)
-            obj.maintainers.add(maintainer)
+            for maintainer in pkg.metadata.maintainers():
+                maintainer = self.store_maintainer(options, maintainer.name, maintainer.email)
+                obj.maintainers.add(maintainer)
 
         if not options['quiet']:
             sys.stdout.write('[p] %s/%s\n' % (pkg.category, pkg.name))

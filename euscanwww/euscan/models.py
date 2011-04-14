@@ -27,6 +27,10 @@ class Package(models.Model):
     herds = models.ManyToManyField(Herd, blank=True)
     maintainers = models.ManyToManyField(Maintainer, blank=True)
 
+    # For performance, we keep pre-computed counters
+    n_versions = models.IntegerField(default=0)
+    n_packaged = models.IntegerField(default=0)
+
     def __unicode__(self):
         return '%s/%s' % (self.category, self.name)
 
@@ -52,6 +56,30 @@ class Version(models.Model):
 
 class EuscanResult(models.Model):
     package = models.ForeignKey(Package)
-    startdate = models.DateTimeField()
-    endstate = models.DateTimeField()
+    datetime = models.DateTimeField()
     result = models.TextField(blank=True)
+
+# Keep data for charts
+class CategoryLog(models.Model):
+    category = models.CharField(max_length=128)
+    datetime = models.DateTimeField()
+
+    n_packages = models.IntegerField(default=0)
+    n_versions = models.IntegerField(default=0)
+    n_packaged = models.IntegerField(default=0)
+
+class HerdLog(models.Model):
+    herd = models.ForeignKey(Herd)
+    datetime = models.DateTimeField()
+
+    n_packages = models.IntegerField(default=0)
+    n_versions = models.IntegerField(default=0)
+    n_packaged = models.IntegerField(default=0)
+
+class MaintainerLog(models.Model):
+    maintainer = models.ForeignKey(Maintainer)
+    datetime = models.DateTimeField()
+
+    n_packages = models.IntegerField(default=0)
+    n_versions = models.IntegerField(default=0)
+    n_packaged = models.IntegerField(default=0)

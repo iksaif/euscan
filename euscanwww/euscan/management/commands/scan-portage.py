@@ -36,9 +36,6 @@ class Command(BaseCommand):
         if not options['quiet']:
             self.stdout.write('Scanning portage tree...\n')
 
-        Version.objects.all().delete()
-        Package.objects.all().delete()
-
         for package in args:
             self.scan(options, package)
 
@@ -119,10 +116,12 @@ class Command(BaseCommand):
         if created:
             if not options['quiet']:
                 sys.stdout.write('[p] %s/%s\n' % (cat, pkg))
-            obj.save()
 
         # Delete previous versions to handle incremental scan correctly
         Version.objects.filter(package=obj, packaged=True).delete()
+
+        obj.n_versions = Version.objects.filter(package=obj).count()
+        obj.save()
 
         return obj
 
@@ -143,5 +142,8 @@ class Command(BaseCommand):
                                                      revision=rev, version=ver,
                                                      overlay=overlay)
         obj.packaged = True
-        #obj.save()
+        obj.save()
 
+        package.n_versions += 1
+        package.n_packaged += 1
+        package.save()
