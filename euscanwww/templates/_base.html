@@ -21,9 +21,15 @@
       <div id="menu">
 	<ul>
 	  {% block menu %}
-	  <li><a href="/categories/">Categories</a></li>
-	  <li><a href="/herds/">Herds</a></li>
-	  <li><a href="/maintainers/">Maintainers</a></li>
+	  <li><a href="{% url euscan.views.index %}">Home</a></li>
+	  <li><a href="{% url euscan.views.categories %}">Categories</a></li>
+	  <li><a href="{% url euscan.views.herds %}">Herds</a></li>
+	  <li><a href="{% url euscan.views.maintainers %}">Maintainers</a></li>
+	  <li>---</li>
+	  <li><a href="#">Login</a></li>
+	  <li><a href="#">Register</a></li>
+	  <li>---</li>
+	  <li><a href="#">About</a></li>
 	  {% endblock %}
 	</ul>
       </div>

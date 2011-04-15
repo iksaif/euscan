@@ -3,10 +3,10 @@
 {% load packages %}
 
 {% block title %}
-{{ block.super }} - Category: {{ category }}
+{{ block.super }} - Herd: {{ herd.herd }}
 {% endblock %}
 
 {% block content %}
-<h2>Category: {{ category }}</h2>
+<h2>Herd: {{ herd.herd }}</h2>
 {% packages packages %}
 {% endblock %}

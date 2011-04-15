@@ -74,6 +74,9 @@ class Command(BaseCommand):
             sys.stderr.write(self.style.ERROR("Gentoolkit fatal error: '%s'\n" % str(err)))
 
         if pkg.metadata:
+            obj.herds.clear()
+            obj.maintainers.clear()
+
             for herd in pkg.metadata.herds(True):
                 herd = self.store_herd(options, herd[0], herd[1])
                 obj.herds.add(herd)
@@ -88,6 +91,10 @@ class Command(BaseCommand):
         obj.save()
 
     def store_herd(self, options, name, email):
+        if not name:
+            name = '{nil}'
+        name = name.strip("\r").strip("\n").strip("\t").strip()
+
         herd, created = Herd.objects.get_or_create(herd=name)
 
         if created or herd.email != email:
@@ -102,13 +109,16 @@ class Command(BaseCommand):
     def store_maintainer(self, options, name, email):
         if not name:
             name = email
+        if not name:
+            name = '{nil}'
 
-        maintainer, created = Maintainer.objects.get_or_create(name=name, email=email)
+        maintainer, created = Maintainer.objects.get_or_create(email=email)
 
         if created:
             if not options['quiet']:
                 sys.stdout.write('[m] %s <%s>\n' % (name.encode('utf-8'), email))
 
+            maintainer.name = name
             maintainer.save()
 
         return maintainer

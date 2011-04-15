@@ -1,0 +1,38 @@
+{% extends "euscan/_datatable.html" %}
+
+{% load sub %}
+{% load mul %}
+
+{% block title %}
+{{ block.super }} - herds
+{% endblock %}
+
+{% block content %}
+<h2>Herds</h2>
+<table id="table" class="display">
+  <thead>
+    <th>Herd</th>
+    <th>Ebuilds</th>
+    <th>Unpackaged</th>
+  </thead>
+  <tbody>
+  {% for herd in herds %}
+  {% if herd.n_versions == herd.n_packaged %}
+  <tr class="gradeA">
+  {% else %}{% if herd.n_versions < herd.n_packaged|mul:2 %}
+  <tr class="gradeC">
+  {% else %}
+  <tr class="gradeX">
+  {% endif %}{% endif %}
+    <td>
+      <a href="{% url euscan.views.herd herd.herds__herd %}">
+	{{ herd.herds__herd }}
+      </a>
+    </td>
+    <td>{{ herd.n_packaged }}</td>
+    <td>{{ herd.n_versions|sub:herd.n_packaged }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

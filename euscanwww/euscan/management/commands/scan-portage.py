@@ -120,6 +120,7 @@ class Command(BaseCommand):
         # Delete previous versions to handle incremental scan correctly
         Version.objects.filter(package=obj, packaged=True).delete()
 
+        obj.n_packaged = 0
         obj.n_versions = Version.objects.filter(package=obj).count()
         obj.save()
 

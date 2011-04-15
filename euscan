@@ -45,10 +45,13 @@ from gentoolkit.eclean.search import (port_settings)
 
 QUERY_OPTS = {"include_masked": True}
 
+BLACKLIST_PACKAGES = ['sys-kernel/usermode-sources', 'sys-kernel/xbox-sources',
+		      'sys-kernel/cell-sources', 'sys-libs/libstdc++-v3']
+
 SCANDIR_BLACKLIST_URLS = ['mirror://rubygems/(.*)', 'mirror://gentoo/(.*)']
 
 BRUTEFORCE_BLACKLIST_PACKAGES = ['dev-util/patchelf', 'net-zope/plonepopoll']
-BRUTEFORCE_BLACKLIST_URLS = ['http://www.dockapps.org/download.php/id/(.*)']
+BRUTEFORCE_BLACKLIST_URLS = ['http://(.*)dockapps.org/download.php/id/(.*)']
 
 # =========
 # Functions
@@ -282,9 +285,14 @@ def scan_directory_recursive(url, steps, vmin, vmax, output):
 
 	for version, path in results:
 		ver = parse_version(version)
+
 		if vmin and ver <= vmin:
 			continue
 		if vmax and ver >= vmax:
+			continue
+
+		# Try to skip nightly builds when not wanted (www-apps/moodle)
+		if len(vmin) != len(ver) and len(ver) == 2 and len(ver[0]) == len('yyyymmdd'):
 			continue
 
 		if not url.endswith('/') and not path.startswith('/'):
@@ -576,12 +584,17 @@ def scanUpstream(options, package, output):
 
 	matches = sorted(matches)
         pkg = matches.pop()
+
 	if pkg.version == '9999':
 		if len(matches) == 0:
 			sys.stderr.write(pp.warn("Package '%s' only have a dev version (9999)" % pp.pkgquery(package)))
 			sys.exit(errno.ENOENT)
 		else:
 			pkg = matches.pop()
+
+	if pkg.cp in BLACKLIST_PACKAGES:
+		sys.stderr.write(pp.warn("Package '%s' is blacklisted" % pp.pkgquery(package)))
+		sys.exit(errno.ENOENT)
 
         pp.uprint(" * %s [%s]" % (pp.cpv(pkg.cpv), pp.section(pkg.repo_name())))
 	pp.uprint()

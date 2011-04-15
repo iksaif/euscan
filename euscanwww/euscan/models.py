@@ -11,13 +11,10 @@ class Herd(models.Model):
 
 class Maintainer(models.Model):
     name = models.CharField(max_length=128)
-    email = models.CharField(max_length=128)
+    email = models.CharField(max_length=128, unique=True)
 
     def __unicode__(self):
         return '%s <%s>' % (self.name, self.email)
-
-    class Meta:
-        unique_together = ['name', 'email']
 
 class Package(models.Model):
     category = models.CharField(max_length=128)

@@ -1,0 +1,38 @@
+{% extends "euscan/_datatable.html" %}
+
+{% load sub %}
+{% load mul %}
+
+{% block title %}
+{{ block.super }} - maintainers
+{% endblock %}
+
+{% block content %}
+<h2>Maintainers</h2>
+<table id="table" class="display">
+  <thead>
+    <th>Maintainer</th>
+    <th>Ebuilds</th>
+    <th>Unpackaged</th>
+  </thead>
+  <tbody>
+  {% for maintainer in maintainers %}
+  {% if maintainer.n_versions == maintainer.n_packaged %}
+  <tr class="gradeA">
+  {% else %}{% if maintainer.n_versions < maintainer.n_packaged|mul:2 %}
+  <tr class="gradeC">
+  {% else %}
+  <tr class="gradeX">
+  {% endif %}{% endif %}
+    <td>
+      <a href="{% url euscan.views.maintainer maintainer.maintainers__id %}">
+	{{ maintainer.maintainers__name }}
+      </a>
+    </td>
+    <td>{{ maintainer.n_packaged }}</td>
+    <td>{{ maintainer.n_versions|sub:maintainer.n_packaged }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
