@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Max
 
 from euscan.models import Version, Package, Herd, Maintainer, EuscanResult
-from euscan.forms import WorldForm, WorldFileForm
+from euscan.forms import WorldForm, PackagesForm
 
 @render_to('euscan/index.html')
 def index(request):
@@ -67,20 +67,21 @@ def package(request, category, package):
 
 @render_to('euscan/world.html')
 def world(request):
-    form = WorldForm()
-    file_form = WorldFileForm()
+    world_form = WorldForm()
+    packages_form = PackagesForm()
 
-    return { 'form' : form , 'file_form' : file_form }
+    return { 'world_form' : world_form,
+             'packages_form' : packages_form }
 
 @render_to('euscan/world_scan.html')
 def world_scan(request):
     packages = []
 
     # FIXME
-    if 'world_file' in request.FILES:
-        data = request.FILES['world_file'].read()
-    elif 'world' in request.POST:
-        data = request.POST['world']
+    if 'world' in request.FILES:
+        data = request.FILES['world'].read()
+    elif 'packages' in request.POST:
+        data = request.POST['packages']
     else:
         data = ""
 

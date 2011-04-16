@@ -12,7 +12,7 @@
 <p>Import your /var/lib/portage/world file</p>
 
 <form action="{% url euscan.views.world_scan %}" method="post" enctype="multipart/form-data">{% csrf_token %}
-{{ file_form.as_p }}
+{{ world_form.as_p }}
 <input type="submit" value="Submit" />
 </form>
 
@@ -21,7 +21,7 @@
 <p>Or just list some packages</p>
 
 <form action="{% url euscan.views.world_scan %}" method="post">{% csrf_token %}
-{{ form.as_p }}
+{{ packages_form.as_p }}
 <input type="submit" value="Submit" />
 </form>
 

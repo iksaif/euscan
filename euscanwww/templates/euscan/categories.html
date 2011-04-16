@@ -19,7 +19,7 @@
   {% for category in categories %}
   {% if category.n_versions == category.n_packaged %}
   <tr class="gradeA">
-  {% else %}{% if category.n_versions < category.n_packaged|mul:2 %}
+  {% else %}{% if category.n_versions < category.n_packaged|mul:1.5 %}
   <tr class="gradeC">
   {% else %}
   <tr class="gradeX">
