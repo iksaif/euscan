@@ -6,6 +6,14 @@ Distributed under the terms of the GNU General Public License v2
 
 from __future__ import print_function
 
+"""
+TODO:
+- custom url handlers (portscout)
+  - sourceforge: use rss feeds
+- respect robots.txt (portscout)
+- check other distros (youri)
+- clean blacklist system
+"""
 
 # Meta:
 __author__ = "Corentin Chary (iksaif)"
@@ -203,7 +211,7 @@ def regex_from_template(template):
 	template = re.sub(r'(\$\{\d+\}\.?)+', r'([\w\.\-]+?)', template)
 	#template = re.sub(r'(\$\{\d+\}\.+)+', '(.+?)\.', template)
 	#template = re.sub(r'(\$\{\d+\})+', '(.+?)', template)
-	template = template.replace('${PV}', r'([\w\.\-]+?)')
+	template = template.replace('${PV}', r'((\d+)((\.\d+)*)([a-zA-Z]?)(((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)*))')
 	template = template + r'/?$'
 	return template
 
@@ -268,7 +276,7 @@ def scan_directory_recursive(url, steps, vmin, vmax, output):
 			if href.startswith(url):
 				href = href.replace(url, "", 1)
 
-			match = re.match(pattern, href)
+			match = re.match(pattern, href, re.I)
 			if match:
 				results.append((match.group(1), match.group(0)))
 
@@ -276,7 +284,7 @@ def scan_directory_recursive(url, steps, vmin, vmax, output):
 		buf = StringIO.StringIO(data)
 		for line in buf.readlines():
 			line = line.replace("\n", "").replace("\r", "")
-			match = re.search(pattern, line)
+			match = re.search(pattern, line, re.I)
 			if match:
 				results.append((match.group(1), match.group(0)))
 		# add url
@@ -633,6 +641,8 @@ def scanUpstream(options, package, output):
 		for fileurl in fetchme[filename]:
 			skipscan = False
 
+			output.einfo("SRC_URI is '%s'" % fileurl)
+
 			if '://' not in fileurl:
 				output.einfo("Invalid url '%s'" % fileurl)
 				continue
@@ -643,7 +653,6 @@ def scanUpstream(options, package, output):
 					skipscan = True
 
                         url = parseMirror(fileurl, output)
-
 
 			# Try list dir, but not for gentoo mirrors, it's too slow
 			if not skipscan:
