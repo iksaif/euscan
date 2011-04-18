@@ -8,10 +8,10 @@
 # eix-update
 
 ## Scan portage (packages, versions)
-# python manage.py scan-portage
+# python manage.py scan-portage --all
 
 ## Scan metadata (herds, maintainers, homepages, ...)
-# python manage.py scan-metadata
+# python manage.py scan-metadata --all
 
 ## Scan uptsream packages
 # python manage.py scan-upstream --all
