@@ -175,16 +175,16 @@ def gen_versions(components, level):
 
 	return versions
 
-def tryurl(fileurl, output):
+def tryurl(fileurl, output, regex):
 	result = False
 
 	output.ebegin("Trying: " + fileurl)
 
 	try:
+		basename = os.path.basename(fileurl)
+
 		fp = urllib2.urlopen(fileurl, None, 5)
 		headers = fp.info()
-
-		basename = os.path.basename(fileurl)
 
 		if 'Content-disposition' in headers and basename not in headers['Content-disposition']:
 			result = False
@@ -192,6 +192,14 @@ def tryurl(fileurl, output):
 			result = False
 		elif 'text/html' in headers['Content-Type']:
 			result = False
+		elif fp.geturl() != fileurl:
+			basename2 = os.path.basename(fp.geturl())
+
+			# Redirect to another (earlier?) version
+			if basename != basename2 and re.match(regex, fp.geturl()):
+				result = False
+			else:
+				result = True
 		else:
 			result = True
 	except urllib2.URLError:
@@ -388,8 +396,9 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 			continue
 
 		url = url_from_template(template, vstring)
+		regex = regex_from_template(template)
 
-		if not tryurl(url, output):
+		if not tryurl(url, output, regex):
 			continue
 
 		result.append([url, vstring])
