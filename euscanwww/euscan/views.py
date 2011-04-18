@@ -63,7 +63,10 @@ def package(request, category, package):
     package = get_object_or_404(Package, category=category, name=package)
     packaged = Version.objects.filter(package=package, packaged=True)
     upstream = Version.objects.filter(package=package, packaged=False)
-    return { 'package' : package, 'packaged' : packaged, 'upstream' : upstream }
+    log = EuscanResult.objects.filter(package=package).order_by('-datetime')[:1]
+    log = log[0] if log else None
+    return { 'package' : package, 'packaged' : packaged,
+             'upstream' : upstream, 'log' : log }
 
 @render_to('euscan/world.html')
 def world(request):
@@ -85,12 +88,18 @@ def world_scan(request):
     else:
         data = ""
 
+    data = data.replace("\r", "")
+
     for pkg in data.split('\n'):
         try:
-            cat, pkg = pkg.split('/')
-            packages.append(Package.objects.get(category=cat, name=pkg))
+            if '/' in pkg:
+                cat, pkg = pkg.split('/')
+                packages.extend(Package.objects.filter(category=cat, name=pkg))
+            else:
+                packages.extend(Package.objects.filter(name=pkg))
         except:
             pass
+    print packages
 
     return { 'packages' : packages }
 

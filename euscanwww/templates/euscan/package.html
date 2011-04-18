@@ -69,5 +69,14 @@
      </ul>
   </dd>
   {% endif %}
+  {% if log %}
+  <dt>euscan log</dt>
+  <dd>
+    <p>Date: {{ log.datetime }}
+    <pre>
+      {{ log.result }}
+    </pre>
+  </dd>
+  {% endif %}
 </dl>
 {% endblock %}
