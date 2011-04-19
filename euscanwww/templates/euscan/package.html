@@ -15,7 +15,11 @@
   {% endif %}
   {% if package.homepage %}
   <dt>Homepage</dt>
-  <dd><a href="{{ package.homepage }}">{{ package.homepage }}</a></dd>
+  <dd>
+    {% for homepage in package.homepages %}
+    <a href="{{ homepage }}">{{ homepage }}<br />
+    {% endfor %}
+  </dd>
   {% endif %}
   {% if package.herds.all %}
   <dt>Herds</dt>
