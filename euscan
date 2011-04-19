@@ -52,6 +52,8 @@ SCANDIR_BLACKLIST_URLS = ['mirror://rubygems/(.*)', 'mirror://gentoo/(.*)']
 BRUTEFORCE_BLACKLIST_PACKAGES = ['dev-util/patchelf', 'net-zope/plonepopoll']
 BRUTEFORCE_BLACKLIST_URLS = ['http://(.*)dockapps.org/download.php/id/(.*)']
 
+_v = r'((\d+)((\.\d+)*)([a-zA-Z]?)(((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)*))'
+
 # =========
 # Functions
 # =========
@@ -70,6 +72,21 @@ def parse_version(version):
 	#return cast_int_components(version)
 	return version
 
+def generate_templates_vars(version):
+	ret = []
+
+	part = split_version(version)
+	for i in range(2, len(part)):
+		ver = []
+		var = []
+		for j in range(i):
+			ver.append(str(part[j]))
+			var.append('${%d}' % j)
+
+		ret.append((".".join(ver), ".".join(var)))
+	ret.append((version, '${PV}'))
+	ret.reverse()
+	return ret
 
 def template_from_url(url, version):
 	prefix, chunks = url.split('://')
@@ -78,27 +95,12 @@ def template_from_url(url, version):
 	for i in range(len(chunks)):
 		chunk = chunks[i]
 
-		if not chunk:
-			continue
-
-		# If it's the full version, it's easy
-		if version in chunk:
-			chunk = chunk.replace(version, '${PV}')
-		# For directories made from a part of the version
-		elif version.startswith(chunk):
-			full = split_version(version)
-			part = split_version(chunk)
-
-			for j in range(min(len(full), len(part))):
-
-				if part[j] != full[j]:
-					break
-				part[j] = '${%d}' % j
-
-			chunk = join_version(part)
-			chunk = chunk.replace('}$', '}.$')
+		subs = generate_templates_vars(version)
+		for sub in subs:
+			chunk = chunk.replace(sub[0], sub[1])
 
 		chunks[i] = chunk
+
 
 	return prefix + "://" + "/".join(chunks)
 
@@ -207,10 +209,12 @@ def regex_from_template(template):
 	template = template.replace('\$\{', '${')
         template = template.replace('\}', '}')
         template = template.replace('}\.$', '}.$')
-	template = re.sub(r'(\$\{\d+\}\.?)+', r'([\w\.\-]+?)', template)
+	template = template.replace('${1}', r'([\d]+?)')
+	template = re.sub(r'(\$\{\d+\}\.?)+', r'([\w]+?)', template)
+	#template = re.sub(r'(\$\{\d+\}\.?)+', r'([\w]+?)', template)
 	#template = re.sub(r'(\$\{\d+\}\.+)+', '(.+?)\.', template)
 	#template = re.sub(r'(\$\{\d+\})+', '(.+?)', template)
-	template = template.replace('${PV}', r'((\d+)((\.\d+)*)([a-zA-Z]?)(((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)*))')
+	template = template.replace('${PV}', _v)
 	template = template + r'/?$'
 	return template
 
