@@ -11,10 +11,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(os.path.dirname( __file__ ), 'euscan.db'),
 """
 # MySQL Example:
         'ENGINE': 'django.db.backends.mysql',
@@ -27,6 +23,11 @@ DATABASES = {
             'init_command': 'SET storage_engine=INNODB',
          }
 """
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(os.path.dirname( __file__ ), 'euscan.db'),
     }
 }
 
