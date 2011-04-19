@@ -1,5 +1,7 @@
 {% extends "_base.html" %}
 
+{% load timedelta %}
+
 {% block content %}
 <h2>What's euscan ?</h2>
 <p>
@@ -17,7 +19,7 @@ euscan code source is available at <a href="http://git.iksaif.net/?p=euscan.git;
   <li>Versions: {{ n_packaged }}</li>
   <li>Versions not-packaged: {{ n_upstream }}</li>
   <li>Herds: {{ n_herds }}</li>
-  <li>Maintainer: {{ n_maintainers }}</li>
-  <li>Last scan: {{ last_scan }}</li>
+  <li>Maintainers: {{ n_maintainers }}</li>
+  <li>Last scan: {{ last_scan }} ({{ last_scan|timedelta }})</li>
 </ul>
 {% endblock %}
