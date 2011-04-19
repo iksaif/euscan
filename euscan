@@ -6,15 +6,6 @@ Distributed under the terms of the GNU General Public License v2
 
 from __future__ import print_function
 
-"""
-TODO:
-- custom url handlers (portscout)
-  - sourceforge: use rss feeds
-- respect robots.txt (portscout)
-- check other distros (youri)
-- clean blacklist system
-"""
-
 # Meta:
 __author__ = "Corentin Chary (iksaif)"
 __email__ = "corentin.chary@gmail.com"

@@ -1,0 +1,10 @@
+TODO
+====
+
+- custom url handlers (portscout)
+  - sourceforge: use rss feeds
+- respect robots.txt (portscout)
+- check other distros (youri)
+- clean blacklist system
+- add a way to blacklist versions using standard package tokens
+
