@@ -13,17 +13,20 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-#        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-#        'NAME': os.path.join(os.path.dirname( __file__ ), 'euscan.db'), # Or path to database file if using sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(os.path.dirname( __file__ ), 'euscan.db'),
+"""
+# MySQL Example:
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'euscan',
-        'USER': 'euscan',                      # Not used with sqlite3.
-        'PASSWORD': 'w7RGZVQx6edAMaDE',                  # Not used with sqlite3.
-        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'USER': 'euscan',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '',
         'OPTIONS': {
             'init_command': 'SET storage_engine=INNODB',
          }
+"""
     }
 }
 
