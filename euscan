@@ -30,6 +30,7 @@ import StringIO
 import pkg_resources
 
 import portage
+import portage.versions
 from portage.output import white, yellow, turquoise, green, teal, red, EOutput
 from portage.dbapi.porttree import _parse_uri_map
 
@@ -66,11 +67,24 @@ def cast_int_components(version):
 			pass
 	return version
 
-def parse_version(version):
-	version = pkg_resources.parse_version(version)
-	#version = list(version)
-	#return cast_int_components(version)
-	return version
+def vercmp(a, b):
+	if a == b:
+		return 0
+
+	# For sane versions
+	r = portage.versions.vercmp(a, b)
+
+	if r is not None:
+		return r
+
+	# Fallback
+	a = pkg_resources.parse_version(a)
+	b = pkg_resources.parse_version(b)
+
+	if a < b:
+		return -1
+	else:
+		return 1
 
 def generate_templates_vars(version):
 	ret = []
@@ -297,15 +311,13 @@ def scan_directory_recursive(url, steps, vmin, vmax, output):
 	versions = []
 
 	for version, path in results:
-		ver = parse_version(version)
-
-		if vmin and ver <= vmin:
+		if vmin and vercmp(version, vmin) <= 0:
 			continue
-		if vmax and ver >= vmax:
+		if vmax and vercmp(version, vmax) >= 0:
 			continue
 
 		# Try to skip nightly builds when not wanted (www-apps/moodle)
-		if len(vmin) != len(ver) and len(ver) == 2 and len(ver[0]) == len('yyyymmdd'):
+		if len(vmin) != len(version) and len(version) == 2 and len(version[0]) == len('yyyymmdd'):
 			continue
 
 		if not url.endswith('/') and not path.startswith('/'):
@@ -335,10 +347,8 @@ def scan_directory(cpv, fileurl, options, output, limit=None):
 	else:
 		output.einfo("Scanning: %s" % template)
 
-	vmin = parse_version(ver)
-
 	steps = generate_scan_paths(template)
-	return scan_directory_recursive("", steps, vmin, limit, output)
+	return scan_directory_recursive("", steps, ver, limit, output)
 
 def brute_force(cpv, fileurl, options, output, limit=None):
 	if options["brute-force"] <= 0:
@@ -387,9 +397,8 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 		done.append(tuple(components))
 
 		vstring = join_version(components)
-		version = parse_version(vstring)
 
-		if limit and version >= limit:
+		if limit and vercmp(vstring, limit) >= 0:
 			continue
 
 		url = url_from_template(template, vstring)
