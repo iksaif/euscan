@@ -168,8 +168,8 @@ def gen_versions(components, level):
 
 	return versions
 
-def tryurl(fileurl, output, regex):
-	result = False
+def tryurl(fileurl, output, template):
+	result = True
 
 	output.ebegin("Trying: " + fileurl)
 
@@ -180,25 +180,27 @@ def tryurl(fileurl, output, regex):
 		headers = fp.info()
 
 		if 'Content-disposition' in headers and basename not in headers['Content-disposition']:
-			result = False
+			result = None
 		elif 'Content-Length' in headers and headers['Content-Length'] == '0':
-			result = False
+			result = None
 		elif 'text/html' in headers['Content-Type']:
-			result = False
+			result = None
 		elif fp.geturl() != fileurl:
+			regex = regex_from_template(template)
+			baseregex = regex_from_template(os.path.basename(template))
 			basename2 = os.path.basename(fp.geturl())
 
 			# Redirect to another (earlier?) version
-			if basename != basename2 and re.match(regex, fp.geturl()):
-				result = False
-			else:
-				result = True
-		else:
-			result = True
+			if basename != basename2 and (re.match(regex, fp.geturl()) or re.match(baseregex, basename2)):
+				result = None
+
+
+		if result:
+			result = (fp.geturl(), fp.info())
 	except urllib2.URLError:
-		result = False
+		result = None
 	except IOError:
-		result = False
+		result = None
 
 	output.eend(errno.ENOENT if not result else 0)
 
@@ -391,9 +393,10 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 			continue
 
 		url = url_from_template(template, vstring)
-		regex = regex_from_template(template)
 
-		if not tryurl(url, output, regex):
+		infos = tryurl(url, output, template)
+
+		if not infos:
 			continue
 
 		result.append([url, vstring])
