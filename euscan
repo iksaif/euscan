@@ -53,7 +53,7 @@ SCANDIR_BLACKLIST_URLS = ['mirror://rubygems/(.*)', 'mirror://gentoo/(.*)']
 BRUTEFORCE_BLACKLIST_PACKAGES = ['dev-util/patchelf', 'net-zope/plonepopoll']
 BRUTEFORCE_BLACKLIST_URLS = ['http://(.*)dockapps.org/download.php/id/(.*)']
 
-_v = r'((\d+)((\.\d+)*)([a-zA-Z]?)(((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)*))'
+_v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)*))'
 
 # =========
 # Functions
