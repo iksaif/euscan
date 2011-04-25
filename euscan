@@ -51,7 +51,7 @@ BLACKLIST_PACKAGES = ['sys-kernel/usermode-sources', 'sys-kernel/xbox-sources',
 SCANDIR_BLACKLIST_URLS = ['mirror://rubygems/(.*)', 'mirror://gentoo/(.*)']
 
 BRUTEFORCE_BLACKLIST_PACKAGES = ['dev-util/patchelf', 'net-zope/plonepopoll']
-BRUTEFORCE_BLACKLIST_URLS = ['http://(.*)dockapps.org/download.php/id/(.*)']
+BRUTEFORCE_BLACKLIST_URLS = ['http://(.*)dockapps.org/download.php/id/(.*)', 'http://hydra.nixos.org/build/(.*)']
 
 _v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)*))'
 
@@ -85,6 +85,15 @@ def vercmp(a, b):
 		return -1
 	else:
 		return 1
+
+def skipnightly(a, b):
+	a = pkg_resources.parse_version(a)
+	b = pkg_resources.parse_version(b)
+
+	# Try to skip nightly builds when not wanted (www-apps/moodle)
+	if len(a) != len(b) and len(b) == 2 and len(b[0]) == len('yyyymmdd'):
+		return True
+	return False
 
 def generate_templates_vars(version):
 	ret = []
@@ -316,8 +325,7 @@ def scan_directory_recursive(url, steps, vmin, vmax, output):
 		if vmax and vercmp(version, vmax) >= 0:
 			continue
 
-		# Try to skip nightly builds when not wanted (www-apps/moodle)
-		if len(vmin) != len(version) and len(version) == 2 and len(version[0]) == len('yyyymmdd'):
+		if skipnightly(vmin, version):
 			continue
 
 		if not url.endswith('/') and not path.startswith('/'):
@@ -609,7 +617,7 @@ def scanUpstream(options, package, output):
 	matches = sorted(matches)
         pkg = matches.pop()
 
-	if pkg.version == '9999':
+	if '9999' in pkg.version:
 		if len(matches) == 0:
 			sys.stderr.write(pp.warn("Package '%s' only have a dev version (9999)" % pp.pkgquery(package)))
 			sys.exit(errno.ENOENT)
