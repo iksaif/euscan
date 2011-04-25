@@ -184,20 +184,12 @@ table.display td.center {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables row classes
  */
-table.display tr.gradeA {
-	background-color: #ddffdd;
+table.display td.bad {
+	background-color: #FFDFDF;
 }
 
-table.display tr.gradeC {
-	background-color: #ddddff;
-}
-
-table.display tr.gradeX {
-	background-color: #ffdddd;
-}
-
-table.display tr.gradeU {
-	background-color: #ddd;
+table.display td.ugly {
+	background-color: #EDB9B9;
 }
 
 tr {
@@ -333,22 +325,6 @@ table.KeyTable td {
 
 table.KeyTable td.focus {
 	border: 3px solid #3366FF;
-}
-
-table.display tr.gradeA {
-	background-color: #eeffee;
-}
-
-table.display tr.gradeC {
-	background-color: #ddddff;
-}
-
-table.display tr.gradeX {
-	background-color: #ffdddd;
-}
-
-table.display tr.gradeU {
-	background-color: #ddd;
 }
 
 div.box {

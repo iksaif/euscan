@@ -1,7 +1,6 @@
 {% extends "euscan/_datatable.html" %}
 
-{% load sub %}
-{% load mul %}
+{% load packages %}
 
 {% block title %}
 {{ block.super }} - herds
@@ -12,25 +11,20 @@
 <table id="table" class="display">
   <thead>
     <th>Herd</th>
-    <th>Ebuilds</th>
+    <th>Gentoo</th>
+    <th>Overlays</th>
     <th>Unpackaged</th>
   </thead>
   <tbody>
   {% for herd in herds %}
-  {% if herd.n_versions == herd.n_packaged %}
-  <tr class="gradeA">
-  {% else %}{% if herd.n_versions < herd.n_packaged|mul:2 %}
-  <tr class="gradeC">
-  {% else %}
-  <tr class="gradeX">
-  {% endif %}{% endif %}
+  <tr>
     <td>
       <a href="{% url euscan.views.herd herd.herds__herd %}">
 	{{ herd.herds__herd }}
       </a>
+      {% package_bar herd %}
     </td>
-    <td>{{ herd.n_packaged }}</td>
-    <td>{{ herd.n_versions|sub:herd.n_packaged }}</td>
+    {% package_cols herd %}
   </tr>
   {% endfor %}
   </tbody>

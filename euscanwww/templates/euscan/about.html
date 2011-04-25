@@ -1,0 +1,37 @@
+{% extends "_base.html" %}
+
+{% block content %}
+<h2>What's euscan ?</h2>
+<p>
+Euscan is both a tool to check if an ebuild is outdated (app-portage/euscan) and a web interface.
+</p>
+<p>
+This web interface allow you to browse the portage tree, and find outdated ebuilds. It is designed to help maintainers monitor their packages and bump them.
+</p>
+<p>
+euscan code source is available at <a href="http://git.iksaif.net/?p=euscan.git;a=summary">http://git.iksaif.net/?p=euscan.git;a=summary</a>.
+</p>
+<p>
+<em>This site is not an official Gentoo website.</em>
+</p>
+
+<p>
+  Copyright (C) 2011 <strong>Corentin Chary</strong>
+</p>
+
+<p>
+  Powered by:
+  <a href="http://kernel.org" titke="Linux Kernel">
+    <img  src="{{MEDIA_URL}}img/linux.png" alt="Linux Kernel" />
+  </a>
+  <a href="http://gentoo.org" title="Gentoo">
+    <img  src="{{MEDIA_URL}}img/gentoo.png" alt="Gentoo Linux" />
+  </a>
+  <a href="http://www.djangoproject.com/" title="Django">
+    <img  src="{{MEDIA_URL}}img/django.png" alt="Django" />
+  </a>
+  <a href="http://python.org" title="Python">
+    <img  src="{{MEDIA_URL}}img/python.png" alt="Python" />
+  </a>
+</p>
+{% endblock %}

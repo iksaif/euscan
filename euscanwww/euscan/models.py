@@ -27,6 +27,7 @@ class Package(models.Model):
     # For performance, we keep pre-computed counters
     n_versions = models.IntegerField(default=0)
     n_packaged = models.IntegerField(default=0)
+    n_overlay = models.IntegerField(default=0)
 
     def __unicode__(self):
         return '%s/%s' % (self.category, self.name)
@@ -40,7 +41,7 @@ class Version(models.Model):
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
-    overlay = models.CharField(max_length=128)
+    overlay = models.CharField(max_length=128, default='gentoo')
     urls = models.TextField(blank=True)
 
     def __unicode__(self):
@@ -64,6 +65,7 @@ class CategoryLog(models.Model):
     n_packages = models.IntegerField(default=0)
     n_versions = models.IntegerField(default=0)
     n_packaged = models.IntegerField(default=0)
+    n_overlay = models.IntegerField(default=0)
 
 class HerdLog(models.Model):
     herd = models.ForeignKey(Herd)
@@ -72,6 +74,7 @@ class HerdLog(models.Model):
     n_packages = models.IntegerField(default=0)
     n_versions = models.IntegerField(default=0)
     n_packaged = models.IntegerField(default=0)
+    n_overlay = models.IntegerField(default=0)
 
 class MaintainerLog(models.Model):
     maintainer = models.ForeignKey(Maintainer)
@@ -80,3 +83,4 @@ class MaintainerLog(models.Model):
     n_packages = models.IntegerField(default=0)
     n_versions = models.IntegerField(default=0)
     n_packaged = models.IntegerField(default=0)
+    n_overlay = models.IntegerField(default=0)

@@ -62,7 +62,7 @@ class Command(BaseCommand):
 
 	matches = sorted(matches)
         pkg = matches.pop()
-	if pkg.version == '9999' and len(matches):
+	if '9999' in pkg.version and len(matches):
 		pkg = matches.pop()
 
         obj, created = Package.objects.get_or_create(category=pkg.category, name=pkg.name)

@@ -148,10 +148,6 @@ h1 {
 	color:#15B100;
 }
 
-.bad {
-	color:#FFFFFF;
-}
-
 hr
 {
   margin: 0.3em 1em 0.3em 1em;
@@ -230,3 +226,26 @@ th
     clear: both;
 }
 
+.package_stat {
+    width: 40px;
+    float: right;
+    height: 5px;
+    border: 1px solid #ccc;
+}
+
+.package_stat div {
+    float: left;
+    height: 5px;
+}
+
+.package_stat .packaged {
+    background: #85ACFF;
+}
+
+.package_stat .overlay {
+    background: #C6D9FD;
+}
+
+.package_stat .upstream {
+    background: #FDEADD;
+}

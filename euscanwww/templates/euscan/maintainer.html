@@ -9,4 +9,10 @@
 {% block content %}
 <h2>Maintainer: {{ maintainer.name }} &lt{{ maintainer.email }}&gt</h2>
 {% packages packages %}
+
+<h3>Statistics</h2>
+<h4>Current statistics</h4>
+<img src="{% url euscan.views.chart_maintainer maintainer.id 'pie-versions' %}" />
+<img src="{% url euscan.views.chart_maintainer maintainer.id 'pie-packages' %}" />
+
 {% endblock %}

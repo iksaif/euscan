@@ -1,7 +1,6 @@
 {% extends "euscan/_datatable.html" %}
 
-{% load sub %}
-{% load mul %}
+{% load packages %}
 
 {% block title %}
 {{ block.super }} - maintainers
@@ -12,25 +11,20 @@
 <table id="table" class="display">
   <thead>
     <th>Maintainer</th>
-    <th>Ebuilds</th>
+    <th>Gentoo</th>
+    <th>Overlays</th>
     <th>Unpackaged</th>
   </thead>
   <tbody>
   {% for maintainer in maintainers %}
-  {% if maintainer.n_versions == maintainer.n_packaged %}
-  <tr class="gradeA">
-  {% else %}{% if maintainer.n_versions < maintainer.n_packaged|mul:2 %}
-  <tr class="gradeC">
-  {% else %}
-  <tr class="gradeX">
-  {% endif %}{% endif %}
+  <tr>
     <td>
       <a href="{% url euscan.views.maintainer maintainer.maintainers__id %}">
 	{{ maintainer.maintainers__name }}
       </a>
+      {% package_bar maintainer %}
     </td>
-    <td>{{ maintainer.n_packaged }}</td>
-    <td>{{ maintainer.n_versions|sub:maintainer.n_packaged }}</td>
+    {% package_cols maintainer %}
   </tr>
   {% endfor %}
   </tbody>

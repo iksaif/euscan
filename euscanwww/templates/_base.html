@@ -25,26 +25,23 @@
 	  <li><a href="{% url euscan.views.categories %}">Categories</a></li>
 	  <li><a href="{% url euscan.views.herds %}">Herds</a></li>
 	  <li><a href="{% url euscan.views.maintainers %}">Maintainers</a></li>
-	  <li><a href="{% url euscan.views.world %}">World</a></li>
+	  <li><a href="{% url euscan.views.world %}">Scan World</a></li>
+	  <li><a href="{% url euscan.views.statistics %}">Statistics</a></li>
+	  <!--
 	  <li>---</li>
 	  <li><a href="#">Login</a></li>
 	  <li><a href="#">Register</a></li>
+	  -->
 	  <li>---</li>
-	  <li><a href="#">About</a></li>
+	  <li><a href="{% url euscan.views.about %}">About</a></li>
 	  {% endblock %}
 	</ul>
       </div>
       {% endblock %}
     </div>
     <div id="footer">
-      Powered by:
-      <a href="http://kernel.org" titke="Linux Kernel">
-	<img  src="{{MEDIA_URL}}img/linux.png" alt="Linux" />
-      </a>
-      <a href="http://gentoo.org" title="Gentoo">
-	<img  src="{{MEDIA_URL}}img/gentoo.png" alt="Gentoo Linux" />
-      </a>
-      -
+      Questions, Comments, Corrections ?
+      Email: corentin.chary at gmail.com<br />
       Copyright (C) 2011 <strong>Corentin Chary</strong>
     </div>
   </body>

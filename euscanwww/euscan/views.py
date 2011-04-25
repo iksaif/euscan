@@ -1,4 +1,5 @@
 from annoying.decorators import render_to
+from django.http import HttpResponse
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Max
@@ -6,13 +7,17 @@ from django.db.models import Sum, Max
 from euscan.models import Version, Package, Herd, Maintainer, EuscanResult
 from euscan.forms import WorldForm, PackagesForm
 
+import charts
+
+""" Views """
+
 @render_to('euscan/index.html')
 def index(request):
     ctx = {}
-    ctx['n_packaged'] = Package.objects.aggregate(Sum('n_packaged'))['n_packaged__sum']
-    ctx['n_versions'] = Package.objects.aggregate(Sum('n_versions'))['n_versions__sum']
-    if ctx['n_versions'] is not None and ctx['n_packaged'] is not None:
-        ctx['n_upstream'] = ctx['n_versions'] - ctx['n_packaged']
+    ctx['n_packaged'] = charts.xint(Package.objects.aggregate(Sum('n_packaged'))['n_packaged__sum'])
+    ctx['n_overlay'] = charts.xint(Package.objects.aggregate(Sum('n_overlay'))['n_overlay__sum'])
+    ctx['n_versions'] = charts.xint(Package.objects.aggregate(Sum('n_versions'))['n_versions__sum'])
+    ctx['n_upstream'] = ctx['n_versions'] - ctx['n_packaged'] - ctx['n_overlay']
     ctx['n_packages'] = Package.objects.count()
     ctx['n_herds'] = Herd.objects.count()
     ctx['n_maintainers'] = Maintainer.objects.count()
@@ -25,7 +30,10 @@ def logs(request):
 
 @render_to('euscan/categories.html')
 def categories(request):
-    categories = Package.objects.values('category').annotate(n_packaged=Sum('n_packaged'), n_versions=Sum('n_versions'))
+    categories = Package.objects.values('category').annotate(n_packaged=Sum('n_packaged'),
+                                                             n_overlay=Sum('n_overlay'),
+                                                             n_versions=Sum('n_versions'))
+
     return { 'categories' : categories }
 
 @render_to('euscan/category.html')
@@ -38,7 +46,10 @@ def category(request, category):
 @render_to('euscan/herds.html')
 def herds(request):
     # FIXME: optimize the query, it uses 'LEFT OUTER JOIN' instead of 'INNER JOIN'
-    herds = Package.objects.filter(herds__isnull=False).values('herds__herd').annotate(n_packaged=Sum('n_packaged'), n_versions=Sum('n_versions'))
+    herds = Package.objects.filter(herds__isnull=False)
+    herds = herds.values('herds__herd').annotate(n_packaged=Sum('n_packaged'),
+                                            n_overlay=Sum('n_overlay'),
+                                            n_versions=Sum('n_versions'))
     return { 'herds' : herds }
 
 @render_to('euscan/herd.html')
@@ -49,7 +60,12 @@ def herd(request, herd):
 
 @render_to('euscan/maintainers.html')
 def maintainers(request):
-    maintainers = Package.objects.filter(maintainers__isnull=False).values('maintainers__id', 'maintainers__name').annotate(n_packaged=Sum('n_packaged'), n_versions=Sum('n_versions'))
+    maintainers = Package.objects.filter(maintainers__isnull=False)
+    maintainers = maintainers.values('maintainers__id', 'maintainers__name')
+    maintainers = maintainers.annotate(n_packaged=Sum('n_packaged'),
+                                       n_overlay=Sum('n_overlay'),
+                                       n_versions=Sum('n_versions'))
+
     return { 'maintainers' : maintainers }
 
 @render_to('euscan/maintainer.html')
@@ -61,6 +77,7 @@ def maintainer(request, maintainer_id):
 @render_to('euscan/package.html')
 def package(request, category, package):
     package = get_object_or_404(Package, category=category, name=package)
+    package.homepages = package.homepage.split(' ')
     packaged = Version.objects.filter(package=package, packaged=True)
     upstream = Version.objects.filter(package=package, packaged=False)
     log = EuscanResult.objects.filter(package=package).order_by('-datetime')[:1]
@@ -99,8 +116,42 @@ def world_scan(request):
                 packages.extend(Package.objects.filter(name=pkg))
         except:
             pass
-    print packages
 
     return { 'packages' : packages }
 
 
+@render_to("euscan/about.html")
+def about(request):
+    return {}
+
+@render_to("euscan/statistics.html")
+def statistics(request):
+    return {}
+
+def chart(request, **kwargs):
+    from django.views.static import serve
+
+    chart = kwargs['chart'] if 'chart' in kwargs else None
+
+    if 'maintainer_id' in kwargs:
+        kwargs['maintainer'] = get_object_or_404(Maintainer, id=kwargs['maintainer_id'])
+    if 'herd' in kwargs:
+        kwargs['herd'] = get_object_or_404(Herd, herd=kwargs['herd'])
+
+    if chart == 'pie-packages':
+        path = charts.pie_packages(**kwargs)
+    elif chart == 'pie-versions':
+        path = charts.pie_versions(**kwargs)
+    else:
+        raise Http404()
+
+    return serve(request, path, document_root=charts.CHARTS_ROOT)
+
+def chart_maintainer(request, **kwargs):
+    return chart(request, **kwargs)
+
+def chart_herd(request, **kwargs):
+    return chart(request, **kwargs)
+
+def chart_category(request, **kwargs):
+    return chart(request, **kwargs)

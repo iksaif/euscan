@@ -1,0 +1,13 @@
+{% extends "_base.html" %}
+
+{% block content %}
+<h2>What's euscan ?</h2>
+<h2>Statistics</h2>
+
+<h3>Current statistics</h3>
+<img src="{% url euscan.views.chart 'pie-versions' %}" />
+<img src="{% url euscan.views.chart 'pie-packages' %}" />
+
+<h3>All time statistics</h3>
+
+{% endblock %}

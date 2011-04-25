@@ -9,4 +9,9 @@
 {% block content %}
 <h2>Category: {{ category }}</h2>
 {% packages packages %}
+
+<h3>Statistics</h2>
+<h4>Current statistics</h4>
+<img src="{% url euscan.views.chart_category category 'pie-versions' %}" />
+<img src="{% url euscan.views.chart_category category 'pie-packages' %}" />
 {% endblock %}

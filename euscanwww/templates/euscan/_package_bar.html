@@ -1,0 +1,9 @@
+{% load mul %}
+{% load sub %}
+{% load div %}
+
+<div class="package_stat">
+  <div class="packaged" style="width: {{ infos.n_packaged|mul:100.0|div:infos.n_versions }}%"></div>
+  <div class="overlay" style="width: {{ infos.n_overlay|mul:100.0|div:infos.n_versions }}%"></div>
+  <div class="upstream" style="width: {{ infos.n_versions|sub:infos.n_overlay|sub:infos.n_packaged|mul:100.0|div:infos.n_versions }}%"></div>
+</div>

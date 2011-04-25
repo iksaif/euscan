@@ -1,28 +1,22 @@
-{% load sub %}
-{% load mul %}
+{% load packages %}
 
 <table id="table" class="display">
   <thead>
     <th>Package</th>
-    <th>Ebuilds</th>
+    <th>Gentoo</th>
+    <th>Overlays</th>
     <th>Unpackaged</th>
   </thead>
   <tbody>
   {% for package in packages %}
-  {% if package.n_versions == package.n_packaged %}
-  <tr class="gradeA">
-  {% else %}{% if package.n_versions < package.n_packaged|mul:2 %}
-  <tr class="gradeC">
-  {% else %}
-  <tr class="gradeX">
-  {% endif %}{% endif %}
+  <tr>
     <td>
       <a href="{% url euscan.views.package package.category package.name %}">
 	{{ package.category }}/{{ package.name }}
       </a>
+      {% package_bar package %}
     </td>
-    <td>{{ package.n_packaged }}</td>
-    <td>{{ package.n_versions|sub:package.n_packaged }}</td>
+    {% package_cols package %}
   </tr>
   {% endfor %}
   </tbody>

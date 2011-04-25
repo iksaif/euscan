@@ -103,14 +103,14 @@ class Command(BaseCommand):
             slot = match.group('slot')
             overlay = match.group('overlay')
 
-            if not package or not cpv.startswith(str(package)):
-                package = self.store_package(options, cpv)
+            cat, pkg, ver, rev = portage.catpkgsplit(cpv)
+
+            if not package or not (cat == package.category and pkg == package.name):
+                package = self.store_package(options, cat, pkg)
 
             self.store_version(options, package, cpv, slot, overlay)
 
-    def store_package(self, options, cpv):
-        cat, pkg, ver, rev = portage.catpkgsplit(cpv)
-
+    def store_package(self, options, cat, pkg):
         obj, created = Package.objects.get_or_create(category=cat, name=pkg)
 
         if created:
@@ -121,6 +121,7 @@ class Command(BaseCommand):
         Version.objects.filter(package=obj, packaged=True).delete()
 
         obj.n_packaged = 0
+        obj.n_overlay = 0
         obj.n_versions = Version.objects.filter(package=obj).count()
         obj.save()
 
@@ -144,7 +145,10 @@ class Command(BaseCommand):
                                                      overlay=overlay)
 
         if created or not package.n_packaged:
-            package.n_packaged += 1
+            if overlay == 'gentoo':
+                package.n_packaged += 1
+            else:
+                package.n_overlay += 1
         if created:
             package.n_versions += 1
 
