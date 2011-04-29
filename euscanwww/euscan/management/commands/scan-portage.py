@@ -20,6 +20,11 @@ class Command(BaseCommand):
             dest='all',
             default=False,
             help='Scan all packages'),
+        make_option('--purge',
+            action='store_true',
+            dest='purge',
+            default=False,
+            help='Purge old packages'),
         make_option('--quiet',
             action='store_true',
             dest='quiet',
@@ -36,11 +41,11 @@ class Command(BaseCommand):
         if not options['quiet']:
             self.stdout.write('Scanning portage tree...\n')
 
-        for package in args:
-            self.scan(options, package)
-
         if len(args) == 0:
             self.scan(options)
+        else:
+            for package in args:
+                self.scan(options, package)
 
         if not options['quiet']:
             self.stdout.write('Done.\n')
@@ -83,11 +88,22 @@ class Command(BaseCommand):
         output = output.strip().strip('\n')
 
         if len(output) == 0:
-            if package:
-                sys.stderr.write(self.style.ERROR("Unknown package '%s'\n" % package))
+            if not query:
+                return
+            if options['purge']:
+                if not options['quiet']:
+                    sys.stdout.write('[gc] %s\n' % (query))
+                if '/' in query:
+                    cat, pkg = portage.catsplit(query)
+                    Package.objects.filter(category=cat, name=pkg).delete()
+                else:
+                    Package.objects.filter(name=query).delete()
+            else:
+                sys.stderr.write(self.style.ERROR("Unknown package '%s'\n" % query))
             return
 
 	output = output.split('\n')
+        packages = {}
 
         line_re = re.compile(r'^(?P<cpv>.*?):(?P<slot>.*?) \[(?P<overlay>.*?)\]$')
 
@@ -105,10 +121,20 @@ class Command(BaseCommand):
 
             cat, pkg, ver, rev = portage.catpkgsplit(cpv)
 
+            packages['%s/%s' % (cat, pkg)] = True
+            continue
             if not package or not (cat == package.category and pkg == package.name):
                 package = self.store_package(options, cat, pkg)
 
             self.store_version(options, package, cpv, slot, overlay)
+
+        if options['purge'] and not query:
+            for package in Package.objects.all():
+                cp = "%s/%s" % (package.category, package.name)
+                if cp not in packages:
+                    if not options['quiet']:
+                        sys.stdout.write('[gc] %s\n' % (cp))
+                    package.delete()
 
     def store_package(self, options, cat, pkg):
         obj, created = Package.objects.get_or_create(category=cat, name=pkg)
