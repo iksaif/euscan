@@ -10,4 +10,10 @@
 
 <h3>All time statistics</h3>
 
+<img src="{% url euscan.views.chart 'packages-weekly' %}" />
+<img src="{% url euscan.views.chart 'packages-monthly' %}" />
+
+<img src="{% url euscan.views.chart 'versions-weekly' %}" />
+<img src="{% url euscan.views.chart 'versions-monthly' %}" />
+
 {% endblock %}

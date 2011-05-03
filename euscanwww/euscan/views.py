@@ -138,10 +138,21 @@ def chart(request, **kwargs):
     if 'herd' in kwargs:
         kwargs['herd'] = get_object_or_404(Herd, herd=kwargs['herd'])
 
+    for kw in ('-small', '-weekly', '-monthly', '-yearly'):
+        if chart.endswith(kw):
+            if kw in ('-weekly', '-monthly', '-yearly'):
+                kwargs['period'] = kw
+            kwargs[kw] = True
+            chart = chart[:-len(kw)]
+
     if chart == 'pie-packages':
         path = charts.pie_packages(**kwargs)
     elif chart == 'pie-versions':
         path = charts.pie_versions(**kwargs)
+    elif chart == 'packages':
+        path = charts.packages(**kwargs)
+    elif chart == 'versions':
+        path = charts.versions(**kwargs)
     else:
         raise Http404()
 

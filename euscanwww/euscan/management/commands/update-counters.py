@@ -6,6 +6,15 @@ from django.db.models import Count, Sum
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand, CommandError
 from euscanwww.euscan.models import Package, HerdLog, MaintainerLog, CategoryLog, Herd, Maintainer, Version
+from euscanwww.euscan import charts
+
+class World:
+    n_packages_gentoo   = 0
+    n_packages_overlay  = 0
+    n_packages_outdated = 0
+    n_versions_gentoo   = 0
+    n_versions_overlay  = 0
+    n_versions_upstream = 0
 
 class Command(BaseCommand):
     _overlays = {}
@@ -26,6 +35,7 @@ class Command(BaseCommand):
         categories = {}
         herds = {}
         maintainers = {}
+        world = World()
 
         # Could be done using raw SQL queries, but I don't have time for that
         # right now ...
@@ -55,40 +65,60 @@ class Command(BaseCommand):
             package.n_overlay = Version.objects.filter(package=package, packaged=True).exclude(overlay='gentoo').count()
             package.save()
 
+            n_packages_gentoo = int(package.n_packaged == package.n_versions)
+            n_packages_overlay = int(package.n_overlay and package.n_packaged + package.n_overlay == package.n_versions)
+            n_packages_outdated = int(package.n_packaged + package.n_overlay < package.n_versions)
+
             for herd in package.herds.all():
-                herds[herd].n_packages += 1
-                herds[herd].n_versions += package.n_versions
-                herds[herd].n_packaged += package.n_packaged
-                herds[herd].n_overlay += package.n_overlay
+                herds[herd].n_packages_gentoo   += n_packages_gentoo
+                herds[herd].n_packages_overlay  += n_packages_overlay
+                herds[herd].n_packages_outdated += n_packages_outdated
+
+                herds[herd].n_versions_gentoo   += package.n_packaged
+                herds[herd].n_versions_overlay  += package.n_overlay
+                herds[herd].n_versions_upstream += package.n_versions - package.n_packaged - package.n_overlay
 
             for maintainer in package.maintainers.all():
-                maintainers[maintainer].n_packages += 1
-                maintainers[maintainer].n_versions += package.n_versions
-                maintainers[maintainer].n_packaged += package.n_packaged
-                maintainers[maintainer].n_overlay += package.n_overlay
+                maintainers[maintainer].n_packages_gentoo   += n_packages_gentoo
+                maintainers[maintainer].n_packages_overlay  += n_packages_overlay
+                maintainers[maintainer].n_packages_outdated += n_packages_outdated
 
-            categories[package.category].n_packages += 1
-            categories[package.category].n_versions += package.n_versions
-            categories[package.category].n_packaged += package.n_packaged
-            categories[package.category].n_overlay += package.n_overlay
+                maintainers[maintainer].n_versions_gentoo   += package.n_packaged
+                maintainers[maintainer].n_versions_overlay  += package.n_overlay
+                maintainers[maintainer].n_versions_upstream += package.n_versions - package.n_packaged - package.n_overlay
+
+            categories[package.category].n_packages_gentoo   += n_packages_gentoo
+            categories[package.category].n_packages_overlay  += n_packages_overlay
+            categories[package.category].n_packages_outdated += n_packages_outdated
+
+            categories[package.category].n_versions_gentoo   += package.n_packaged
+            categories[package.category].n_versions_overlay  += package.n_overlay
+            categories[package.category].n_versions_upstream += package.n_versions - package.n_packaged - package.n_overlay
+
+            world.n_packages_gentoo   += n_packages_gentoo
+            world.n_packages_overlay  += n_packages_overlay
+            world.n_packages_outdated += n_packages_outdated
+
+            world.n_versions_gentoo   += package.n_packaged
+            world.n_versions_overlay  += package.n_overlay
+            world.n_versions_upstream += package.n_versions - package.n_packaged - package.n_overlay
 
         for clog in categories.values():
             if not options['quiet']:
-                self.stdout.write('[c] %s - [%d, %d/%d/%d]\n' %
-                                  (clog.category, clog.n_packages,
-                                   clog.n_packaged, clog.n_overlay, clog.n_versions))
+                self.stdout.write('[c] %s\n' % clog)
+            charts.rrd_update('category-%s' % clog.category, now, clog)
             clog.save()
 
         for hlog in herds.values():
             if not options['quiet']:
-                self.stdout.write('[h] %s - [%d, %d/%d/%d]\n' %
-                                  (hlog.herd, hlog.n_packages,
-                                   hlog.n_packaged, hlog.n_overlay, hlog.n_versions))
+                self.stdout.write('[h] %s\n' % hlog)
+            charts.rrd_update('herd-%d' % hlog.herd.id, now, hlog)
             hlog.save()
 
         for mlog in maintainers.values():
             if not options['quiet']:
-                self.stdout.write('[m] %s - [%d, %d/%d/%d]\n' %
-                                  (mlog.maintainer, mlog.n_packages,
-                                   mlog.n_packaged, mlog.n_overlay, mlog.n_versions))
+                self.stdout.write('[m] %s\n' % mlog)
+            charts.rrd_update('maintainer-%d' % mlog.maintainer.id, now, mlog)
             mlog.save()
+
+        charts.rrd_update('world', now, world)

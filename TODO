@@ -1,7 +1,9 @@
 TODO
 ====
 
-- rss feed and or weekly/monthly mail report
+euscan
+------
+
 - respect robots.txt (portscout)
 - check other distros (youri)
 - clean blacklist system
@@ -17,3 +19,10 @@ Site Handlers
 - ftp.kde.org: doesn't scan the "unstable" tree
 - mysql: should use http://downloads.mysql.com/archives/
 - mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/
+
+
+euscanwww
+---------
+
+- rss feed and or weekly/monthly mail report
+

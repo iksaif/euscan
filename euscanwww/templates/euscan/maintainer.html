@@ -15,4 +15,8 @@
 <img src="{% url euscan.views.chart_maintainer maintainer.id 'pie-versions' %}" />
 <img src="{% url euscan.views.chart_maintainer maintainer.id 'pie-packages' %}" />
 
+<h4>All Time</h4>
+<img src="{% url euscan.views.chart_maintainer maintainer.id 'versions-monthly' %}" />
+<img src="{% url euscan.views.chart_maintainer maintainer.id 'packages-monthly' %}" />
+
 {% endblock %}
