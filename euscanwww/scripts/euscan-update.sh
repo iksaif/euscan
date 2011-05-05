@@ -17,7 +17,7 @@
 # eix-update
 
 ## Scan portage (packages, versions)
-# python manage.py scan-portage --all
+# python manage.py scan-portage --all --purge
 
 ## Scan metadata (herds, maintainers, homepages, ...)
 # python manage.py scan-metadata --all
@@ -25,3 +25,6 @@
 ## Scan uptsream packages
 # python manage.py scan-upstream --all
 # eix --only-names -x | gparallel --jobs 400% euscan | python manage.py scan-upstream --feed
+
+## Update counters
+# python manage.py update-counters

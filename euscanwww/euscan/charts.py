@@ -52,6 +52,8 @@ def rrd_name(**kwargs):
     return name
 
 def chart_name(name, **kwargs):
+    name = name.replace('_', '-')
+
     if 'category' in kwargs and kwargs['category']:
         name += '-%s' % kwargs['category']
     if 'herd' in kwargs and kwargs['herd']:

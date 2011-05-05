@@ -122,7 +122,7 @@ class Command(BaseCommand):
             cat, pkg, ver, rev = portage.catpkgsplit(cpv)
 
             packages['%s/%s' % (cat, pkg)] = True
-            continue
+
             if not package or not (cat == package.category and pkg == package.name):
                 package = self.store_package(options, cat, pkg)
 

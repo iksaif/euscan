@@ -3,7 +3,7 @@ import datetime
 from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError
-from euscanwww.euscan.models import Package, HerdLog, MaintainerLog, CategoryLog, Herd, Maintainer, Version
+from euscanwww.euscan.models import HerdLog, MaintainerLog, CategoryLog, WorldLog
 from euscanwww.euscan import charts
 
 class Command(BaseCommand):
@@ -11,6 +11,9 @@ class Command(BaseCommand):
     help = 'Regenerate rrd database'
 
     def handle(self, *args, **options):
+        for wlog in WorldLog.objects.all():
+            charts.rrd_update('world', wlog.datetime, wlog)
+
         for clog in CategoryLog.objects.all():
             charts.rrd_update('category-%s' % clog.category, clog.datetime, clog)
 

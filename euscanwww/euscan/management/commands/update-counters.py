@@ -5,16 +5,9 @@ from optparse import make_option
 from django.db.models import Count, Sum
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand, CommandError
-from euscanwww.euscan.models import Package, HerdLog, MaintainerLog, CategoryLog, Herd, Maintainer, Version
+from euscanwww.euscan.models import Package, Herd, Maintainer, Version
+from euscanwww.euscan.models import HerdLog, MaintainerLog, CategoryLog, WorldLog
 from euscanwww.euscan import charts
-
-class World:
-    n_packages_gentoo   = 0
-    n_packages_overlay  = 0
-    n_packages_outdated = 0
-    n_versions_gentoo   = 0
-    n_versions_overlay  = 0
-    n_versions_upstream = 0
 
 class Command(BaseCommand):
     _overlays = {}
@@ -35,10 +28,12 @@ class Command(BaseCommand):
         categories = {}
         herds = {}
         maintainers = {}
-        world = World()
 
         # Could be done using raw SQL queries, but I don't have time for that
         # right now ...
+
+        wlog = WorldLog()
+        wlog.datetime = now
 
         for cat in Package.objects.values('category').distinct():
             clog = CategoryLog()
@@ -95,13 +90,13 @@ class Command(BaseCommand):
             categories[package.category].n_versions_overlay  += package.n_overlay
             categories[package.category].n_versions_upstream += package.n_versions - package.n_packaged - package.n_overlay
 
-            world.n_packages_gentoo   += n_packages_gentoo
-            world.n_packages_overlay  += n_packages_overlay
-            world.n_packages_outdated += n_packages_outdated
+            wlog.n_packages_gentoo   += n_packages_gentoo
+            wlog.n_packages_overlay  += n_packages_overlay
+            wlog.n_packages_outdated += n_packages_outdated
 
-            world.n_versions_gentoo   += package.n_packaged
-            world.n_versions_overlay  += package.n_overlay
-            world.n_versions_upstream += package.n_versions - package.n_packaged - package.n_overlay
+            wlog.n_versions_gentoo   += package.n_packaged
+            wlog.n_versions_overlay  += package.n_overlay
+            wlog.n_versions_upstream += package.n_versions - package.n_packaged - package.n_overlay
 
         for clog in categories.values():
             if not options['quiet']:
@@ -121,4 +116,6 @@ class Command(BaseCommand):
             charts.rrd_update('maintainer-%d' % mlog.maintainer.id, now, mlog)
             mlog.save()
 
-        charts.rrd_update('world', now, world)
+        wlog.save()
+
+        charts.rrd_update('world', now, wlog)

@@ -1,2 +1,4 @@
 *~
 *.pyc
+euscanwww/rrd/*.rrd
+euscanwww/media/charts/*.png

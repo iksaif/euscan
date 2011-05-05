@@ -58,8 +58,7 @@ class EuscanResult(models.Model):
     result = models.TextField(blank=True)
 
 # Keep data for charts
-class CategoryLog(models.Model):
-    category = models.CharField(max_length=128)
+class Log(models.Model):
     datetime = models.DateTimeField()
 
     n_packages_gentoo   = models.IntegerField(default=0) # Packages up to date in the main portage tree
@@ -71,43 +70,29 @@ class CategoryLog(models.Model):
     n_versions_upstream = models.IntegerField(default=0) # Upstream versions, not in the main tree or overlays
 
     def __unicode__(self):
-        return u'%s [%d:%d:%d] [%d:%d:%d]' % \
-            (self.category, self.n_packages_gentoo, self.n_packages_overlay, self.n_packages_outdated, \
+        return u'[%d:%d:%d] [%d:%d:%d]' % \
+            (self.n_packages_gentoo, self.n_packages_overlay, self.n_packages_outdated, \
                  self.n_versions_gentoo, self.n_versions_overlay, self.n_versions_upstream)
 
+class WorldLog(Log):
+    def __unicode__(self):
+        return u'world ' + Log.__unicode__(self)
 
-class HerdLog(models.Model):
+class CategoryLog(Log):
+    category = models.CharField(max_length=128)
+
+    def __unicode__(self):
+        return u'%s %s' % (self.category, Log.__unicode__(self))
+
+class HerdLog(Log):
     herd = models.ForeignKey(Herd)
-    datetime = models.DateTimeField()
-
-    n_packages_gentoo   = models.IntegerField(default=0)
-    n_packages_overlay  = models.IntegerField(default=0)
-    n_packages_outdated = models.IntegerField(default=0)
-
-    n_versions_gentoo   = models.IntegerField(default=0)
-    n_versions_overlay  = models.IntegerField(default=0)
-    n_versions_upstream = models.IntegerField(default=0)
 
     def __unicode__(self):
-        return u'%s [%d:%d:%d] [%d:%d:%d]' % \
-            (self.herd, self.n_packages_gentoo, self.n_packages_overlay, self.n_packages_outdated, \
-                 self.n_versions_gentoo, self.n_versions_overlay, self.n_versions_upstream)
+        return u'%s %s' % (self.herd, Log.__unicode__(self))
 
-
-class MaintainerLog(models.Model):
+class MaintainerLog(Log):
     maintainer = models.ForeignKey(Maintainer)
-    datetime = models.DateTimeField()
-
-    n_packages_gentoo   = models.IntegerField(default=0)
-    n_packages_overlay  = models.IntegerField(default=0)
-    n_packages_outdated = models.IntegerField(default=0)
-
-    n_versions_gentoo   = models.IntegerField(default=0)
-    n_versions_overlay  = models.IntegerField(default=0)
-    n_versions_upstream = models.IntegerField(default=0)
 
     def __unicode__(self):
-        return u'%s [%d:%d:%d] [%d:%d:%d]' % \
-            (self.maintainer, self.n_packages_gentoo, self.n_packages_overlay, self.n_packages_outdated, \
-                 self.n_versions_gentoo, self.n_versions_overlay, self.n_versions_upstream)
+        return u'%s %s' % (self.maintainer, Log.__unicode__(self))
 
