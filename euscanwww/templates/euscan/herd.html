@@ -16,7 +16,9 @@
 <img src="{% url euscan.views.chart_herd herd.herd 'pie-packages' %}" />
 
 <h4>All Time</h4>
+<img src="{% url euscan.views.chart_herd herd.herd 'versions-weekly' %}" />
 <img src="{% url euscan.views.chart_herd herd.herd 'versions-monthly' %}" />
+<img src="{% url euscan.views.chart_herd herd.herd 'packages-weekly' %}" />
 <img src="{% url euscan.views.chart_herd herd.herd 'packages-monthly' %}" />
 
 {% endblock %}
