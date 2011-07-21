@@ -21,7 +21,7 @@ def index(request):
     ctx['n_packages'] = Package.objects.count()
     ctx['n_herds'] = Herd.objects.count()
     ctx['n_maintainers'] = Maintainer.objects.count()
-    ctx['last_scan'] = EuscanResult.objects.aggregate(Max('datetime'))['datetime__max']
+    ctx['last_scan'] = EuscanResult.objects.get(id=EuscanResult.objects.aggregate(Max('id'))['id__max']).datetime
     return ctx
 
 @render_to('euscan/logs.html')
