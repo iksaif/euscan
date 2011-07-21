@@ -11,7 +11,10 @@
   </head>
   <body>
     <div id="header">
-      {% block header %}<h1>euscan</h1>{% endblock %}
+      <a href="http://www.gentoo.org">
+	<img id="logo" src="{{ MEDIA_URL }}img/gentoo_org.png" />
+      </a>
+      {% block header %}<h1>Ebuild Upstream Scanner (euscan)</h1>{% endblock %}
     </div>
     <div id="content">
       {% block content %}{% endblock %}
@@ -40,9 +43,12 @@
       {% endblock %}
     </div>
     <div id="footer">
-      Questions, Comments, Corrections ?
-      Email: corentin.chary at gmail.com<br />
-      Copyright (C) 2011 <strong>Corentin Chary</strong>
+      <p>
+	Questions, Comments, Corrections ?
+	Email: corentin.chary at gmail.com<br />
+	Copyright (C) 2011 <strong>Corentin Chary</strong><br />
+	<em>This site is not an official Gentoo website.</em>
+      </p>
     </div>
   </body>
 </html>

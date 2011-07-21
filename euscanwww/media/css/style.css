@@ -5,7 +5,7 @@ body
   font-size: 0.8em;
   font-family: Dejavu, Verdana, "Bitstream Vera Sans", "Lucida Grande", "Trebuchet MS", sans-serif;
   color: #535353;
-  background: #E3E3E2;
+  background: #D2D0D4;
   }
 
 img
@@ -35,24 +35,33 @@ a:hover, a:active
   }
 
 #header {
-    background: #ffffff;
+    /* background: url(http://packages.gentoo.org/media/packages_gentoo_logo.jpg) no-repeat;
+    background-color: #46347C; */
     width: 100%;
+    height: 30px;
     margin: 0;
     padding: 0;
+    background: url(../img/gentoo-header-bar-bg.png) repeat-x;
+}
+
+#header #logo
+{
+    float: left;
 }
 
 #content {
-    background: #ffffff;
+    background: #F0F0F0;
     padding: 10px;
     margin-top: 10px;
 /*    margin-right: auto;
     margin-left: auto;
 */
-    margin-left: 20%;
+    margin-left: 20px;
+    /* margin-left: 20%; */
     margin-right: 250px;
-    max-width: 60em;
+    /* max-width: 60em; */
 
-    border: solid 1px #DBDBDA;
+    border: 1px solid #67539B;
     background: #FEFEFE;
 
     -webkit-border-radius: 10px;
@@ -64,14 +73,14 @@ a:hover, a:active
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
     border-radius: 10px;
-
+    border: 1px solid #67539B;
 }
 
 #menu, #menu_dl {
-	width:100%;
-        border-bottom: 1px dotted #663300;
-	margin-top: 5px;
-	background: #252525;
+    width:100%;
+    margin-top: 75px;
+    background: #8076A1;
+    color: #FFF;
 }
 
 #menu a {
@@ -82,6 +91,7 @@ a:hover, a:active
 {
   list-style-type: none;
  }
+
 #menus {
     width: 200px;
     position:absolute;
@@ -139,6 +149,7 @@ dd {
 
 
 h1 {
+        color: #000;
 	width: 20em;
 	margin-left: auto;
 	margin-right: auto;
@@ -179,22 +190,20 @@ th
   border-bottom: 3px solid;
  }
 
-#logos, #footer
+#footer
 {
-    margin: 10px;
-    text-align: center;
-    background: #FFF;
+    background: #8076A1;
     font-size: 0.8em;
-    margin-right: auto;
-    margin-left:auto;
-    width: 60em;
-    padding: 10px;
-
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
-
+    width: 100%;
+    margin: 0;
+    margin-top: 10px;
+    color: #FFF;
  }
+
+#footer p {
+    text-align: right;
+    margin: 5px;
+}
 
 .err,.ok,.inf
 {
