@@ -170,7 +170,8 @@ hr
 
 table
 {
-    width: 80%;
+    max-width: 60em;
+    /* width: 50%; */
     border-collapse: collapse;
     font-size: 1em;
     margin-left: auto;
