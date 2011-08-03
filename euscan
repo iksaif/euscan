@@ -72,7 +72,6 @@ def htop_vercmp(a, b):
 	def fixver(v):
 		if v in ['0.11', '0.12', '0.13']:
 			v = '0.1.' + v[3:]
-		print (v)
 		return v
 
 	return simple_vercmp(fixver(a), fixver(b))
@@ -115,10 +114,8 @@ def simple_vercmp(a, b):
 		return 1
 
 def vercmp(package, a, b):
-	print (package, a, b)
 	if package in VERSION_CMP_PACKAGE_QUIRKS:
 		return VERSION_CMP_PACKAGE_QUIRKS[package](a, b)
-	print("fail")
 	return simple_vercmp(a, b)
 
 def skipnightly(a, b):
