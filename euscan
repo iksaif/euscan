@@ -45,13 +45,41 @@ from gentoolkit.eclean.search import (port_settings)
 
 QUERY_OPTS = {"include_masked": True}
 
-BLACKLIST_PACKAGES = ['sys-kernel/usermode-sources', 'sys-kernel/xbox-sources',
-		      'sys-kernel/cell-sources', 'sys-libs/libstdc++-v3']
+BLACKLIST_PACKAGES = [
+	# Compatibility package for running binaries linked against a pre gcc 3.4 libstdc++, won't be updated
+	'sys-libs/libstdc++-v3'
+	# These kernels are almost dead
+	'sys-kernel/usermode-sources',
+	'sys-kernel/xbox-sources',
+	'sys-kernel/cell-sources',
+]
 
-SCANDIR_BLACKLIST_URLS = ['mirror://rubygems/(.*)', 'mirror://gentoo/(.*)']
+SCANDIR_BLACKLIST_URLS = [
+	'mirror://rubygems/(.*)', # Not browsable
+	'mirror://gentoo/(.*)' # Directory too big
+]
 
-BRUTEFORCE_BLACKLIST_PACKAGES = ['dev-util/patchelf', 'net-zope/plonepopoll']
-BRUTEFORCE_BLACKLIST_URLS = ['http://(.*)dockapps.org/download.php/id/(.*)', 'http://hydra.nixos.org/build/(.*)']
+BRUTEFORCE_BLACKLIST_PACKAGES = [
+	'net-zope/plonepopoll' # infinite loop any http://plone.org/products/plonepopoll/releases/*/plonepopoll-2-6-1.tgz link will work
+	]
+
+BRUTEFORCE_BLACKLIST_URLS = [
+	'http://(.*)dockapps.org/download.php/id/(.*)', # infinite loop
+	'http://hydra.nixos.org/build/(.*)' # infinite loop
+]
+
+def htop_vercmp(a, b):
+	def fixver(v):
+		if v in ['0.11', '0.12', '0.13']:
+			v = '0.1.' + v[3:]
+		print (v)
+		return v
+
+	return simple_vercmp(fixver(a), fixver(b))
+
+VERSION_CMP_PACKAGE_QUIRKS = {
+	'sys-process/htop' : htop_vercmp
+}
 
 _v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)*))'
 
@@ -67,7 +95,7 @@ def cast_int_components(version):
 			pass
 	return version
 
-def vercmp(a, b):
+def simple_vercmp(a, b):
 	if a == b:
 		return 0
 
@@ -85,6 +113,13 @@ def vercmp(a, b):
 		return -1
 	else:
 		return 1
+
+def vercmp(package, a, b):
+	print (package, a, b)
+	if package in VERSION_CMP_PACKAGE_QUIRKS:
+		return VERSION_CMP_PACKAGE_QUIRKS[package](a, b)
+	print("fail")
+	return simple_vercmp(a, b)
 
 def skipnightly(a, b):
 	a = pkg_resources.parse_version(a)
@@ -220,6 +255,7 @@ def tryurl(fileurl, output, template):
 
 		if result:
 			result = (fp.geturl(), fp.info())
+
 	except urllib2.URLError:
 		result = None
 	except IOError:
@@ -270,10 +306,11 @@ def generate_scan_paths(url):
 			path += chunk
         return steps
 
-def scan_directory_recursive(url, steps, vmin, vmax, output):
+def scan_directory_recursive(cpv, url, steps, vmin, vmax, output):
 	if not steps:
 		return []
 
+	cp, ver, rev = portage.pkgsplit(cpv)
 	url += steps[0][0]
 	pattern = steps[0][1]
 
@@ -320,9 +357,9 @@ def scan_directory_recursive(url, steps, vmin, vmax, output):
 	versions = []
 
 	for version, path in results:
-		if vmin and vercmp(version, vmin) <= 0:
+		if vmin and vercmp(cp, version, vmin) <= 0:
 			continue
-		if vmax and vercmp(version, vmax) >= 0:
+		if vmax and vercmp(cp, version, vmax) >= 0:
 			continue
 
 		if skipnightly(vmin, version):
@@ -356,7 +393,7 @@ def scan_directory(cpv, fileurl, options, output, limit=None):
 		output.einfo("Scanning: %s" % template)
 
 	steps = generate_scan_paths(template)
-	return scan_directory_recursive("", steps, ver, limit, output)
+	return scan_directory_recursive(cpv, "", steps, ver, limit, output)
 
 def brute_force(cpv, fileurl, options, output, limit=None):
 	if options["brute-force"] <= 0:
@@ -376,6 +413,12 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 
 	components = split_version(ver)
 	versions = gen_versions(components, options["brute-force"])
+
+
+	""" Use the quirks to remove unwanted versions """
+	for v in versions:
+		if vercmp(catpkg, ver, join_version(v)) >= 0:
+			versions.remove(v)
 
 	output.einfo("Generating version from " + ver)
 
@@ -406,7 +449,7 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 
 		vstring = join_version(components)
 
-		if limit and vercmp(vstring, limit) >= 0:
+		if limit and vercmp(catpkg, vstring, limit) >= 0:
 			continue
 
 		url = url_from_template(template, vstring)
