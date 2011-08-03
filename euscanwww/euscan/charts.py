@@ -222,6 +222,9 @@ def packages(**kwargs):
                   '--width', kwargs['width'],
                   '--height', kwargs['height'],
                   kwargs['graph-mode'],
+                  '--color', 'CANVAS#FFFFFF00',
+                  '--color', 'BACK#FFFFFF00',
+
                   '--start', kwargs['start'],
                   '--end', kwargs['end'],
                   '--vertical-label', kwargs['vertical-label'],
@@ -241,6 +244,8 @@ def versions(**kwargs):
                   '--width', kwargs['width'],
                   '--height', kwargs['height'],
                   kwargs['graph-mode'],
+                  '--color', 'CANVAS#FFFFFF00',
+                  '--color', 'BACK#FFFFFF00',
                   '--start', kwargs['start'],
                   '--end', kwargs['end'],
                   '--vertical-label', kwargs['vertical-label'],
