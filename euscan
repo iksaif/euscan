@@ -65,7 +65,8 @@ BRUTEFORCE_BLACKLIST_PACKAGES = [
 
 BRUTEFORCE_BLACKLIST_URLS = [
 	'http://(.*)dockapps.org/download.php/id/(.*)', # infinite loop
-	'http://hydra.nixos.org/build/(.*)' # infinite loop
+	'http://hydra.nixos.org/build/(.*)', # infinite loop
+	'http://www.rennings.net/gentoo/distfiles/(.*)' # Doesn't respect 404, infinite loop
 ]
 
 def htop_vercmp(a, b):
@@ -369,7 +370,7 @@ def scan_directory_recursive(cpv, url, steps, vmin, vmax, output):
 
 		versions.append((path, version))
 		if steps:
-			ret = scan_directory_recursive(path, steps, vmin, vmax, output)
+			ret = scan_directory_recursive(cpv, path, steps, vmin, vmax, output)
 			versions.extend(ret)
 	return versions
 
