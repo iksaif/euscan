@@ -105,11 +105,15 @@ class Command(BaseCommand):
             self.store_result(options, package, log)
 
     def store_result(self, options, package, log):
+        # Remove previous logs
+        EuscanResult.objects.filter(package=package).delete()
+
         obj = EuscanResult()
         obj.package = package
         obj.result = log
         obj.datetime = datetime.now()
         obj.save()
+
 
     def store_package(self, options, cpv):
         cat, pkg, ver, rev = portage.catpkgsplit(cpv)
