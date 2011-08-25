@@ -6,6 +6,14 @@
 {{ block.super }} - Category: {{ category }}
 {% endblock %}
 
+{% block menu_feed %}
+{{ block.super }}
+<li>
+  <img src="{{ MEDIA_URL }}/img/feed.png" alt="feed" />
+  <a title="{{ category }} Feed" href="{% url category_feed category %}">{{ category }}</a>
+</li>
+{% endblock %}
+
 {% block content %}
 <h2>Category: {{ category }}</h2>
 {% packages packages %}

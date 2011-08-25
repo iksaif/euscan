@@ -29,8 +29,10 @@ class Command(BaseCommand):
         herds = {}
         maintainers = {}
 
-        # Could be done using raw SQL queries, but I don't have time for that
-        # right now ...
+        '''
+        Could be done using raw SQL queries, but I don't have time for that
+        right now ...
+        '''
 
         wlog = WorldLog()
         wlog.datetime = now
@@ -100,19 +102,19 @@ class Command(BaseCommand):
 
         for clog in categories.values():
             if not options['quiet']:
-                self.stdout.write('[c] %s\n' % clog)
+                self.stdout.write('+ [cl] %s\n' % clog)
             charts.rrd_update('category-%s' % clog.category, now, clog)
             clog.save()
 
         for hlog in herds.values():
             if not options['quiet']:
-                self.stdout.write('[h] %s\n' % hlog)
+                self.stdout.write('+ [hl] %s\n' % hlog)
             charts.rrd_update('herd-%d' % hlog.herd.id, now, hlog)
             hlog.save()
 
         for mlog in maintainers.values():
             if not options['quiet']:
-                self.stdout.write('[m] %s\n' % mlog)
+                self.stdout.write('+ [ml] %s\n' % mlog)
             charts.rrd_update('maintainer-%d' % mlog.maintainer.id, now, mlog)
             mlog.save()
 

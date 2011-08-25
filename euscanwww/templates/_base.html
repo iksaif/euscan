@@ -3,6 +3,9 @@
   <head>
     <title>{% block title %}euscan{% endblock %}</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    {% block meta %}
+    <link rel="alternate" type="application/atom+xml" title="Global log" href="{% url global_feed %}" />
+    {% endblock %}
     {% block css %}
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/style.css" media="screen" title="Normal" />
     {% endblock %}
@@ -35,6 +38,13 @@
 	  <li><a href="#">Login</a></li>
 	  <li><a href="#">Register</a></li>
 	  -->
+	  <li>---</li>
+	  {% block menu_feed %}
+	  <li>
+	    <img src="{{ MEDIA_URL }}/img/feed.png" alt="feed" />
+	    <a href="Global Feed" href="{% url global_feed %}">Global Feed</a>
+	  </li>
+	  {% endblock %}
 	  <li>---</li>
 	  <li><a href="{% url euscan.views.about %}">About</a></li>
 	  {% endblock %}

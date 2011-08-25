@@ -14,6 +14,8 @@ from euscanwww.euscan.models import Package, Herd, Maintainer
 from gentoolkit.query import Query
 from gentoolkit.errors import GentoolkitFatalError
 
+from progressbar import ProgressBar, Bar, ETA, Percentage
+
 class Command(BaseCommand):
     _overlays = {}
 
@@ -28,6 +30,11 @@ class Command(BaseCommand):
             dest='quiet',
             default=False,
             help='Be quiet'),
+        make_option('--progress',
+            action='store_true',
+            dest='progress',
+            default=False,
+            help='Display progress'),
         )
     args = '<package package ...>'
     help = 'Scans metadata and fills database'
@@ -36,24 +43,41 @@ class Command(BaseCommand):
         if len(args) == 0 and options['all'] == False:
             raise CommandError('You must specify a package or use --all')
 
-        if not options['quiet']:
-            self.stdout.write('Scanning metadata...\n')
+        if not self.stdout.isatty():
+            options['progress'] = False
+
+        if options['progress']:
+            widgets = ['Scanning metadata: ', Percentage(), ' ', Bar(), ' ', ETA()]
+            if len(args):
+                count = len(args)
+            else:
+                count = Package.objects.count()
+            pbar = ProgressBar(widgets=widgets, maxval=count).start()
+            i = 0
+        else:
+            pbar = None
 
         if len(args) == 0:
             for pkg in Package.objects.all():
                 self.scan(options, '%s/%s' % (pkg.category, pkg.name))
+                if pbar:
+                    pbar.update(i)
+                    i += 1
         else:
             for package in args:
                 self.scan(options, package)
+                if pbar:
+                    pbar.update(i)
+                    i += 1
 
-        if not options['quiet']:
-            self.stdout.write('Done.\n')
+        if pbar:
+            pbar.finish()
 
     @commit_on_success
     def scan(self, options, query=None):
         matches = Query(query).find(
                 include_masked=True,
-                in_installed=False
+                in_installed=False,
         )
 
         if not matches:
@@ -73,6 +97,8 @@ class Command(BaseCommand):
         except GentoolkitFatalError, err:
             sys.stderr.write(self.style.ERROR("Gentoolkit fatal error: '%s'\n" % str(err)))
 
+        if created and not options['quiet']:
+            sys.stdout.write('+ [p] %s/%s\n' % (pkg.category, pkg.name))
         if pkg.metadata:
             obj.herds.clear()
             obj.maintainers.clear()
@@ -85,9 +111,6 @@ class Command(BaseCommand):
                 maintainer = self.store_maintainer(options, maintainer.name, maintainer.email)
                 obj.maintainers.add(maintainer)
 
-        if not options['quiet']:
-            sys.stdout.write('[p] %s/%s\n' % (pkg.category, pkg.name))
-
         obj.save()
 
     def store_herd(self, options, name, email):
@@ -99,7 +122,7 @@ class Command(BaseCommand):
 
         if created or herd.email != email:
             if not options['quiet']:
-                sys.stdout.write('[h] %s <%s>\n' % (name, email))
+                sys.stdout.write('+ [h] %s <%s>\n' % (name, email))
 
             herd.email = email
             herd.save()
@@ -116,7 +139,7 @@ class Command(BaseCommand):
 
         if created:
             if not options['quiet']:
-                sys.stdout.write('[m] %s <%s>\n' % (name.encode('utf-8'), email))
+                sys.stdout.write('+ [m] %s <%s>\n' % (name.encode('utf-8'), email))
 
             maintainer.name = name
             maintainer.save()

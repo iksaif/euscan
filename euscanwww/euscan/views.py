@@ -1,10 +1,9 @@
 from annoying.decorators import render_to
-from django.http import HttpResponse
-from django.http import Http404
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Max
 
-from euscan.models import Version, Package, Herd, Maintainer, EuscanResult
+from euscan.models import Version, Package, Herd, Maintainer, EuscanResult, VersionLog
 from euscan.forms import WorldForm, PackagesForm
 
 import charts
@@ -82,8 +81,9 @@ def package(request, category, package):
     upstream = Version.objects.filter(package=package, packaged=False)
     log = EuscanResult.objects.filter(package=package).order_by('-datetime')[:1]
     log = log[0] if log else None
+    vlog = VersionLog.objects.filter(package=package).order_by('-id')
     return { 'package' : package, 'packaged' : packaged,
-             'upstream' : upstream, 'log' : log }
+             'upstream' : upstream, 'log' : log, 'vlog' : vlog }
 
 @render_to('euscan/world.html')
 def world(request):

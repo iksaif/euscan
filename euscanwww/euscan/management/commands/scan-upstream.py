@@ -11,7 +11,7 @@ from optparse import make_option
 
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand, CommandError
-from euscanwww.euscan.models import Package, Version, EuscanResult
+from euscanwww.euscan.models import Package, Version, EuscanResult, VersionLog
 
 class Command(BaseCommand):
     _overlays = {}
@@ -27,6 +27,11 @@ class Command(BaseCommand):
             dest='feed',
             default=False,
             help='Read euscan output from stdin'),
+        make_option('--purge-versions',
+            action='store_true',
+            dest='purge-versions',
+            default=False,
+            help='Purge old versions'),
         make_option('--quiet',
             action='store_true',
             dest='quiet',
@@ -42,6 +47,8 @@ class Command(BaseCommand):
 
         if options['feed']:
             self.parse_output(options, sys.stdin)
+            if options['purge-versions']:
+                self.purge_versions(options)
             return
 
         if not options['quiet']:
@@ -57,10 +64,12 @@ class Command(BaseCommand):
 
         self.scan(options, packages)
 
+        if options['purge-versions']:
+            self.purge_versions(options)
+
         if not options['quiet']:
             self.stdout.write('Done.\n')
 
-    @commit_on_success
     def scan(self, options, packages=None):
         for package in packages:
             cmd = ['euscan', package]
@@ -70,6 +79,7 @@ class Command(BaseCommand):
 
             self.parse_output(options, output)
 
+    @commit_on_success
     def parse_output(self, options, output):
         from portage.versions import _cp
 
@@ -120,12 +130,11 @@ class Command(BaseCommand):
 
         obj, created = Package.objects.get_or_create(category=cat, name=pkg)
 
-        if created:
-            if not options['quiet']:
-                sys.stdout.write('[p] %s/%s\n' % (cat, pkg))
+        if created and not options['quiet']:
+            sys.stdout.write('+ [p] %s/%s\n' % (cat, pkg))
 
-        # Delete previous versions to handle incremental scan correctly
-        Version.objects.filter(package=obj, packaged=False).delete()
+        ' Set all versions dead, then set found versions alive and delete old versions '
+        Version.objects.filter(package=obj, packaged=False).update(alive=False)
 
         obj.n_versions = Version.objects.filter(package=obj).count()
         obj.save()
@@ -137,15 +146,44 @@ class Command(BaseCommand):
                                                      revision='r0', version=ver,
                                                      overlay='')
 
-        if created or not obj.packaged:
+        obj.alive = True
+        obj.urls = url
+        obj.packaged = False
+        obj.save()
+
+        ''' If it's not a new version, just update the object and continue '''
+        if not created:
+            return
+
+        if not options['quiet']:
+            sys.stdout.write('+ [u] %s %s\n' % (obj, url))
+
+        entry = VersionLog.objects.create(package=package, action=VersionLog.VERSION_ADDED)
+        entry.slot = ''
+        entry.revision = 'r0'
+        entry.version = ver
+        entry.overlay = ''
+        entry.save()
+
+        package.n_versions += 1
+        package.save()
+
+
+    @commit_on_success
+    def purge_versions(self, options):
+        ' For each dead versions '
+        for version in Version.objects.filter(packaged=False, alive=False):
+            entry = VersionLog.objects.create(package=version.package, action=VersionLog.VERSION_REMOVED)
+            entry.slot = version.slot
+            entry.revision = version.revision
+            entry.version = version.version
+            entry.overlay = version.overlay
+            entry.save()
+
+            version.package.n_versions -= 1
+            version.package.save()
+
             if not options['quiet']:
-                sys.stdout.write('[u] %s/%s-%s %s\n' % (package.category, package.name,
-                                                        ver, url))
+                sys.stdout.write('- [u] %s %s\n' % (version, version.urls))
+        Version.objects.filter(packaged=False, alive=False).delete()
 
-            obj.urls = url
-            obj.packaged = False
-            obj.save()
-
-        if created:
-            package.n_versions += 1
-            package.save()

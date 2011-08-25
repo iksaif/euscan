@@ -9,7 +9,7 @@ from optparse import make_option
 
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand, CommandError
-from euscanwww.euscan.models import Package, Version
+from euscanwww.euscan.models import Package, Version, VersionLog
 
 class Command(BaseCommand):
     _overlays = {}
@@ -20,11 +20,16 @@ class Command(BaseCommand):
             dest='all',
             default=False,
             help='Scan all packages'),
-        make_option('--purge',
+        make_option('--purge-packages',
             action='store_true',
-            dest='purge',
+            dest='purge-packages',
             default=False,
             help='Purge old packages'),
+        make_option('--purge-versions',
+            action='store_true',
+            dest='purge-versions',
+            default=False,
+            help='Purge old versions'),
         make_option('--quiet',
             action='store_true',
             dest='quiet',
@@ -46,6 +51,9 @@ class Command(BaseCommand):
         else:
             for package in args:
                 self.scan(options, package)
+
+        if options['purge-versions']:
+            self.purge_versions(options)
 
         if not options['quiet']:
             self.stdout.write('Done.\n')
@@ -90,9 +98,9 @@ class Command(BaseCommand):
         if len(output) == 0:
             if not query:
                 return
-            if options['purge']:
+            if options['purge-packages']:
                 if not options['quiet']:
-                    sys.stdout.write('[gc] %s\n' % (query))
+                    sys.stdout.write('- [p] %s\n' % (query))
                 if '/' in query:
                     cat, pkg = portage.catsplit(query)
                     Package.objects.filter(category=cat, name=pkg).delete()
@@ -128,12 +136,12 @@ class Command(BaseCommand):
 
             self.store_version(options, package, cpv, slot, overlay)
 
-        if options['purge'] and not query:
+        if options['purge-packages'] and not query:
             for package in Package.objects.all():
                 cp = "%s/%s" % (package.category, package.name)
                 if cp not in packages:
                     if not options['quiet']:
-                        sys.stdout.write('[gc] %s\n' % (cp))
+                        sys.stdout.write('- [p] %s\n' % (package))
                     package.delete()
 
     def store_package(self, options, cat, pkg):
@@ -141,10 +149,10 @@ class Command(BaseCommand):
 
         if created:
             if not options['quiet']:
-                sys.stdout.write('[p] %s/%s\n' % (cat, pkg))
+                sys.stdout.write('+ [p] %s/%s\n' % (cat, pkg))
 
-        # Delete previous versions to handle incremental scan correctly
-        Version.objects.filter(package=obj, packaged=True).delete()
+        ' Set all versions dead, then set found versions alive and delete old versions '
+        Version.objects.filter(package=obj, packaged=True).update(alive=False)
 
         obj.n_packaged = 0
         obj.n_overlay = 0
@@ -163,23 +171,53 @@ class Command(BaseCommand):
         else:
             overlay = 'gentoo'
 
-        if not options['quiet']:
-            sys.stdout.write('[v] %s:%s [%s]\n' % (cpv, slot, overlay))
-
         obj, created = Version.objects.get_or_create(package=package, slot=slot,
                                                      revision=rev, version=ver,
                                                      overlay=overlay)
-
-        if created or not package.n_packaged:
-            if overlay == 'gentoo':
-                package.n_packaged += 1
-            else:
-                package.n_overlay += 1
-        if created:
-            package.n_versions += 1
-
-        package.save()
-
+        obj.alive = True
         obj.packaged = True
         obj.save()
+
+        ''' nothing to do (note: it can't be an upstream version because overlay can't be empty here) '''
+        if not created:
+            return
+
+        if not options['quiet']:
+            sys.stdout.write('+ [v] %s \n' % (obj))
+
+        if overlay == 'gentoo':
+            package.n_packaged += 1
+        else:
+            package.n_overlay += 1
+        package.n_versions += 1
+        package.save()
+
+        entry = VersionLog.objects.create(package=obj.package, action=VersionLog.VERSION_ADDED)
+        entry.slot = obj.slot
+        entry.revision = obj.revision
+        entry.version = obj.version
+        entry.overlay = obj.overlay
+        entry.save()
+
+    @commit_on_success
+    def purge_versions(self, options):
+        ' For each dead versions '
+        for version in Version.objects.filter(packaged=True, alive=False):
+            entry = VersionLog.objects.create(package=version.package, action=VersionLog.VERSION_REMOVED)
+            entry.slot = version.slot
+            entry.revision = version.revision
+            entry.version = version.version
+            entry.overlay = version.overlay
+            entry.save()
+
+            if version.overlay == 'gentoo':
+                version.package.n_packaged -= 1
+            else:
+                version.package.n_overlay -= 1
+            version.package.n_versions -= 1
+            version.package.save()
+
+            if not options['quiet']:
+                sys.stdout.write('- [v] %s\n' % (version))
+        Version.objects.filter(packaged=False, alive=False).delete()
 

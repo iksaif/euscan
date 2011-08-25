@@ -216,6 +216,14 @@ th
   border: 1px dotted #5682AD;
   }
 
+.added {
+  color: #262;
+}
+
+.removed {
+  color: #F00;
+}
+
 .err
 {
   border-color: #F00;
@@ -258,4 +266,9 @@ th
 
 .package_stat .upstream {
     background: #FDEADD;
+}
+
+.log {
+    max-height: 100pt;
+    overflow: auto;
 }

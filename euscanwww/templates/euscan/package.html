@@ -2,6 +2,19 @@
 
 {% load sub %}
 
+{% block meta %}
+{{ block.super }}
+<link rel="alternate" type="application/atom+xml" title="{{ package }} Feed" href="{% url package_feed package.category package.name %}" />
+{% endblock %}
+
+{% block menu_feed %}
+{{ block.super }}
+<li>
+  <img src="{{ MEDIA_URL }}/img/feed.png" alt="feed" />
+  <a title="{{ package }} Feed" href="{% url package_feed package.category package.name %}">{{ package }}</a>
+</li>
+{% endblock %}
+
 {% block title %}
 {{ block.super }} - {{ package.category }}/{{ package.name }}
 {% endblock %}
@@ -73,11 +86,25 @@
      </ul>
   </dd>
   {% endif %}
+  <dt>Version history</dt>
+  <dd>
+    <ul class="log">
+      {% for version in vlog %}
+      {% if version.action == version.VERSION_ADDED %}
+      <li class="added">
+      {% else %}
+      <li class="removed">
+      {% endif %}
+	{{ version }} - {{ version.datetime }}
+      </li>
+      {% endfor %}
+    </ul>
+  </dt>
   {% if log %}
   <dt>euscan log</dt>
   <dd>
     <p>Date: {{ log.datetime }}
-    <pre>
+    <pre class="log">
       {{ log.result }}
     </pre>
   </dd>

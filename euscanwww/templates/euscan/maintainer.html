@@ -6,6 +6,14 @@
 {{ block.super }} - Maintainer: {{ maintainer.name }}
 {% endblock %}
 
+{% block menu_feed %}
+{{ block.super }}
+<li>
+  <img src="{{ MEDIA_URL }}/img/feed.png" alt="feed" />
+  <a title="{{ maintainer.name }} Feed" href="{% url maintainer_feed maintainer.id %}">{{ maintainer.name }}</a>
+</li>
+{% endblock %}
+
 {% block content %}
 <h2>Maintainer: {{ maintainer.name }} &lt{{ maintainer.email }}&gt</h2>
 {% packages packages %}
