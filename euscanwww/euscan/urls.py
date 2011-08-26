@@ -7,24 +7,24 @@ package_patterns = patterns('euscan.views',
 )
 
 categories_patterns = patterns('euscan.views',
-    (r'(?P<category>[\w+][\w+.-]*)/view/$', 'category'),
-    url(r'(?P<category>[\w+][\w+.-]*)/feed/$', CategoryFeed(), name='category_feed'),
-    (r'(?P<category>[\w+][\w+.-]*)/charts/(?P<chart>[\w\-]+).png$', 'chart_category'),
-    (r'$', 'categories'),
+    (r'^(?P<category>[\w+][\w+.-]*)/view/$', 'category'),
+    url(r'^(?P<category>[\w+][\w+.-]*)/feed/$', CategoryFeed(), name='category_feed'),
+    (r'^(?P<category>[\w+][\w+.-]*)/charts/(?P<chart>[\w\-]+).png$', 'chart_category'),
+    (r'^$', 'categories'),
 )
 
 herds_patterns = patterns('euscan.views',
-    (r'(?P<herd>[\@\{\}\w+.-]*)/view/$', 'herd'),
-    url(r'(?P<herd>[\@\{\}\w+.-]*)/feed/$', HerdFeed(), name='herd_feed'),
-    (r'(?P<herd>[\@\{\}\w+.-]*)/charts/(?P<chart>[\w\-]+).png$', 'chart_herd'),
-    (r'$', 'herds'),
+    (r'^(?P<herd>[\@\{\}\w+.-]*)/view/$', 'herd'),
+    url(r'^(?P<herd>[\@\{\}\w+.-]*)/feed/$', HerdFeed(), name='herd_feed'),
+    (r'^(?P<herd>[\@\{\}\w+.-]*)/charts/(?P<chart>[\w\-]+).png$', 'chart_herd'),
+    (r'^$', 'herds'),
 )
 
 maintainers_patterns = patterns('euscan.views',
-    (r'(?P<maintainer_id>\d+)/view/$', 'maintainer'),
-    url(r'(?P<maintainer_id>\d+)/feed/$', MaintainerFeed(), name='maintainer_feed'),
-    (r'(?P<maintainer_id>\d+)/charts/(?P<chart>[\w\-]+).png$', 'chart_maintainer'),
-    (r'$', 'maintainers'),
+    (r'^(?P<maintainer_id>\d+)/view/$', 'maintainer'),
+    url(r'^(?P<maintainer_id>\d+)/feed/$', MaintainerFeed(), name='maintainer_feed'),
+    (r'^(?P<maintainer_id>\d+)/charts/(?P<chart>[\w\-]+).png$', 'chart_maintainer'),
+    (r'^$', 'maintainers'),
 )
 
 urlpatterns = patterns('euscan.views',
