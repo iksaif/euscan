@@ -67,7 +67,7 @@
   <dd>
     <ul>
       {% for version in packaged %}
-      <li>
+      <li id="{{ version.version }}-{{version.revision }}:{{ version.slot }}-[{{ version.overlay }}]">
 	{{ version.version }}-{{ version.revision }} :{{ version.slot }} [{{ version.overlay }}]
       </li>
       {% endfor %}
