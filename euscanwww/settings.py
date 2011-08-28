@@ -27,7 +27,14 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(os.path.dirname( __file__ ), 'euscan.db'),
+        'NAME': os.path.join(os.path.dirname( __file__ ), 'euscan.db')
+    },
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(os.path.dirname( __file__ ), 'euscan.cache'),
     }
 }
 
@@ -82,11 +89,16 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
+
+CACHE_MIDDLEWARE_SECONDS=3600
+CACHE_MIDDLEWARE_ANONYMOUS_ONLY=True
 
 ROOT_URLCONF = 'euscanwww.urls'
 
