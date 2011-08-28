@@ -31,8 +31,9 @@ import pkg_resources
 
 import portage
 import portage.versions
+from portage import dep
+from portage.dbapi import porttree
 from portage.output import white, yellow, turquoise, green, teal, red, EOutput
-from portage.dbapi.porttree import _parse_uri_map
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
@@ -45,9 +46,12 @@ from gentoolkit.eclean.search import (port_settings)
 
 QUERY_OPTS = {"include_masked": True}
 
-BLACKLIST_PACKAGES = [
+BLACKLIST_VERSIONS = [
 	# Compatibility package for running binaries linked against a pre gcc 3.4 libstdc++, won't be updated
-	'sys-libs/libstdc++-v3'
+	'>=sys-libs/libstdc++-v3-3.4',
+]
+
+BLACKLIST_PACKAGES = [
 	# These kernels are almost dead
 	'sys-kernel/usermode-sources',
 	'sys-kernel/xbox-sources',
@@ -304,6 +308,19 @@ def generate_scan_paths(url):
 			path += chunk
         return steps
 
+def versionBlacklisted(cp, version, output=None):
+	rule = None
+	cpv = '%s-%s' % (cp, version)
+
+	for bv in BLACKLIST_VERSIONS:
+		if dep.match_from_list(bv, [cpv]):
+			rule = bv
+			None
+
+	if rule and output:
+		output.einfo("%s is blacklisted by rule %s" % (cpv, bv))
+	return rule is not None
+
 def scan_directory_recursive(cpv, url, steps, vmin, vmax, output):
 	if not steps:
 		return []
@@ -360,6 +377,9 @@ def scan_directory_recursive(cpv, url, steps, vmin, vmax, output):
 		if vmax and vercmp(cp, version, vmax) >= 0:
 			continue
 
+		if versionBlacklisted(cp, version, output):
+			continue
+
 		if skipnightly(vmin, version):
 			continue
 
@@ -374,15 +394,30 @@ def scan_directory_recursive(cpv, url, steps, vmin, vmax, output):
 			versions.extend(ret)
 	return versions
 
-def scan_directory(cpv, fileurl, options, output, limit=None):
+'''
+- python: PyPi
+- PHP: PECL / PEAR
+- ftp.kde.org: doesn't scan the "unstable" tree
+- mysql: should use http://downloads.mysql.com/archives/
+- mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/
+'''
+
+def scan_directory(cpv, url, options, output, limit=None):
 	# Ftp: list dir
 	# Handle mirrors
 	if not options["scan-dir"]:
 		return []
 
+	for bu in SCANDIR_BLACKLIST_URLS:
+		if re.match(bu, url):
+			output.einfo("%s is blacklisted by rule %s" % (url, bu))
+			return []
+
+	resolved_url = parseMirror(url, output)
+
 	catpkg, ver, rev = portage.pkgsplit(cpv)
 
-	template = template_from_url(fileurl, ver)
+	template = template_from_url(resolved_url, ver)
 	if '${' not in template:
 		output.einfo("Url doesn't seems to depend on version: %s not found in %s"
 			     % (ver, fileurl))
@@ -409,16 +444,16 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 			output.einfo("%s is blacklisted by rule %s" % (catpkg, bp))
 			return []
 
+	output.einfo("Generating version from " + ver)
+
 	components = split_version(ver)
 	versions = gen_versions(components, options["brute-force"])
 
 
-	""" Use the quirks to remove unwanted versions """
+	""" Remove unwanted versions """
 	for v in versions:
 		if vercmp(catpkg, ver, join_version(v)) >= 0:
 			versions.remove(v)
-
-	output.einfo("Generating version from " + ver)
 
 	if not versions:
 		output.einfo("Can't generate new versions from " + ver)
@@ -446,6 +481,9 @@ def brute_force(cpv, fileurl, options, output, limit=None):
 		done.append(tuple(components))
 
 		vstring = join_version(components)
+
+		if versionBlacklisted(catpkg, vstring, output):
+			continue
 
 		if limit and vercmp(catpkg, vstring, limit) >= 0:
 			continue
@@ -644,7 +682,6 @@ def parseArgs(options={}):
 
 	return args[0]
 
-
 def scanUpstream(options, package, output):
         matches = Query(package).find(
                 include_masked=QUERY_OPTS['include_masked'],
@@ -679,7 +716,6 @@ def scanUpstream(options, package, output):
         pp.uprint('Repository: ' + pkg.repo_name())
         pp.uprint('Homepage: ' + pkg.environment("HOMEPAGE"))
         pp.uprint('Description: ' + pkg.environment("DESCRIPTION"))
-	pp.uprint()
 
 	cpv = pkg.cpv
 	metadata = {
@@ -688,8 +724,8 @@ def scanUpstream(options, package, output):
 	}
 	use = frozenset(port_settings["PORTAGE_USE"].split())
 	try:
-		alist = _parse_uri_map(cpv, metadata, use=use)
-		aalist = _parse_uri_map(cpv, metadata)
+		alist = porttree._parse_uri_map(cpv, metadata, use=use)
+		aalist = porttree._parse_uri_map(cpv, metadata)
 	except InvalidDependString as e:
                 sys.stderr.write(pp.warn("%s\n" % str(e)))
                 sys.stderr.write(pp.warn("Invalid SRC_URI for '%s'" % pp.pkgquery(cpv)))
@@ -703,30 +739,21 @@ def scanUpstream(options, package, output):
 	versions = []
 
 	for filename in fetchme:
-		for fileurl in fetchme[filename]:
-			skipscan = False
+		for url in fetchme[filename]:
+			print ()
+			output.einfo("SRC_URI is '%s'" % url)
 
-			output.einfo("SRC_URI is '%s'" % fileurl)
-
-			if '://' not in fileurl:
-				output.einfo("Invalid url '%s'" % fileurl)
+			if '://' not in url:
+				output.einfo("Invalid url '%s'" % url)
 				continue
 
-			for bp in SCANDIR_BLACKLIST_URLS:
-				if re.match(bp, fileurl):
-					output.einfo("%s is blacklisted by rule %s" % (fileurl, bp))
-					skipscan = True
-
-                        url = parseMirror(fileurl, output)
-
-			# Try list dir, but not for gentoo mirrors, it's too slow
-			if not skipscan:
-				versions.extend(scan_directory(cpv, url, options, output))
+			''' Try normal scan '''
+			versions.extend(scan_directory(cpv, url, options, output))
 
 			if versions and options['oneshot']:
 				break
 
-			# Try manual bump
+			''' Brute Force '''
 			versions.extend(brute_force(cpv, url, options, output))
 
 			if versions and options['oneshot']:
@@ -735,17 +762,26 @@ def scanUpstream(options, package, output):
 	newversions = {}
 
 	for url, version in versions:
+		''' Try to keep the most specific urls (determinted by the length) '''
 		if version in newversions and len(url) < len(newversions[version]):
 			continue
+		''' Remove blacklisted versions '''
+		if versionBlacklisted(pkg.cp, version, output):
+			continue
+
 		newversions[version] = url
 
 	print ()
 
 	for version in newversions:
-		print ("Upstream Version: " + pp.number("%s" % version) + pp.path(" %s" % newversions[version]))
+		print ("Upstream Version:"
+		       + pp.number("%s" % version)
+		       + pp.path(" %s" % newversions[version]))
+
 	if not len(newversions):
-		print (pp.warn("Didn't find any new version, check package's homepage for " +
-			       "more informations"));
+		print (pp.warn("Didn't find any new version,"
+			       + "check package's homepage for "
+			       + "more informations"));
 	return versions
 
 
