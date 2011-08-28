@@ -9,7 +9,9 @@ from euscan.views import *
 
 class BaseFeed(Feed):
     feed_type = Atom1Feed
-    author = 'euscan'
+    author_name = 'euscan'
+    item_author_name = author_name
+    ttl = 3600
 
     def item_title(self, vlog):
         return str(vlog)
@@ -21,7 +23,7 @@ class BaseFeed(Feed):
         else:
             txt = 'Version %s of package %s ' % (vlog.version, vlog.package)
         if vlog.action == vlog.VERSION_REMOVED:
-            if vlog.overlay:
+            if not vlog.overlay:
                 txt += 'has been removed upstream'
             else:
                 txt += 'has been removed from overlay "%s"' % vlog.overlay
@@ -53,8 +55,7 @@ class GlobalFeed(BaseFeed):
         return [ category['category'] for category in categories ]
 
     def items(self):
-        return VersionLog.objects.order_by('-id')[:30]
-
+        return VersionLog.objects.order_by('-id')[:250]
 
 class PackageFeed(BaseFeed):
     feed_type = Atom1Feed
@@ -100,7 +101,7 @@ class MaintainerFeed(BaseFeed):
 
     def items(self, maintainer):
         q = VersionLog.objects.filter(package__maintainers__id=maintainer.id)
-        return q.order_by('-id')[:30]
+        return q.order_by('-id')[:50]
 
 class HerdFeed(BaseFeed):
     feed_type = Atom1Feed
@@ -122,7 +123,7 @@ class HerdFeed(BaseFeed):
 
     def items(self, herd):
         q = VersionLog.objects.filter(package__herds__id=herd.id)
-        return q.order_by('-id')[:30]
+        return q.order_by('-id')[:100]
 
 class CategoryFeed(BaseFeed):
     feed_type = Atom1Feed
@@ -143,4 +144,4 @@ class CategoryFeed(BaseFeed):
 
     def items(self, category):
         q = VersionLog.objects.filter(package__category=category)
-        return q.order_by('-id')[:30]
+        return q.order_by('-id')[:100]
