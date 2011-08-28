@@ -97,7 +97,6 @@ def world(request):
 def world_scan(request):
     packages = []
 
-    # FIXME
     if 'world' in request.FILES:
         data = request.FILES['world'].read()
     elif 'packages' in request.POST:
