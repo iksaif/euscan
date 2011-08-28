@@ -20,9 +20,7 @@ Site Handlers
 - mysql: should use http://downloads.mysql.com/archives/
 - mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/
 
-
 euscanwww
 ---------
 
-- rss feed and or weekly/monthly mail report
-
+- add progress options for each command
