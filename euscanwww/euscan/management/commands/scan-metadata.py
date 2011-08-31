@@ -120,12 +120,11 @@ class Command(BaseCommand):
 
         herd, created = Herd.objects.get_or_create(herd=name)
 
-        if created or herd.email != email:
-            if not options['quiet']:
-                sys.stdout.write('+ [h] %s <%s>\n' % (name, email))
+        if created and not options['quiet']:
+            sys.stdout.write('+ [h] %s <%s>\n' % (name, email))
 
-            herd.email = email
-            herd.save()
+        herd.email = email
+        herd.save()
 
         return herd
 

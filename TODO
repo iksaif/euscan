@@ -14,8 +14,6 @@ euscan
 Site Handlers
 -------------
 
-- python: PyPi
-- PHP: PECL / PEAR
 - ftp.kde.org: doesn't scan the "unstable" tree
 - mysql: should use http://downloads.mysql.com/archives/
 - mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/

@@ -136,9 +136,6 @@ class Command(BaseCommand):
         ' Set all versions dead, then set found versions alive and delete old versions '
         Version.objects.filter(package=obj, packaged=False).update(alive=False)
 
-        obj.n_versions = Version.objects.filter(package=obj).count()
-        obj.save()
-
         return obj
 
     def store_version(self, options, package, ver, url):

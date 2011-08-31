@@ -1,0 +1,9 @@
+include AUTHORS
+include COPYING
+include NEWS
+include README
+include TODO
+include setup.py
+recursive-include bin *
+recursive-include man *
+recursive-include pym *.py
