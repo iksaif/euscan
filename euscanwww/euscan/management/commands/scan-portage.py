@@ -214,5 +214,5 @@ class Command(BaseCommand):
 
             if not options['quiet']:
                 sys.stdout.write('- [v] %s\n' % (version))
-        Version.objects.filter(packaged=False, alive=False).delete()
+        Version.objects.filter(packaged=True, alive=False).delete()
 
