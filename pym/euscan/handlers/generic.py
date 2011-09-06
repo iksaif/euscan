@@ -170,7 +170,7 @@ def brute_force(cpv, url):
         result.append([url, version])
 
         if CONFIG["brute-force-recursive"]:
-            for v in helpers.gen_versions(components, CONFIG["brute-force"]):
+            for v in helpers.gen_versions(list(components), CONFIG["brute-force"]):
                 if v not in versions and tuple(v) not in done:
                     versions.append(v)
 
