@@ -117,7 +117,7 @@ def scan_upstream(query):
 	try:
 		alist = porttree._parse_uri_map(cpv, metadata, use=use)
 		aalist = porttree._parse_uri_map(cpv, metadata)
-	except InvalidDependString as e:
+	except Exception as e:
                 sys.stderr.write(pp.warn("%s\n" % str(e)))
                 sys.stderr.write(pp.warn("Invalid SRC_URI for '%s'" % pp.pkgquery(cpv)))
                 return []

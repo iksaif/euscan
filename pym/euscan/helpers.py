@@ -216,7 +216,7 @@ def tryurl(fileurl, template):
             result = None
         elif 'Content-Length' in headers and headers['Content-Length'] == '0':
             result = None
-        elif 'text/html' in headers['Content-Type']:
+        elif 'Content-Type' in headers and 'text/html' in headers['Content-Type']:
             result = None
         elif fp.geturl() != fileurl:
             regex = regex_from_template(template)

@@ -27,7 +27,7 @@ def scan(cpv, url):
     output.einfo("Using: " + url)
 
     try:
-        fp = helpers.urlopen(url, None, 5)
+        fp = helpers.urlopen(url)
     except urllib2.URLError:
         return []
     except IOError:
