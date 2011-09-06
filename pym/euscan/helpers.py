@@ -1,8 +1,16 @@
-import urllib2
 import os
 import re
 import pkg_resources
 import errno
+
+import urllib2
+
+try:
+    from urllib import robotparser
+    from urllib import urlparse
+except ImportError:
+    import robotparser
+    import urlparse
 
 import portage
 from portage import dep
@@ -200,7 +208,31 @@ class HeadRequest(urllib2.Request):
     def get_method(self):
         return "HEAD"
 
+""" RobotParser cache """
+rpcache = {}
+
+def urlallowed(url):
+    if CONFIG['skip-robots-txt']:
+        return True
+
+    protocol, domain = urlparse.urlparse(url)[:2]
+
+    baseurl = '%s://%s' % (protocol, domain)
+    robotsurl = urlparse.urljoin(baseurl, 'robots.txt')
+
+    if rpcache.has_key(baseurl):
+        rp = rpcache[baseurl]
+    else:
+        rp = robotparser.RobotFileParser()
+        rp.set_url(robotsurl)
+        rp.read()
+        rpcache[baseurl] = rp
+    return rp.can_fetch(CONFIG['user-agent'], url)
+
 def urlopen(url, timeout=None, verb="GET"):
+    if not urlallowed(url):
+        return None
+
     if not timeout:
         timeout = timeout_for_url(url)
 
@@ -217,12 +249,20 @@ def urlopen(url, timeout=None, verb="GET"):
 def tryurl(fileurl, template):
     result = True
 
+    if not urlallowed(fileurl):
+        output.eerror("Url '%s' blocked by robots.txt" % fileurl)
+        return None
+
     output.ebegin("Trying: " + fileurl)
 
     try:
         basename = os.path.basename(fileurl)
 
         fp = urlopen(fileurl, verb='HEAD')
+        if not fp:
+            output.eend(errno.EPERM)
+            return None
+
         headers = fp.info()
 
         if 'Content-disposition' in headers and basename not in headers['Content-disposition']:

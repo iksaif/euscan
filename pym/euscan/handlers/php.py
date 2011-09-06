@@ -38,6 +38,9 @@ def scan(cpv, url):
     except IOError:
         return []
 
+    if not fp:
+        return []
+
     data = fp.read()
 
     dom = xml.dom.minidom.parseString(data)

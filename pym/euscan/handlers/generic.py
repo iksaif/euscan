@@ -57,6 +57,9 @@ def scan_directory_recursive(cpv, url, steps):
     except IOError:
         return []
 
+    if not fp:
+        return []
+
     data = fp.read()
 
     results = []

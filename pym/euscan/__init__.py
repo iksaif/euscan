@@ -16,7 +16,8 @@ CONFIG = {
     'brute-force-recursive': True,
     'scan-dir': True,
     'oneshot': False,
-    'user-agent' : 'Mozilla/5.0 (compatible; euscan; +http://euscan.iksaif.net)'
+    'user-agent' : 'Mozilla/5.0 (compatible; euscan; +http://euscan.iksaif.net)',
+    'skip-robots-txt' : False
 }
 
 output = EOutput(CONFIG['quiet'])
