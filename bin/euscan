@@ -37,8 +37,8 @@ def setupSignals():
     def exithandler(signum,frame):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
-	print ()
-	sys.exit(errno.EINTR)
+        print ()
+        sys.exit(errno.EINTR)
 
     signal.signal(signal.SIGINT, exithandler)
     signal.signal(signal.SIGTERM, exithandler)
@@ -74,37 +74,37 @@ def printUsage(_error=None, help=None):
     print( white("Usage:"), file=out)
     if _error in ('global-options', 'packages',) or help == 'all':
         print( " "+turquoise(__productname__),
-	       yellow("[options]"),
-	       green("<package>"), file=out)
+               yellow("[options]"),
+               green("<package>"), file=out)
     if _error in ('global-options',) or help == 'all':
-	print( " "+turquoise(__productname__),
-	       yellow("[--help, --version]"), file=out)
+        print( " "+turquoise(__productname__),
+               yellow("[--help, --version]"), file=out)
 
     print(file=out)
     if _error in ('global-options',) or help:
         print( "Available ", yellow("options")+":", file=out)
-	print( yellow(" -C, --nocolor")+
-	       "             - turn off colors on output", file=out)
+        print( yellow(" -C, --nocolor")+
+               "             - turn off colors on output", file=out)
         print( yellow(" -q, --quiet")+
-	       "               - be as quiet as possible", file=out)
-	print( yellow(" -h, --help")+ \
-		   "                - display the help screen", file=out)
+               "               - be as quiet as possible", file=out)
+        print( yellow(" -h, --help")+ \
+                   "                - display the help screen", file=out)
         print( yellow(" -V, --version")+
-	       "             - display version info", file=out)
+               "             - display version info", file=out)
         print( file=out)
         print( yellow(" -1, --oneshot")+
-	       "             - stop as soon as a new version is found", file=out)
+               "             - stop as soon as a new version is found", file=out)
         print( yellow(" -b, --brute-force=<level>")+
-	       " - define the brute force "+yellow("<level>")+" (default: 2)\n" +
-	       " " * 29  + "bigger levels will generate more versions numbers\n" +
-	       " " * 29  + "0 means disabled", file=out)
+               " - define the brute force "+yellow("<level>")+" (default: 2)\n" +
+               " " * 29  + "bigger levels will generate more versions numbers\n" +
+               " " * 29  + "0 means disabled", file=out)
         print( file=out)
     if _error in ('packages',) or help:
-	print( green(" package")+
-	       "                   - the package (or ebuild) you want to scan", file=out)
+        print( green(" package")+
+               "                   - the package (or ebuild) you want to scan", file=out)
         print( file=out)
-	'''print( "More detailed instruction can be found in",
-	turquoise("`man %s`" % __productname__), file=out)'''
+        '''print( "More detailed instruction can be found in",
+        turquoise("`man %s`" % __productname__), file=out)'''
 
 
 class ParseArgsException(Exception):
