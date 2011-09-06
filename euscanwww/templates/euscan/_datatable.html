@@ -13,8 +13,10 @@
 <script type="text/javascript" charset="utf-8">
   $(document).ready(function() {
     $('#table').dataTable( {
-    "bPaginate": false,
+     "bPaginate": false,
      "bInfo": false,
+     "bStateSave": true,
+     "sCookiePrefix": "datatables_"
     } );
   });
 </script>
