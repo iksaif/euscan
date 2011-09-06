@@ -217,6 +217,9 @@ def urlallowed(url):
 
     protocol, domain = urlparse.urlparse(url)[:2]
 
+    if 'protocol' == 'ftp':
+        return True
+
     baseurl = '%s://%s' % (protocol, domain)
     robotsurl = urlparse.urljoin(baseurl, 'robots.txt')
 
