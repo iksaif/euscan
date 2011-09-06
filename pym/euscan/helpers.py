@@ -189,15 +189,28 @@ def gen_versions(components, level):
 
     return versions
 
-def urlopen(url, timeout=None):
+def timeout_for_url(url):
+    if 'sourceforge' in url:
+        timeout = 15
+    else:
+        timeout = 5
+    return timeout
 
+class HeadRequest(urllib2.Request):
+    def get_method(self):
+        return "HEAD"
+
+def urlopen(url, timeout=None, verb="GET"):
     if not timeout:
-        if 'sourceforge' in url:
-            timeout = 15
-        else:
-            timeout = 5
+        timeout = timeout_for_url(url)
 
-    request = urllib2.Request(url)
+    if verb == 'GET':
+        request = urllib2.Request(url)
+    elif verb == 'HEAD':
+        request = HeadRequest(url)
+    else:
+        return None
+
     request.add_header('User-Agent', CONFIG['user-agent'])
     return urllib2.urlopen(request, None, timeout)
 
@@ -209,7 +222,7 @@ def tryurl(fileurl, template):
     try:
         basename = os.path.basename(fileurl)
 
-        fp = urlopen(fileurl)
+        fp = urlopen(fileurl, verb='HEAD')
         headers = fp.info()
 
         if 'Content-disposition' in headers and basename not in headers['Content-disposition']:
