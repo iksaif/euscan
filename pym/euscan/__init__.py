@@ -47,4 +47,5 @@ BRUTEFORCE_BLACKLIST_URLS = [
 	'http://(.*)dockapps.org/download.php/id/(.*)', # infinite loop
 	'http://hydra.nixos.org/build/(.*)', # infinite loop
 	'http://www.rennings.net/gentoo/distfiles/(.*)' # Doesn't respect 404, infinite loop
+        'http://art.gnome.org/download/(.*)' # Doesn't respect 404, infinite loop
 ]
