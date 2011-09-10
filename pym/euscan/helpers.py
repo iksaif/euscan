@@ -217,7 +217,7 @@ def urlallowed(url):
 
     protocol, domain = urlparse.urlparse(url)[:2]
 
-    if 'protocol' == 'ftp':
+    if protocol == 'ftp':
         return True
 
     baseurl = '%s://%s' % (protocol, domain)
@@ -228,8 +228,11 @@ def urlallowed(url):
     else:
         rp = robotparser.RobotFileParser()
         rp.set_url(robotsurl)
-        rp.read()
-        rpcache[baseurl] = rp
+        try:
+            rp.read()
+            rpcache[baseurl] = rp
+        except:
+            return True
     return rp.can_fetch(CONFIG['user-agent'], url)
 
 def urlopen(url, timeout=None, verb="GET"):
@@ -253,7 +256,7 @@ def tryurl(fileurl, template):
     result = True
 
     if not urlallowed(fileurl):
-        output.eerror("Url '%s' blocked by robots.txt" % fileurl)
+        output.einfo("Url '%s' blocked by robots.txt" % fileurl)
         return None
 
     output.ebegin("Trying: " + fileurl)
