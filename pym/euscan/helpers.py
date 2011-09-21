@@ -15,7 +15,7 @@ except ImportError:
 import portage
 from portage import dep
 
-from euscan import CONFIG, BLACKLIST_VERSIONS, output
+from euscan import CONFIG, BLACKLIST_VERSIONS, ROBOTS_TXT_BLACKLIST_DOMAINS, output
 
 def htop_vercmp(a, b):
     def fixver(v):
@@ -217,6 +217,14 @@ def urlallowed(url):
 
     protocol, domain = urlparse.urlparse(url)[:2]
 
+    for bd in ROBOTS_TXT_BLACKLIST_DOMAINS:
+        if re.match(bd, domain):
+            return True
+
+    for d in ['sourceforge', 'berlios', 'github.com']:
+        if d in domain:
+            return True
+
     if protocol == 'ftp':
         return True
 
@@ -226,14 +234,22 @@ def urlallowed(url):
     if rpcache.has_key(baseurl):
         rp = rpcache[baseurl]
     else:
+        from socket import setdefaulttimeout, getdefaulttimeout
+
+        timeout = getdefaulttimeout()
+        setdefaulttimeout(5)
+
         rp = robotparser.RobotFileParser()
         rp.set_url(robotsurl)
         try:
             rp.read()
             rpcache[baseurl] = rp
         except:
-            return True
-    return rp.can_fetch(CONFIG['user-agent'], url)
+            rp = None
+
+        setdefaulttimeout(timeout)
+
+    return rp.can_fetch(CONFIG['user-agent'], url) if rp else False
 
 def urlopen(url, timeout=None, verb="GET"):
     if not urlallowed(url):
@@ -250,7 +266,16 @@ def urlopen(url, timeout=None, verb="GET"):
         return None
 
     request.add_header('User-Agent', CONFIG['user-agent'])
-    return urllib2.urlopen(request, None, timeout)
+
+    if CONFIG['verbose']:
+        debuglevel = CONFIG['verbose'] - 1
+        handlers = [urllib2.HTTPHandler(debuglevel=debuglevel)]
+    else:
+        handlers = []
+
+    opener = urllib2.build_opener(*handlers)
+
+    return opener.open(request, None, timeout)
 
 def tryurl(fileurl, template):
     result = True
@@ -276,6 +301,8 @@ def tryurl(fileurl, template):
         elif 'Content-Length' in headers and headers['Content-Length'] == '0':
             result = None
         elif 'Content-Type' in headers and 'text/html' in headers['Content-Type']:
+            result = None
+        elif 'Content-Type' in headers and 'application/x-httpd-php' in headers['Content-Type']:
             result = None
         elif fp.geturl() != fileurl:
             regex = regex_from_template(template)

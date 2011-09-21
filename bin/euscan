@@ -12,6 +12,7 @@ __email__ = "corentin.chary@gmail.com"
 __version__ = "git"
 __productname__ = "euscan"
 __description__ = "A tool to detect new upstream releases."
+__version__ = "git"
 
 """ Imports """
 
@@ -19,6 +20,7 @@ import os
 import sys
 import getopt
 import errno
+import httplib
 
 from portage.output import white, yellow, turquoise, green, EOutput
 
@@ -134,13 +136,13 @@ def parseArgs():
                 pp.output.nocolor()
             elif o in ("-q", "--quiet"):
                 CONFIG['quiet'] = True
-                CONFIG['verbose'] = False
+                CONFIG['verbose'] = 0
             elif o in ("-1", "--oneshot"):
                 CONFIG['oneshot'] = True
             elif o in ("-b", "--brute-force"):
                 CONFIG['brute-force'] = int(a)
             elif o in ("-v", "--verbose") and not CONFIG['quiet']:
-                    CONFIG['verbose'] = True
+                    CONFIG['verbose'] += 1
             else:
                 return_code = False
 
@@ -196,6 +198,9 @@ def main():
     """ Change euscan's output """
     output = EOutput(CONFIG['quiet'])
     ret = scan_upstream(package)
+
+    if CONFIG['verbose'] > 2:
+        httplib.HTTPConnection.debuglevel = 1
 
     print ()
 

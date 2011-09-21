@@ -4,16 +4,12 @@ TODO
 euscan
 ------
 
-- respect robots.txt (portscout)
 - check other distros (youri)
-- clean blacklist system
-- add a way to blacklist versions using standard package tokens
-  - =x11-drivers/xf86-video-intel-2.14.90*
-  - >=x11-base/xorg-server-1.10.900
 
 Site Handlers
 -------------
 
+- sourceforge: http://sourceforge.net/api/file/index/project-name/vboxgtk/mtime/desc/limit/20/rss  http://sourceforge.net/api/release/index/project-id/264534/rss
 - ftp.kde.org: doesn't scan the "unstable" tree
 - mysql: should use http://downloads.mysql.com/archives/
 - mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/
@@ -22,3 +18,6 @@ euscanwww
 ---------
 
 - add progress options for each command
+- add last scan in the footer
+- add json/xml for each page
+- rss scan world + post ?

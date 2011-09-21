@@ -28,6 +28,35 @@ python_scripts = [os.path.join(cwd, path) for path in (
 	'bin/euscan',
 )]
 
+class set_version(core.Command):
+	"""Set python __version__ to our __version__."""
+	description = "hardcode scripts' version using VERSION from environment"
+	user_options = []  # [(long_name, short_name, desc),]
+
+	def initialize_options (self):
+		pass
+
+	def finalize_options (self):
+		pass
+
+	def run(self):
+		ver = 'git' if __version__ == '9999' else __version__
+		print("Settings version to %s" % ver)
+		def sub(files, pattern):
+			for f in files:
+				updated_file = []
+				with io.open(f, 'r', 1, 'utf_8') as s:
+					for line in s:
+						newline = re.sub(pattern, '"%s"' % ver, line, 1)
+						if newline != line:
+							log.info("%s: %s" % (f, newline))
+						updated_file.append(newline)
+				with io.open(f, 'w', 1, 'utf_8') as s:
+					s.writelines(updated_file)
+		quote = r'[\'"]{1}'
+		python_re = r'(?<=^__version__ = )' + quote + '[^\'"]*' + quote
+		sub(python_scripts, python_re)
+
 packages = [
 	str('.'.join(root.split(os.sep)[1:]))
 	for root, dirs, files in os.walk('pym/euscan')
@@ -37,7 +66,7 @@ packages = [
 core.setup(
 	name='euscan',
 	version=__version__,
-	description='Ebuild Upstream Scan tools.',
+	description='Ebuild upstream scan utility.',
 	author='Corentin Chary',
 	author_email='corentin.chary@gmail.com',
 	maintainer='Corentin Chary',
@@ -51,4 +80,7 @@ core.setup(
 	data_files=(
 		(os.path.join(EPREFIX, 'usr/share/man/man1'), glob('man/*')),
 	),
+	cmdclass={
+		'set_version': set_version,
+	},
 )
