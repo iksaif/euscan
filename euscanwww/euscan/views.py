@@ -5,6 +5,7 @@ from django.db.models import Sum, Max
 
 from euscan.models import Version, Package, Herd, Maintainer, EuscanResult, VersionLog
 from euscan.forms import WorldForm, PackagesForm
+from euscan.decorators import render_to_json
 
 import charts
 
@@ -35,12 +36,20 @@ def categories(request):
 
     return { 'categories' : categories }
 
-@render_to('euscan/category.html')
-def category(request, category):
+
+def category_data(request, category):
     packages = Package.objects.filter(category=category)
     if not packages:
         raise Http404
     return { 'category' : category, 'packages' : packages }
+
+@render_to('euscan/category.html')
+def category(request, category):
+    return category_data(request, category)
+
+@render_to_json
+def category_json(request, category):
+    return category_data(request, category)
 
 @render_to('euscan/herds.html')
 def herds(request):
@@ -51,11 +60,18 @@ def herds(request):
                                             n_versions=Sum('n_versions'))
     return { 'herds' : herds }
 
-@render_to('euscan/herd.html')
-def herd(request, herd):
+def herd_data(request, herd):
     herd = get_object_or_404(Herd, herd=herd)
     packages = Package.objects.filter(herds__id=herd.id)
     return { 'herd' : herd, 'packages' : packages }
+
+@render_to('euscan/herd.html')
+def herd(request, herd):
+    return herd_data(request, herd)
+
+@render_to_json
+def herd_json(request, herd):
+    return herd_data(request, herd)
 
 @render_to('euscan/maintainers.html')
 def maintainers(request):
@@ -67,14 +83,21 @@ def maintainers(request):
 
     return { 'maintainers' : maintainers }
 
-@render_to('euscan/maintainer.html')
-def maintainer(request, maintainer_id):
+
+def maintainer_data(request, maintainer_id):
     maintainer = get_object_or_404(Maintainer, id=maintainer_id)
     packages = Package.objects.filter(maintainers__id=maintainer.id)
     return { 'maintainer' : maintainer, 'packages' : packages }
 
-@render_to('euscan/package.html')
-def package(request, category, package):
+@render_to('euscan/maintainer.html')
+def maintainer(request, maintainer_id):
+    return maintainer_data(request, maintainer_id)
+
+@render_to_json
+def maintainer_json(request, maintainer_id):
+    return maintainer_data(request, maintainer_id)
+
+def package_data(request, category, package):
     package = get_object_or_404(Package, category=category, name=package)
     package.homepages = package.homepage.split(' ')
     packaged = Version.objects.filter(package=package, packaged=True)
@@ -84,6 +107,14 @@ def package(request, category, package):
     vlog = VersionLog.objects.filter(package=package).order_by('-id')
     return { 'package' : package, 'packaged' : packaged,
              'upstream' : upstream, 'log' : log, 'vlog' : vlog }
+
+@render_to('euscan/package.html')
+def package(request, category, package):
+    return package_data(request, category, package)
+
+@render_to_json
+def package_json(request, category, package):
+    return package_data(request, category, package)
 
 @render_to('euscan/world.html')
 def world(request):
