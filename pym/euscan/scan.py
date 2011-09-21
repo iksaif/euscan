@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import os
 import sys
 
@@ -39,7 +37,7 @@ def scan_upstream_urls(cpv, urls):
 
     for filename in urls:
         for url in urls[filename]:
-            print ()
+            pp.uprint()
             output.einfo("SRC_URI is '%s'" % url)
 
             if '://' not in url:

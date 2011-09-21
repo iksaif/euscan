@@ -23,9 +23,11 @@ import errno
 import httplib
 
 from portage.output import white, yellow, turquoise, green, EOutput
+from portage.exception import AmbiguousPackageName
 
-import gentoolkit.pprinter as pp
+from gentoolkit import pprinter as pp
 from gentoolkit.eclean.search import (port_settings)
+from gentoolkit.errors import GentoolkitException
 
 from euscan import CONFIG, output
 from euscan.scan import scan_upstream
@@ -77,7 +79,7 @@ def printUsage(_error=None, help=None):
     if _error in ('global-options', 'packages',) or help == 'all':
         print( " "+turquoise(__productname__),
                yellow("[options]"),
-               green("<package>"), file=out)
+               green("<package> [<package> [...]]"), file=out)
     if _error in ('global-options',) or help == 'all':
         print( " "+turquoise(__productname__),
                yellow("[--help, --version]"), file=out)
@@ -103,7 +105,7 @@ def printUsage(_error=None, help=None):
         print( file=out)
     if _error in ('packages',) or help:
         print( green(" package")+
-               "                   - the package (or ebuild) you want to scan", file=out)
+               "                   - the packages (or ebuilds) you want to scan", file=out)
         print( file=out)
         '''print( "More detailed instruction can be found in",
         turquoise("`man %s`" % __productname__), file=out)'''
@@ -167,10 +169,10 @@ def parseArgs():
     ' set options accordingly '
     optionSwitch(opts)
 
-    if len(args) != 1:
+    if len(args) < 1:
            raise ParseArgsException('packages')
 
-    return args[0]
+    return args
 
 def main():
     """Parse command line and execute all actions."""
@@ -180,7 +182,7 @@ def main():
         pp.output.nocolor()
     ' parse command line options and actions '
     try:
-        package = parseArgs()
+        packages = parseArgs()
     except ParseArgsException as e:
         if e.value == 'help':
             printUsage(help='all')
@@ -197,22 +199,39 @@ def main():
 
     """ Change euscan's output """
     output = EOutput(CONFIG['quiet'])
-    ret = scan_upstream(package)
-
     if CONFIG['verbose'] > 2:
         httplib.HTTPConnection.debuglevel = 1
 
-    print ()
+    for package in packages:
+        try:
+            ret = scan_upstream(package)
+	except AmbiguousPackageName as e:
+		pkgs = e.args[0]
+		for candidate in pkgs:
+			print(candidate)
 
-    for url, version in ret:
-        print ("Upstream Version: "
-               + pp.number("%s" % version)
-               + pp.path(" %s" % url))
+		from os.path import basename # To get the short name
 
-    if not len(ret):
-        print (pp.warn("Didn't find any new version, "
-                   + "check package's homepage for "
-                   + "more informations"));
+		print(file=sys.stderr)
+		print(pp.error("The short ebuild name '%s' is ambiguous. Please specify" % basename(pkgs[0])),
+				file=sys.stderr, end="")
+		pp.die(1, "one of the above fully-qualified ebuild names instead.")
+	except GentoolkitException as err:
+		pp.die(1, str(err))
+        finally:
+            ret = []
+
+        print ()
+
+        for url, version in ret:
+            print ("Upstream Version: "
+                   + pp.number("%s" % version)
+                   + pp.path(" %s" % url))
+
+        if not len(ret):
+            print (pp.warn("Didn't find any new version, "
+                           + "check package's homepage for "
+                           + "more informations"));
 
 
 if __name__ == "__main__":
