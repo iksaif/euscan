@@ -14,8 +14,6 @@ from euscanwww.euscan.models import Package, Herd, Maintainer
 from gentoolkit.query import Query
 from gentoolkit.errors import GentoolkitFatalError
 
-from progressbar import ProgressBar, Bar, ETA, Percentage
-
 class Command(BaseCommand):
     _overlays = {}
 
@@ -30,11 +28,6 @@ class Command(BaseCommand):
             dest='quiet',
             default=False,
             help='Be quiet'),
-        make_option('--progress',
-            action='store_true',
-            dest='progress',
-            default=False,
-            help='Display progress'),
         )
     args = '<package package ...>'
     help = 'Scans metadata and fills database'
@@ -43,35 +36,12 @@ class Command(BaseCommand):
         if len(args) == 0 and options['all'] == False:
             raise CommandError('You must specify a package or use --all')
 
-        if not self.stdout.isatty():
-            options['progress'] = False
-
-        if options['progress']:
-            widgets = ['Scanning metadata: ', Percentage(), ' ', Bar(), ' ', ETA()]
-            if len(args):
-                count = len(args)
-            else:
-                count = Package.objects.count()
-            pbar = ProgressBar(widgets=widgets, maxval=count).start()
-            i = 0
-        else:
-            pbar = None
-
         if len(args) == 0:
             for pkg in Package.objects.all():
                 self.scan(options, '%s/%s' % (pkg.category, pkg.name))
-                if pbar:
-                    pbar.update(i)
-                    i += 1
         else:
             for package in args:
                 self.scan(options, package)
-                if pbar:
-                    pbar.update(i)
-                    i += 1
-
-        if pbar:
-            pbar.finish()
 
     @commit_on_success
     def scan(self, options, query=None):
