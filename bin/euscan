@@ -203,6 +203,8 @@ def main():
         httplib.HTTPConnection.debuglevel = 1
 
     for package in packages:
+        ret = []
+
         try:
             ret = scan_upstream(package)
 	except AmbiguousPackageName as e:
@@ -218,8 +220,8 @@ def main():
 		pp.die(1, "one of the above fully-qualified ebuild names instead.")
 	except GentoolkitException as err:
 		pp.die(1, str(err))
-        finally:
-            ret = []
+        except Exception as err:
+		pp.die(1, str(err))
 
         print ()
 
