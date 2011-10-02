@@ -20,7 +20,8 @@ CONFIG = {
     'scan-dir': True,
     'oneshot': False,
     'user-agent' : 'escan (http://euscan.iksaif.net)',
-    'skip-robots-txt' : False
+    'skip-robots-txt' : False,
+    'cache' : False
 }
 
 output = EOutput(CONFIG['quiet'])

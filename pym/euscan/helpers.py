@@ -267,11 +267,15 @@ def urlopen(url, timeout=None, verb="GET"):
 
     request.add_header('User-Agent', CONFIG['user-agent'])
 
+    handlers = []
+
+    if CONFIG['cache']:
+        from cache import CacheHandler
+        handlers.append(CacheHandler(CONFIG['cache']))
+
     if CONFIG['verbose']:
         debuglevel = CONFIG['verbose'] - 1
-        handlers = [urllib2.HTTPHandler(debuglevel=debuglevel)]
-    else:
-        handlers = []
+        handlers.append(urllib2.HTTPHandler(debuglevel=debuglevel))
 
     opener = urllib2.build_opener(*handlers)
 

@@ -20,6 +20,7 @@ def filter_versions(cp, versions):
 
     for url, version in versions:
 
+
         ''' Try to keep the most specific urls (determinted by the length) '''
         if version in filtered and len(url) < len(filtered[version]):
             continue
