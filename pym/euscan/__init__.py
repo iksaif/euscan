@@ -18,7 +18,7 @@ CONFIG = {
     'brute-force-recursive': True,
     'brute-force-false-watermark': 50,
     'scan-dir': True,
-    'oneshot': False,
+    'oneshot': True,
     'user-agent' : 'escan (http://euscan.iksaif.net)',
     'skip-robots-txt' : False,
     'cache' : False
@@ -60,4 +60,6 @@ ROBOTS_TXT_BLACKLIST_DOMAINS = [
     '(.*)sourceforge(.*)',
     '(.*)github.com',
     '(.*)berlios(.*)',
+    '(.*)qt.nokia.com(.*)',
+    '(.*)chromium.org(.*)',
 ]
