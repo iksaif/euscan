@@ -76,12 +76,12 @@ def scan_upstream(query):
         matches = sorted(matches)
         pkg = matches.pop()
 
-        if '9999' in pkg.version:
-                if len(matches) == 0:
-                        sys.stderr.write(pp.warn("Package '%s' only have a dev version (9999)" % pp.pkgquery(pkg.cp)))
-                        return []
-                else:
-                        pkg = matches.pop()
+        while '9999' in pkg.version and len(matches):
+            pkg = matches.pop()
+
+        if not pkg:
+            sys.stderr.write(pp.warn("Package '%s' only have a dev version (9999)" % pp.pkgquery(pkg.cp)))
+            return []
 
         if pkg.cp in BLACKLIST_PACKAGES:
                 sys.stderr.write(pp.warn("Package '%s' is blacklisted" % pp.pkgquery(pkg.cp)))
