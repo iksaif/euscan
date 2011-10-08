@@ -253,6 +253,7 @@ def urlallowed(url):
 
 def urlopen(url, timeout=None, verb="GET"):
     if not urlallowed(url):
+        output.einfo("Url '%s' blocked by robots.txt" % url)
         return None
 
     if not timeout:
