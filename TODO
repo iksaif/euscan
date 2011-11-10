@@ -5,6 +5,7 @@ euscan
 ------
 
 - check other distros (youri)
+- steel ideas from other tools (uscan, portscout)
 
 Site Handlers
 -------------
@@ -17,7 +18,15 @@ Site Handlers
 euscanwww
 ---------
 
-- add progress options for each command
 - add last scan in the footer
-- add json/xml for each page
+- add json/xml for each page (with a *real* API)
 - rss scan world + post ?
+- add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)
+
+### Scan process
+
+- Move to celery:
+-  periodic task for emerge --sync; layman -S; eix-update etc... (every day ?)
+-  periodic task for euscan (once every week, groupped by category)
+
+This would allow easier on-demand refresh from web interface
