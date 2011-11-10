@@ -19,7 +19,7 @@ euscanwww
 ---------
 
 - add last scan in the footer
-- add json/xml for each page (with a *real* API)
+- add json/xml for each page (with a *real* API) (using django-piston !)
 - rss scan world + post ?
 - add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)
 
