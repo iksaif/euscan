@@ -13,6 +13,7 @@ MANAGERS = ADMINS
 
 """
 # MySQL Example:
+    'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'euscan',
         'USER': 'euscan',
@@ -22,6 +23,17 @@ MANAGERS = ADMINS
         'OPTIONS': {
             'init_command': 'SET storage_engine=INNODB',
          }
+    },
+
+# PostGreSQL Example:
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'euscan',
+        'USER': 'euscan',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '',
+    },
 """
 
 DATABASES = {
@@ -78,7 +90,7 @@ MEDIA_URL = '/media/'
 ADMIN_MEDIA_PREFIX = '/admin-media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '7b7ea2ca45021661d623122e9e14c2b529f23054'
+SECRET_KEY = '00000000000000000000000000000000000000000000000000'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -122,3 +134,12 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 )
 
+try:
+    from local_settings import *
+except ImportError, ex:
+    import sys
+    sys.stderr.write(\
+            ("settings.py: error importing local settings file:\n" + \
+            "\t%s\n" + \
+            "Do you have a local_settings.py module?\n") % str(ex))
+    raise
