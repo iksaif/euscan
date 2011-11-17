@@ -36,7 +36,6 @@ class StatisticsHandler(AnonymousBaseHandler):
     allowed_methods = ('GET',)
 
     def read(self, request):
-        print request
         data = {}
         data['n_packaged'] = xint(Package.objects.aggregate(Sum('n_packaged'))['n_packaged__sum'])
         data['n_overlay'] = xint(Package.objects.aggregate(Sum('n_overlay'))['n_overlay__sum'])
@@ -130,9 +129,7 @@ class PackageHandler(AnonymousBaseHandler):
 
         herds = []
         for herd in package.herds.all():
-            print herd
             herds.append(model_to_dict(herd, ['herd']))
-
 
         maintainers = []
         for maintainer in package.maintainers.all():
