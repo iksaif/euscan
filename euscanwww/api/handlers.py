@@ -2,7 +2,7 @@ from piston.handler import AnonymousBaseHandler, BaseHandler
 from piston.utils import rc, HttpStatusCode
 
 from django.db.models import Sum, Max
-from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 
 from euscan.models import Version, Package, Herd, Maintainer, EuscanResult, VersionLog
@@ -23,6 +23,19 @@ def renameFields(vqs, fields):
                 del n[tr[0]]
         ret.append(n)
     return ret
+
+class catch_and_return(object):
+    def __init__(self, err, response):
+        self.err = err
+        self.response = response
+
+    def __call__(self, fn):
+        def wrapper(*args, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except self.err:
+                return self.response
+        return wrapper
 
 # /api/1.0/
 class RootHandler(AnonymousBaseHandler):
@@ -88,7 +101,7 @@ class CategoriesHandler(AnonymousBaseHandler):
                                          n_overlay=Sum('n_overlay'),
                                          n_versions=Sum('n_versions'))
 
-        return { 'categories' : categories }
+        return categories
 
 # /api/1.0/packages/by-maintainer/
 # /api/1.0/packages/by-category/
@@ -98,6 +111,7 @@ class PackagesHandler(AnonymousBaseHandler):
     fields = ('category', 'name', 'n_packaged', 'n_overlay', 'n_versions')
     model = Package
 
+    @catch_and_return(ObjectDoesNotExist, rc.NOT_FOUND)
     def read(self, request, **kwargs):
         data = {}
 
@@ -105,13 +119,16 @@ class PackagesHandler(AnonymousBaseHandler):
             packages = Package.objects.filter(category=kwargs['category'])
             data = { 'category' : kwargs['category'], 'packages' : packages }
         elif 'herd' in kwargs:
-            herd = get_object_or_404(Herd, herd=kwargs['herd'])
+            herd = Herd.objects.get(herd=kwargs['herd'])
             packages = Package.objects.filter(herds__id=herd.id)
             data = { 'herd' : herd, 'packages' : packages }
         elif 'maintainer_id' in kwargs:
-            maintainer = get_object_or_404(Maintainer, id=kwargs['maintainer_id'])
+            maintainer = Maintainer.objects.get(id=kwargs['maintainer_id'])
             packages = Package.objects.filter(maintainers__id=maintainer.id)
             data = { 'maintainer' : maintainer, 'packages' : packages }
+
+        if not data:
+            return rc.NOT_FOUND
 
         return data
 
@@ -119,8 +136,9 @@ class PackagesHandler(AnonymousBaseHandler):
 class PackageHandler(AnonymousBaseHandler):
     allowed_methods = ('GET',)
 
+    @catch_and_return(ObjectDoesNotExist, rc.NOT_FOUND)
     def read(self, request, category, package):
-        package = get_object_or_404(Package, category=category, name=package)
+        package = Package.objects.get(category=category, name=package)
         package.homepages = package.homepage.split(' ')
         versions = Version.objects.filter(package=package)
         log = EuscanResult.objects.filter(package=package).order_by('-datetime')[:1]
