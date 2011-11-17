@@ -108,8 +108,8 @@ class PackagesHandler(AnonymousBaseHandler):
             herd = get_object_or_404(Herd, herd=kwargs['herd'])
             packages = Package.objects.filter(herds__id=herd.id)
             data = { 'herd' : herd, 'packages' : packages }
-        elif 'maintainer' in kwargs:
-            maintainer = get_object_or_404(Maintainer, id=kwargs['maintainer'])
+        elif 'maintainer_id' in kwargs:
+            maintainer = get_object_or_404(Maintainer, id=kwargs['maintainer_id'])
             packages = Package.objects.filter(maintainers__id=maintainer.id)
             data = { 'maintainer' : maintainer, 'packages' : packages }
 

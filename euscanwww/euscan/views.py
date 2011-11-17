@@ -123,6 +123,10 @@ def world_scan(request):
 def about(request):
     return {}
 
+@render_to("euscan/api.html")
+def api(request):
+    return {}
+
 @render_to("euscan/statistics.html")
 def statistics(request):
     return {}
