@@ -27,6 +27,11 @@ maintainers_patterns = patterns('euscan.views',
     (r'^$', 'maintainers'),
 )
 
+overlays_patterns = patterns('euscan.views',
+    (r'^(?P<overlay>[\w+][\w+.-]*)/(view/)?$', 'overlay'),
+    (r'^$', 'overlays'),
+)
+
 urlpatterns = patterns('euscan.views',
     # Global stuff
     (r'^$', 'index'),
@@ -42,5 +47,6 @@ urlpatterns = patterns('euscan.views',
     (r'^categories/', include(categories_patterns)),
     (r'^herds/', include(herds_patterns)),
     (r'^maintainers/', include(maintainers_patterns)),
+    (r'^overlays/', include(overlays_patterns)),
     (r'^package/', include(package_patterns)),
 )

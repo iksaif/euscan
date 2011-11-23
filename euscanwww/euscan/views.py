@@ -73,6 +73,23 @@ def maintainer(request, maintainer_id):
     packages = Package.objects.filter(maintainers__id=maintainer.id)
     return { 'maintainer' : maintainer, 'packages' : packages }
 
+@render_to('euscan/overlays.html')
+def overlays(request):
+    overlays = Package.objects.values('version__overlay')
+    overlays = overlays.exclude(version__overlay='')
+    overlays = overlays.distinct()
+    return { 'overlays' : overlays }
+
+@render_to('euscan/overlay.html')
+def overlay(request, overlay):
+    packages = Package.objects.values('id', 'name', 'category',
+                                      'n_versions', 'n_packaged',
+                                      'n_overlay')
+    packages = packages.filter(version__overlay=overlay).distinct()
+    if not packages:
+        raise Http404
+    return { 'overlay' : overlay, 'packages' : packages }
+
 @render_to('euscan/package.html')
 def package(request, category, package):
     package = get_object_or_404(Package, category=category, name=package)

@@ -1,0 +1,26 @@
+{% extends "euscan/_datatable.html" %}
+
+{% load packages %}
+
+{% block title %}
+{{ block.super }} - overlays
+{% endblock %}
+
+{% block content %}
+<h2>Overlays</h2>
+
+<table id="table" class="display">
+  <thead>
+    <th>Overlay</th>
+  </thead>
+  <tbody>
+  {% for overlay in overlays %}
+  <tr>
+    <td>
+      <a href="{% url euscan.views.overlay overlay.version__overlay %}">{{ overlay.version__overlay }}</a>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

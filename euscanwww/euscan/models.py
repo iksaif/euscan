@@ -42,7 +42,7 @@ class Version(models.Model):
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
-    overlay = models.CharField(max_length=128, default='gentoo')
+    overlay = models.CharField(max_length=128, default='gentoo', db_index=True)
     urls = models.TextField(blank=True)
     alive = models.BooleanField(default=True, db_index=True)
 
