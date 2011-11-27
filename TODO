@@ -19,14 +19,23 @@ euscanwww
 ---------
 
 - add last scan in the footer
-- add json/xml for each page (with a *real* API) (using django-piston !)
 - rss scan world + post ?
 - add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)
+- add a table for overlays, change euscan_versions
+
+### Commands
+
+- euscan_init: init local tree (portage, layman, eix)
+- euscan_addoverlay: add a layman overlay
+- euscan_sync [--async|--sync]: sync portage, overlays, caches
+- euscan_scan [--async|--sync] [--all|--category=<category>|--herd=<herd>|--maintainer=<maintainer>|--package=<package>]: scan local
+- euscan_uscan [--async|--sync] [--all|--category=<category>|--herd=<herd>|--maintainer=<maintainer>|--package=<package>]: scan upstream
 
 ### Scan process
 
 - Move to celery:
 -  periodic task for emerge --sync; layman -S; eix-update etc... (every day ?)
--  periodic task for euscan (once every week, groupped by category)
+-  periodic task for euscan (once every week, groupped by category or package ?)
 
 This would allow easier on-demand refresh from web interface
+

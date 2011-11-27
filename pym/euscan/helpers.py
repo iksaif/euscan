@@ -69,7 +69,8 @@ def version_is_nightly(a, b):
 
     ''' Try to skip nightly builds when not wanted (www-apps/moodle) '''
     if len(a) != len(b) and len(b) == 2 and len(b[0]) == len('yyyymmdd'):
-        return True
+        if b[0][:4] != '0000':
+            return True
     return False
 
 def version_blacklisted(cp, version):
