@@ -36,21 +36,23 @@ MANAGERS = ADMINS
     },
 """
 
+EUSCAN_ROOT = os.path.dirname(os.path.abspath(__file__))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(os.path.dirname( __file__ ), 'euscan.db')
+        'NAME': os.path.join(EUSCAN_ROOT, 'euscan.db')
     },
 }
 
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(os.path.dirname( __file__ ), 'euscan.cache'),
+        'LOCATION': os.path.join(EUSCAN_ROOT, 'euscan.cache'),
     }
 }
 
-RRD_ROOT = os.path.join(os.path.dirname( __file__ ), 'rrd')
+RRD_ROOT = os.path.join(EUSCAN_ROOT, 'rrd')
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -77,7 +79,7 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = os.path.join(os.path.dirname( __file__ ), 'media/')
+MEDIA_ROOT = os.path.join(EUSCAN_ROOT, 'media/')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -117,7 +119,7 @@ ROOT_URLCONF = 'euscanwww.urls'
 FORCE_SCRIPT_NAME=""
 
 TEMPLATE_DIRS = (
-    os.path.join(os.path.dirname( __file__ ), 'templates'),
+    os.path.join(EUSCAN_ROOT, 'templates'),
 )
 
 INSTALLED_APPS = (
