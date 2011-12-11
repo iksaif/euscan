@@ -3,7 +3,8 @@ import portage
 import json
 import urllib2
 
-from euscan import helpers, output
+from euscan import helpers
+import euscan
 
 def can_handle(cpv, url):
     return url.startswith('mirror://rubygems/')
@@ -24,7 +25,7 @@ def scan(cpv, url):
     gem = guess_gem(cpv, url)
     url = 'http://rubygems.org/api/v1/versions/%s.json' % gem
 
-    output.einfo("Using: " + url)
+    euscan.output.einfo("Using: " + url)
 
     try:
         fp = helpers.urlopen(url)

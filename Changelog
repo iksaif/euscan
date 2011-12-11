@@ -2,6 +2,14 @@
  Change history
 ================
 
+.. _version-0.2.0:
+
+0.2.0
+=====
+:release-date: ???
+
+* Better --quiet mode
+
 .. _version-0.1.0:
 
 0.1.0

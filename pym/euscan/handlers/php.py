@@ -3,7 +3,8 @@ import portage
 import urllib2
 import xml.dom.minidom
 
-from euscan import helpers, output
+from euscan import helpers
+import euscan
 
 def can_handle(cpv, url):
     if url.startswith('http://pear.php.net/get/'):
@@ -29,7 +30,7 @@ def scan(cpv, url):
     orig_url = url
     url = 'http://%s/rest/r/%s/allreleases.xml' % (channel, pkg.lower())
 
-    output.einfo("Using: " + url)
+    euscan.output.einfo("Using: " + url)
 
     try:
         fp = helpers.urlopen(url)

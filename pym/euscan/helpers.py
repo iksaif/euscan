@@ -15,7 +15,8 @@ except ImportError:
 import portage
 from portage import dep
 
-from euscan import CONFIG, BLACKLIST_VERSIONS, ROBOTS_TXT_BLACKLIST_DOMAINS, output
+from euscan import CONFIG, BLACKLIST_VERSIONS, ROBOTS_TXT_BLACKLIST_DOMAINS
+import euscan
 
 def htop_vercmp(a, b):
     def fixver(v):
@@ -87,7 +88,7 @@ def version_blacklisted(cp, version):
             None
 
     if rule:
-        output.einfo("%s is blacklisted by rule %s" % (cpv, bv))
+        euscan.output.einfo("%s is blacklisted by rule %s" % (cpv, bv))
     return rule is not None
 
 def version_filtered(cp, base, version):
@@ -254,7 +255,7 @@ def urlallowed(url):
 
 def urlopen(url, timeout=None, verb="GET"):
     if not urlallowed(url):
-        output.einfo("Url '%s' blocked by robots.txt" % url)
+        euscan.output.einfo("Url '%s' blocked by robots.txt" % url)
         return None
 
     if not timeout:
@@ -287,17 +288,17 @@ def tryurl(fileurl, template):
     result = True
 
     if not urlallowed(fileurl):
-        output.einfo("Url '%s' blocked by robots.txt" % fileurl)
+        euscan.output.einfo("Url '%s' blocked by robots.txt" % fileurl)
         return None
 
-    output.ebegin("Trying: " + fileurl)
+    euscan.output.ebegin("Trying: " + fileurl)
 
     try:
         basename = os.path.basename(fileurl)
 
         fp = urlopen(fileurl, verb='HEAD')
         if not fp:
-            output.eend(errno.EPERM)
+            euscan.output.eend(errno.EPERM)
             return None
 
         headers = fp.info()
@@ -328,7 +329,7 @@ def tryurl(fileurl, template):
     except IOError:
         result = None
 
-    output.eend(errno.ENOENT if not result else 0)
+    euscan.output.eend(errno.ENOENT if not result else 0)
 
     return result
 
@@ -383,8 +384,8 @@ def parse_mirror(uri):
 
     eidx = uri.find("/", 9)
     if eidx == -1:
-        output.einfo("Invalid mirror definition in SRC_URI:\n")
-        output.einfo("  %s\n" % (uri))
+        euscan.output.einfo("Invalid mirror definition in SRC_URI:\n")
+        euscan.output.einfo("  %s\n" % (uri))
         return None
 
     mirrorname = uri[9:eidx]
@@ -395,7 +396,7 @@ def parse_mirror(uri):
         shuffle(mirrors)
         uri = mirrors[0].strip("/") + "/" + path
     else:
-        output.einfo("No known mirror by the name: %s\n" % (mirrorname))
+        euscan.output.einfo("No known mirror by the name: %s\n" % (mirrorname))
         return None
 
     return uri
