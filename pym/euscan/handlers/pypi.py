@@ -4,7 +4,8 @@ import re
 
 import portage
 
-from euscan import helpers, output
+from euscan import helpers
+import euscan
 
 def can_handle(cpv, url):
     return url.startswith('mirror://pypi/')
@@ -24,7 +25,7 @@ def scan(cpv, url):
 
     package = guess_package(cpv, url)
 
-    output.einfo("Using PyPi XMLRPC: " + package)
+    euscan.output.einfo("Using PyPi XMLRPC: " + package)
 
     client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
     versions = client.package_releases(package)
