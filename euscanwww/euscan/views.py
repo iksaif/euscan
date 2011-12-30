@@ -60,7 +60,7 @@ def herd(request, herd):
 @render_to('euscan/maintainers.html')
 def maintainers(request):
     maintainers = Package.objects.filter(maintainers__isnull=False)
-    maintainers = maintainers.values('maintainers__id', 'maintainers__name')
+    maintainers = maintainers.values('maintainers__id', 'maintainers__name', 'maintainers__email')
     maintainers = maintainers.annotate(n_packaged=Sum('n_packaged'),
                                        n_overlay=Sum('n_overlay'),
                                        n_versions=Sum('n_versions'))
