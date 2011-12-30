@@ -18,12 +18,12 @@ Site Handlers
 euscanwww
 ---------
 
-- add last scan in the footer
+- add last scan in the footer [0.2.0]
 - rss scan world + post ?
-- add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)
-- add a table for overlays, change euscan_versions
+- add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)  [0.2.0]
+- add a table for overlays, change euscan_versions [0.2.0]
 
-### Commands
+### Commands [0.2.0]
 
 - euscan_init: init local tree (portage, layman, eix)
 - euscan_addoverlay: add a layman overlay
@@ -33,9 +33,12 @@ euscanwww
 
 ### Scan process
 
-- Move to celery:
+- Move to celery: [0.2.0]
 -  periodic task for emerge --sync; layman -S; eix-update etc... (every day ?)
 -  periodic task for euscan (once every week, groupped by category or package ?)
 
 This would allow easier on-demand refresh from web interface
 
+### API
+
+- Move to tastypie: [0.3.0]
