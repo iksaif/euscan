@@ -18,6 +18,7 @@ def scan_html(data, url, pattern):
         href = link.get("href")
         if not href:
             continue
+
         if href.startswith(url):
             href = href.replace(url, "", 1)
 

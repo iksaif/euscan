@@ -334,16 +334,26 @@ def tryurl(fileurl, template):
     return result
 
 def regex_from_template(template):
+    # Escape
     template = re.escape(template)
+
+    # Unescape specific stuff
     template = template.replace('\$\{', '${')
     template = template.replace('\}', '}')
     template = template.replace('}\.$', '}.$')
-    template = template.replace('${1}', r'([\d]+?)')
-    template = re.sub(r'(\$\{\d+\}\.?)+', r'([\w]+?)', template)
+
+    # Replace ${\d+}
+    #template = template.replace('${0}', r'([\d]+?)')
+    template = re.sub(r'(\$\{\d+\}(\.?))+', r'([\w\.]+?)', template)
+
     #template = re.sub(r'(\$\{\d+\}\.?)+', r'([\w]+?)', template)
     #template = re.sub(r'(\$\{\d+\}\.+)+', '(.+?)\.', template)
     #template = re.sub(r'(\$\{\d+\})+', '(.+?)', template)
+
+    # Full version
     template = template.replace('${PV}', _v)
+
+    # End
     template = template + r'/?$'
     return template
 
@@ -372,6 +382,7 @@ def generate_scan_paths(url):
         else:
             path += "/"
             path += chunk
+
     return steps
 
 def parse_mirror(uri):
