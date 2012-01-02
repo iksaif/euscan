@@ -220,9 +220,9 @@ def main():
                   file=sys.stderr, end="")
             pp.die(1, "one of the above fully-qualified ebuild names instead.")
 	except GentoolkitException as err:
-            pp.die(1, str(err))
+            pp.die(1, '%s: %s' % (package, str(err)))
         except Exception as err:
-            pp.die(1, str(err))
+            pp.die(1, '%s: %s' % (package, str(err)))
 
         if not CONFIG['quiet']:
             print ()

@@ -97,6 +97,8 @@ def scan(cpv, url):
             return []
 
     resolved_url = helpers.parse_mirror(url)
+    if not resolved_url:
+        return []
 
     cp, ver, rev = portage.pkgsplit(cpv)
 
@@ -115,6 +117,8 @@ def brute_force(cpv, url):
     cp, ver, rev = portage.pkgsplit(cpv)
 
     url = helpers.parse_mirror(url)
+    if not url:
+        return []
 
     for bp in BRUTEFORCE_BLACKLIST_PACKAGES:
         if re.match(bp, cp):

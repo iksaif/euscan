@@ -407,7 +407,7 @@ def parse_mirror(uri):
         shuffle(mirrors)
         uri = mirrors[0].strip("/") + "/" + path
     else:
-        euscan.output.einfo("No known mirror by the name: %s\n" % (mirrorname))
+        euscan.output.einfo("No known mirror by the name: %s" % (mirrorname))
         return None
 
     return uri
