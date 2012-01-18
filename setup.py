@@ -72,7 +72,7 @@ core.setup(
 	maintainer='Corentin Chary',
 	maintainer_email='corentin.chary@gmail.com',
 	url='http://euscan.iksaif.net',
-	download_url='http://git.iksaif.net/?p=euscan.git;a=snapshot;h=HEAD;sf=tgz',
+	download_url='https://github.com/iksaif/euscan/tarball/' + ('master' if __version__ == '9999' else ('euscan-%s' % __version__)),
 	package_dir={'': 'pym'},
 	packages=packages,
 	package_data = {},
@@ -84,3 +84,4 @@ core.setup(
 		'set_version': set_version,
 	},
 )
+
