@@ -15,6 +15,9 @@
     <th>Gentoo</th>
     <th>Overlays</th>
     <th>Unpackaged</th>
+    {% if request.GET.extras %}
+    <th>Graphs</th>
+    {% endif %}
   </thead>
   <tbody>
   {% for category in categories %}
@@ -24,6 +27,12 @@
       {% package_bar category %}
     </td>
     {% package_cols category %}
+    {% if request.GET.extras %}
+    <td>
+      <img src="{% url euscan.views.chart_category category.category 'packages-monthly-small' %}" />
+      <img src="{% url euscan.views.chart_category category.category 'versions-monthly-small' %}" />
+    </td>
+    {% endif %}
   </tr>
   {% endfor %}
   </tbody>
