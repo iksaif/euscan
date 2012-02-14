@@ -132,7 +132,6 @@ def template_from_url(url, version):
 
         chunks[i] = chunk
 
-
     return prefix + "://" + "/".join(chunks)
 
 def url_from_template(url, version):
