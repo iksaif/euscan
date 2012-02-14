@@ -1,11 +1,23 @@
 TODO
 ====
 
+GSoC Ideas
+----------
+- Misc work on detection
+- Celery port
+
 euscan
 ------
 
 - check other distros (youri, distrowatch, distromatch, whoas; Equivalent-Packages)
-- steel ideas from other tools (uscan, portscout)
+- steal ideas from other tools (uscan, portscout)
+- steal data from other tools (dehs)
+- debian/watch support ? (or a tool to convert debian/watch to something euscan could use).
+  - push some kind of equivalent in metadata.xml
+    - <upsteam><watch options="quirck1 quirck2">http://my.soft/tar-(\d+).ball</watch></upstream>
+- cleaner code to separate gentoo mangled version and upstream unmangled versions
+  - try to import $PV -> $MY_PV transformations from ebuilds ?
+- add a HTTP cache (1day, configurable)
 
 Site Handlers
 -------------
@@ -19,9 +31,10 @@ euscanwww
 ---------
 
 - add last scan in the footer [0.2.0]
-- rss scan world + post ?
 - add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)  [0.2.0]
 - add a table for overlays, change euscan_versions [0.2.0]
+- rss scan world + post ?
+- sort verions on package page
 
 ### Commands [0.2.0]
 
