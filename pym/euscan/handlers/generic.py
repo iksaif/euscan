@@ -40,11 +40,10 @@ def scan_ftp(data, url, pattern):
 
     return results
 
-def scan_directory_recursive(cpv, url, steps):
+def scan_directory_recursive(cp, ver, rev, url, steps):
     if not steps:
         return []
 
-    cp, ver, rev = portage.pkgsplit(cpv)
     url += steps[0][0]
     pattern = steps[0][1]
 
@@ -85,7 +84,7 @@ def scan_directory_recursive(cpv, url, steps):
         versions.append((path, version))
 
         if steps:
-            ret = scan_directory_recursive(cpv, path, steps)
+            ret = scan_directory_recursive(cp, ver, rev, path, steps)
             versions.extend(ret)
 
     return versions
@@ -102,6 +101,13 @@ def scan(cpv, url):
 
     cp, ver, rev = portage.pkgsplit(cpv)
 
+    # 'Hack' for _beta/_rc versions where _ is used instead of -
+    if ver not in resolved_url:
+        newver = helpers.version_change_end_sep(ver)
+        if newver and newver in resolved_url:
+            euscan.output.einfo("Version: using %s instead of %s" % (newver, ver))
+            ver = newver
+
     template = helpers.template_from_url(resolved_url, ver)
     if '${' not in template:
         euscan.output.einfo("Url doesn't seems to depend on version: %s not found in %s"
@@ -111,7 +117,7 @@ def scan(cpv, url):
         euscan.output.einfo("Scanning: %s" % template)
 
     steps = helpers.generate_scan_paths(template)
-    return scan_directory_recursive(cpv, "", steps)
+    return scan_directory_recursive(cp, ver, rev, "", steps)
 
 def brute_force(cpv, url):
     cp, ver, rev = portage.pkgsplit(cpv)

@@ -30,7 +30,8 @@ VERSION_CMP_PACKAGE_QUIRKS = {
     'sys-process/htop' : htop_vercmp
 }
 
-_v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)*))'
+_v_end = '((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)'
+_v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(' + _v_end + '*))'
 
 def cast_int_components(version):
     for i, obj in enumerate(version):
@@ -90,6 +91,19 @@ def version_blacklisted(cp, version):
     if rule:
         euscan.output.einfo("%s is blacklisted by rule %s" % (cpv, bv))
     return rule is not None
+
+def version_change_end_sep(version):
+    match = re.match('.*' + _v_end, version)
+    if not match:
+        return None
+    end = match.group(1)
+    if end[0] == '_':
+        newend = end.replace('_', '-')
+    elif end[0] == '-':
+        newend = end.replace('-', '_')
+    else:
+        return None
+    return version.replace(end, newend)
 
 def version_filtered(cp, base, version):
     if vercmp(cp, base, version) >= 0:
