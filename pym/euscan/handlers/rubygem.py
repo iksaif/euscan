@@ -14,7 +14,11 @@ def guess_gem(cpv, url):
     if match:
         cpv = 'fake/%s' % match.group(1)
 
-    cp, ver, rev = portage.pkgsplit(cpv)
+    ret = portage.pkgsplit(cpv)
+    if not ret:
+        return None
+
+    cp, ver, rev = ret
     cat, pkg = cp.split("/")
 
     return pkg
@@ -23,6 +27,10 @@ def scan(cpv, url):
     'http://guides.rubygems.org/rubygems-org-api/#gemversion'
 
     gem = guess_gem(cpv, url)
+    if not gem:
+        euscan.output.eerror("Can't guess gem name using %s and %s" % (cpv, url))
+        return []
+
     url = 'http://rubygems.org/api/v1/versions/%s.json' % gem
 
     euscan.output.einfo("Using: " + url)
