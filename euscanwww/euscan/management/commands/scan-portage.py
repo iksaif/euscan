@@ -36,21 +36,21 @@ class Command(BaseCommand):
             default=False,
             help='Be quiet'),
         )
-    args = '<package package ...>'
+    args = '[package package ...]'
     help = 'Scans portage tree and fills database'
 
     def handle(self, *args, **options):
-        if len(args) == 0 and options['all'] == False:
-            raise CommandError('You must specify a package or use --all')
-
         if not options['quiet']:
             self.stdout.write('Scanning portage tree...\n')
 
-        if len(args) == 0:
+        if options['all']:
             self.scan(options)
-        else:
+        elif len(args):
             for package in args:
                 self.scan(options, package)
+        else:
+            for package in sys.stdin.readlines():
+                self.scan(options, package[:-1])
 
         if options['purge-versions']:
             self.purge_versions(options)

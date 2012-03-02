@@ -42,9 +42,6 @@ class Command(BaseCommand):
     help = 'Scans metadata and fills database'
 
     def handle(self, *args, **options):
-        if len(args) == 0 and options['all'] == False and options['feed'] == False:
-            raise CommandError('You must specify a package or use --all')
-
         if options['feed']:
             self.parse_output(options, sys.stdin)
             if options['purge-versions']:
@@ -56,11 +53,13 @@ class Command(BaseCommand):
 
         packages = []
 
-        if len(args) == 0:
+        if options['all']:
             for pkg in Package.objects.all():
                 packages.append('%s/%s' % (pkg.category, pkg.name))
-        else:
+        elif args:
             packages = list(args)
+        else:
+            packages = [ package[:-1] for package in sys.stdin.readlines() ]
 
         self.scan(options, packages)
 

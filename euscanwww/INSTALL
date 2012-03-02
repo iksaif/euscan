@@ -13,6 +13,13 @@ touch local_settings.py
 ./manage.py scan-portage htop   # Scan ebuilds
 ./manage.py scan-metadata htop  # Lookup for maintainers, herds, etc...
 ./manage.py scan-upstream htop  # Run euscan
+
+# Scan dev-python
+eix --only-names -C dev-python | ./manage.py scan-portage
+eix --only-names -C dev-python | ./manage.py scan-metadata
+eix --only-names -C dev-python | ./manage.py scan-upstream
+
+# Update counters at end of scan
 ./manage.py update-counters     # Update counters, graphs, etc...
 
 # Start server

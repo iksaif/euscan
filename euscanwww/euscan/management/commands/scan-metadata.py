@@ -33,15 +33,15 @@ class Command(BaseCommand):
     help = 'Scans metadata and fills database'
 
     def handle(self, *args, **options):
-        if len(args) == 0 and options['all'] == False:
-            raise CommandError('You must specify a package or use --all')
-
-        if len(args) == 0:
+        if options['all']:
             for pkg in Package.objects.all():
                 self.scan(options, '%s/%s' % (pkg.category, pkg.name))
-        else:
+        elif len(args):
             for package in args:
                 self.scan(options, package)
+        else:
+            for package in sys.stdin.readlines():
+                self.scan(options, package[:-1])
 
     @commit_on_success
     def scan(self, options, query=None):
