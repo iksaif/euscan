@@ -37,7 +37,8 @@ def categories(request):
 
 @render_to('euscan/category.html')
 def category(request, category):
-    packages = Package.objects.filter(category=category)
+    packages = Package.objects.filter(category=category).select_related('last_version_gentoo', 'last_version_overlay', 'last_version_upstream')
+    print dir(packages[0])
     if not packages:
         raise Http404
     return { 'category' : category, 'packages' : packages }
@@ -94,8 +95,8 @@ def overlay(request, overlay):
 def package(request, category, package):
     package = get_object_or_404(Package, category=category, name=package)
     package.homepages = package.homepage.split(' ')
-    packaged = Version.objects.filter(package=package, packaged=True)
-    upstream = Version.objects.filter(package=package, packaged=False)
+    packaged = Version.objects.filter(package=package, packaged=True).order_by('version', 'revision')
+    upstream = Version.objects.filter(package=package, packaged=False).order_by('version', 'revision')
     log = EuscanResult.objects.filter(package=package).order_by('-datetime')[:1]
     log = log[0] if log else None
     vlog = VersionLog.objects.filter(package=package).order_by('-id')

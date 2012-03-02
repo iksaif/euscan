@@ -4,6 +4,7 @@
 {% load div %}
 
 <td>{{ infos.n_packaged }}</td>
+
 {% if infos.n_overlay == 0 or infos.n_overlay <= infos.n_packaged %}
 <td>
 {% else %}{% if infos.n_overlay < infos.n_packaged %}
@@ -13,6 +14,7 @@
 {% endif %}{% endif %}
   {{ infos.n_overlay }}
 </td>
+
 {% if infos.n_versions == infos.n_packaged|add:infos.n_overlay %}
 <td>
 {% else %}{% if infos.n_versions < infos.n_packaged|add:infos.n_overlay|mul:2 %}
@@ -21,4 +23,8 @@
 <td class="ugly">
 {% endif %}{% endif %}
 {{ infos.n_versions|sub:infos.n_packaged|sub:infos.n_overlay }}
+</td>
+
+<td>
+  {{ infos.n_packaged|add:infos.n_overlay|div:infos.n_versions|mul:100|floatformat:"0" }}
 </td>

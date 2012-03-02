@@ -108,7 +108,10 @@ class CategoriesHandler(AnonymousBaseHandler):
 # /api/1.0/packages/by-herd/
 class PackagesHandler(AnonymousBaseHandler):
     allowed_methods = ('GET',)
-    fields = ('category', 'name', 'n_packaged', 'n_overlay', 'n_versions')
+    fields = ('category', 'name', 'n_packaged', 'n_overlay', 'n_versions',
+              ('last_version_gentoo', ('version',)),
+              ('last_version_overlay', ('version',)),
+              ('last_version_upstream', ('version',)))
     model = Package
 
     @catch_and_return(ObjectDoesNotExist, rc.NOT_FOUND)
@@ -117,15 +120,18 @@ class PackagesHandler(AnonymousBaseHandler):
 
         if 'category' in kwargs:
             packages = Package.objects.filter(category=kwargs['category'])
-            data = { 'category' : kwargs['category'], 'packages' : packages }
+            data = { 'category' : kwargs['category'] }
         elif 'herd' in kwargs:
             herd = Herd.objects.get(herd=kwargs['herd'])
             packages = Package.objects.filter(herds__id=herd.id)
-            data = { 'herd' : herd, 'packages' : packages }
+            data = { 'herd' : herd }
         elif 'maintainer_id' in kwargs:
             maintainer = Maintainer.objects.get(id=kwargs['maintainer_id'])
             packages = Package.objects.filter(maintainers__id=maintainer.id)
-            data = { 'maintainer' : maintainer, 'packages' : packages }
+            data = { 'maintainer' : maintainer }
+
+        packages = packages.select_related('last_version_gentoo', 'last_version_overlay', 'last_version_upstream')
+        data['packages'] = packages
 
         if not data:
             return rc.NOT_FOUND

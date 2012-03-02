@@ -30,6 +30,14 @@ class Package(models.Model):
     n_packaged = models.IntegerField(default=0)
     n_overlay = models.IntegerField(default=0)
 
+    ' And we also pre-compute last versions '
+    last_version_gentoo = models.ForeignKey('Version', blank=True, null=True,
+                                            related_name="last_version_gentoo")
+    last_version_overlay = models.ForeignKey('Version', blank=True, null=True,
+                                             related_name="last_version_overlay")
+    last_version_upstream = models.ForeignKey('Version', blank=True, null=True,
+                                              related_name="last_version_upstream")
+
     def __unicode__(self):
         return '%s/%s' % (self.category, self.name)
 

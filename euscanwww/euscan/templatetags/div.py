@@ -3,6 +3,6 @@ from django import template
 register = template.Library()
 
 def div(value, arg=None):
-    return value/arg
+    return float(value)/float(arg)
 
 register.filter('div', div)

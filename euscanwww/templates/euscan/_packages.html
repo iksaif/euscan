@@ -1,11 +1,18 @@
 {% load packages %}
+{% load sub %}
+{% load div %}
+{% load mul %}
 
 <table id="table" class="display">
   <thead>
     <th>Package</th>
     <th>Gentoo</th>
+    <th>Overlay</th>
+    <th>Upstream</th>
+    <th>Gentoo</th>
     <th>Overlays</th>
     <th>Unpackaged</th>
+    <th>Freshness</th>
   </thead>
   <tbody>
   {% for package in packages %}
@@ -16,6 +23,9 @@
       </a>
       {% package_bar package %}
     </td>
+    <td>{{ package.last_version_gentoo.version }}</td>
+    <td>{{ package.last_version_overlay.version }}</td>
+    <td>{{ package.last_version_upstream.version }}</td>
     {% package_cols package %}
   </tr>
   {% endfor %}
