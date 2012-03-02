@@ -36,3 +36,9 @@ eix --only-names -C dev-python | ./manage.py scan-upstream
 
 # Import snapshot
 ./manage.py loaddata snapshot-yyyymmdd.js
+
+rm -rf rrd/*
+rm -rf euscan.cache
+rm -rf media/charts/*
+
+./manage.py regen-rrds
