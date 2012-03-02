@@ -1,0 +1,31 @@
+## Basic Install
+
+# Create local_settings.py, you can override settings.py stuff here
+touch local_settings.py
+
+# Initialize database
+./manage.py syncdb
+./manage.py migrate
+
+# emerge euscan, or add euscan to your path somehow
+
+# Scan htop
+./manage.py scan-portage htop   # Scan ebuilds
+./manage.py scan-metadata htop  # Lookup for maintainers, herds, etc...
+./manage.py scan-upstream htop  # Run euscan
+./manage.py update-counters     # Update counters, graphs, etc...
+
+# Start server
+./manage.py runserver
+
+
+## Importing a snapshot
+
+# Remove database
+
+# Reinitialize database
+./manage.py syncdb
+./manage.py migrate
+
+# Import snapshot
+./manage.py loaddata snapshot-yyyymmdd.js
