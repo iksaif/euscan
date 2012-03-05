@@ -115,7 +115,7 @@ class Command(BaseCommand):
                 package.n_packaged = n_packaged.get(package.id, 0)
                 package.n_overlay = n_overlay.get(package.id, 0)
 
-                default = {'id' : -1}
+                default = {'id' : None}
                 package.last_version_gentoo_id = last_versions_gentoo.get(package.id, default)['id']
                 package.last_version_overlay_id = last_versions_overlay.get(package.id, default)['id']
                 package.last_version_upstream_id = last_versions_upstream.get(package.id, default)['id']

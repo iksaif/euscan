@@ -11,10 +11,10 @@
 <table id="table" class="display">
   <thead>
     <th>Maintainer</th>
-    <th>Gentoo</th>
-    <th>Overlays</th>
-    <th>Unpackaged</th>
-    <th>Freshness</th>
+    <th><img src="{{ MEDIA_URL }}img/gentoo-icon.png" alt="gentoo" title="Versions in Gentoo" /></th>
+    <th><img src="{{ MEDIA_URL }}img/overlay-icon.png" alt="overlays" title="Versions in Overlays" /></th>
+    <th><img src="{{ MEDIA_URL }}img/upstream-icon.png" alt="upstream" title="Versions only upstream" /></th>
+    <th><img src="{{ MEDIA_URL }}img/freshness-icon.png" title="Freshness" /></th>
     {% if request.GET.extras %}
     <th>Graphs</th>
     {% endif %}

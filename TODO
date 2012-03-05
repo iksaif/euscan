@@ -30,11 +30,13 @@ Site Handlers
 euscanwww
 ---------
 
+- quick install doc
+- sort verions on package page
+- export a sqlite database
 - add last scan in the footer [0.2.0]
 - add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)  [0.2.0]
 - add a table for overlays, change euscan_versions [0.2.0]
 - rss scan world + post ?
-- sort verions on package page
 
 ### Commands [0.2.0]
 

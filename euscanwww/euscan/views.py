@@ -20,7 +20,12 @@ def index(request):
     ctx['n_packages'] = Package.objects.count()
     ctx['n_herds'] = Herd.objects.count()
     ctx['n_maintainers'] = Maintainer.objects.count()
-    ctx['last_scan'] = EuscanResult.objects.get(id=EuscanResult.objects.aggregate(Max('id'))['id__max']).datetime
+
+    try:
+        ctx['last_scan'] = EuscanResult.objects.get(id=EuscanResult.objects.aggregate(Max('id'))['id__max']).datetime
+    except EuscanResult.DoesNotExist:
+        ctx['last_scan'] = None
+
     return ctx
 
 @render_to('euscan/logs.html')
@@ -37,7 +42,8 @@ def categories(request):
 
 @render_to('euscan/category.html')
 def category(request, category):
-    packages = Package.objects.filter(category=category).select_related('last_version_gentoo', 'last_version_overlay', 'last_version_upstream')
+    packages = Package.objects.filter(category=category)
+    packages = packages.select_related('last_version_gentoo', 'last_version_overlay', 'last_version_upstream')
     print dir(packages[0])
     if not packages:
         raise Http404
@@ -56,6 +62,7 @@ def herds(request):
 def herd(request, herd):
     herd = get_object_or_404(Herd, herd=herd)
     packages = Package.objects.filter(herds__id=herd.id)
+    packages = packages.select_related('last_version_gentoo', 'last_version_overlay', 'last_version_upstream')
     return { 'herd' : herd, 'packages' : packages }
 
 @render_to('euscan/maintainers.html')
@@ -72,6 +79,7 @@ def maintainers(request):
 def maintainer(request, maintainer_id):
     maintainer = get_object_or_404(Maintainer, id=maintainer_id)
     packages = Package.objects.filter(maintainers__id=maintainer.id)
+    packages = packages.select_related('last_version_gentoo', 'last_version_overlay', 'last_version_upstream')
     return { 'maintainer' : maintainer, 'packages' : packages }
 
 @render_to('euscan/overlays.html')
