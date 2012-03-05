@@ -20,13 +20,33 @@
 
 <h3>Statistics</h2>
 <h4>Current statistics</h4>
-<img src="{% url euscan.views.chart_maintainer maintainer.id 'pie-versions' %}" />
-<img src="{% url euscan.views.chart_maintainer maintainer.id 'pie-packages' %}" />
+<p>
+  <img src="{% url euscan.views.chart_maintainer maintainer.id 'pie-versions' %}" />
+  <img src="{% url euscan.views.chart_maintainer maintainer.id 'pie-packages' %}" />
+</p>
 
 <h4>All Time</h4>
-<img src="{% url euscan.views.chart_maintainer maintainer.id 'versions-weekly' %}" />
-<img src="{% url euscan.views.chart_maintainer maintainer.id 'versions-monthly' %}" />
-<img src="{% url euscan.views.chart_maintainer maintainer.id 'packages-weekly' %}" />
-<img src="{% url euscan.views.chart_maintainer maintainer.id 'packages-monthly' %}" />
+<p>
+  <img src="{% url euscan.views.chart_maintainer maintainer.id 'versions-weekly' %}" />
+  <img src="{% url euscan.views.chart_maintainer maintainer.id 'versions-monthly' %}" />
+</p>
+
+<p>
+  <img src="{% url euscan.views.chart_maintainer maintainer.id 'packages-weekly' %}" />
+  <img src="{% url euscan.views.chart_maintainer maintainer.id 'packages-monthly' %}" />
+</p>
+{% endblock %}
+
+{% block menus %}
+{{ block.super }}
+<div class="menu">
+  <dl>
+    <dt>Versions</dt>
+    <dd><img src="{% url euscan.views.chart_maintainer maintainer.id 'versions-monthly-small' %}" /></dd>
+    <dt>Packages</dt>
+    <dd><img src="{% url euscan.views.chart_maintainer maintainer.id 'packages-monthly-small' %}" /></dd>
+    </dl>
+</div>
 
 {% endblock %}
+5A

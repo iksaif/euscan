@@ -69,28 +69,36 @@ a:hover, a:active
     border-radius: 10px;
 }
 
-#menu {
+.menu {
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
     border-radius: 10px;
     border: 1px solid #67539B;
 }
 
-#menu, #menu_dl {
+.menu {
     width:100%;
     margin-top: 75px;
     background: #8076A1;
     color: #FFF;
 }
 
-#menu a {
+.menu a {
     color: #fff;
 }
 
-#menu li
+.menu li
 {
   list-style-type: none;
  }
+
+.menu dl {
+    margin-left: 15px;
+}
+
+.menu dd {
+    border: none;
+}
 
 #menus {
     width: 200px;
