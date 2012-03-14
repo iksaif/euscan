@@ -10,6 +10,15 @@ from euscanwww.euscan.models import Package, Herd, Maintainer, Version
 from euscanwww.euscan.models import HerdLog, MaintainerLog, CategoryLog, WorldLog
 from euscanwww.euscan import charts
 
+from distutils.version import StrictVersion, LooseVersion
+
+def compare_versions(version1, version2):
+    try:
+        return cmp(StrictVersion(version1), StrictVersion(version2))
+    # in case of abnormal version number, fall back to LooseVersion
+    except ValueError:
+        return cmp(LooseVersion(version1), LooseVersion(version2))
+
 class Command(BaseCommand):
     _overlays = {}
     help = 'Update counters'
@@ -88,7 +97,7 @@ class Command(BaseCommand):
                 return
             if version['version'].startswith('9999'):
                 return
-            if storage[key]['version'] < version['version']:
+            if compare_versions(storage[key]['version'], version['version']) < 0:
                 storage[key] = version
 
         if not options['fast']:
