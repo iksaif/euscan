@@ -32,11 +32,14 @@ class Package(models.Model):
 
     ' And we also pre-compute last versions '
     last_version_gentoo = models.ForeignKey('Version', blank=True, null=True,
-                                            related_name="last_version_gentoo")
+                                            related_name="last_version_gentoo",
+                                            on_delete=models.SET_NULL)
     last_version_overlay = models.ForeignKey('Version', blank=True, null=True,
-                                             related_name="last_version_overlay")
+                                             related_name="last_version_overlay",
+                                             on_delete=models.SET_NULL)
     last_version_upstream = models.ForeignKey('Version', blank=True, null=True,
-                                              related_name="last_version_upstream")
+                                              related_name="last_version_upstream",
+                                              on_delete=models.SET_NULL)
 
     def __unicode__(self):
         return '%s/%s' % (self.category, self.name)

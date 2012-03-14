@@ -17,7 +17,9 @@ euscan
     - <upsteam><watch options="quirck1 quirck2">http://my.soft/tar-(\d+).ball</watch></upstream>
 - cleaner code to separate gentoo mangled version and upstream unmangled versions
   - try to import $PV -> $MY_PV transformations from ebuilds ?
+- Add a way to how we failled to find a new version
 - add a HTTP cache (1day, configurable)
+- add a way to enable/disable methods: other_distributions,remote_euscan,handlers, etc....
 
 Site Handlers
 -------------
@@ -37,6 +39,8 @@ euscanwww
 - add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)  [0.2.0]
 - add a table for overlays, change euscan_versions [0.2.0]
 - rss scan world + post ?
+- always keep in db the last upstream version (could be marked as packaged without overlay ?)
+- store euscan status (and used methods ?)
 
 ### Commands [0.2.0]
 

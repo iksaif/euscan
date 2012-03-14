@@ -7,6 +7,11 @@ from django.forms.models import model_to_dict
 
 from euscan.models import Version, Package, Herd, Maintainer, EuscanResult, VersionLog
 from euscan.forms import WorldForm, PackagesForm
+from api.emitters import EuscanXMLEmitter
+
+# replace default XMLEmitter with ours
+from piston.emitters import Emitter
+Emitter.register('xml', EuscanXMLEmitter, 'text/xml; charset=utf-8')
 
 def xint(i):
     try:
@@ -75,7 +80,7 @@ class MaintainersHandler(AnonymousBaseHandler):
         maintainers = renameFields(maintainers, [('maintainers__id', 'id'),
                                                  ('maintainers__name', 'name'),
                                                  ('maintainers__email', 'email')])
-        return maintainers
+        return { 'maintainers'  : maintainers }
 
 # /api/1.0/herds
 class HerdsHandler(AnonymousBaseHandler):
@@ -89,7 +94,7 @@ class HerdsHandler(AnonymousBaseHandler):
                                                      n_versions=Sum('n_versions'))
 
         herds = renameFields(herds, [('herds__herd', 'herd')])
-        return herds
+        return { 'herds' : herds }
 
 # /api/1.0/categories
 class CategoriesHandler(AnonymousBaseHandler):
@@ -101,7 +106,7 @@ class CategoriesHandler(AnonymousBaseHandler):
                                          n_overlay=Sum('n_overlay'),
                                          n_versions=Sum('n_versions'))
 
-        return categories
+        return { 'categories' : categories }
 
 # /api/1.0/packages/by-maintainer/
 # /api/1.0/packages/by-category/
@@ -189,4 +194,3 @@ class PackageHandler(AnonymousBaseHandler):
             package['log'] = model_to_dict(log, ['result', 'datetime'])
 
         return package
-

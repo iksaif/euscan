@@ -101,10 +101,25 @@ def overlay(request, overlay):
 
 @render_to('euscan/package.html')
 def package(request, category, package):
+
+    def version_key(version):
+        from distutils.version import StrictVersion, LooseVersion
+
+        version = version.version
+        try:
+            return StrictVersion(version)
+        # in case of abnormal version number, fall back to LooseVersion
+        except ValueError:
+            return LooseVersion(version)
+
     package = get_object_or_404(Package, category=category, name=package)
     package.homepages = package.homepage.split(' ')
-    packaged = Version.objects.filter(package=package, packaged=True).order_by('version', 'revision')
-    upstream = Version.objects.filter(package=package, packaged=False).order_by('version', 'revision')
+    packaged = Version.objects.filter(package=package, packaged=True)
+    upstream = Version.objects.filter(package=package, packaged=False)
+
+    packaged = sorted(packaged, key=version_key)
+    upstream = sorted(upstream, key=version_key)
+
     log = EuscanResult.objects.filter(package=package).order_by('-datetime')[:1]
     log = log[0] if log else None
     vlog = VersionLog.objects.filter(package=package).order_by('-id')
