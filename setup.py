@@ -81,6 +81,7 @@ setup(
 		'https://github.com/iksaif/euscan/tarball/' +
 		('master' if __version__ == '9999' else ('euscan-%s' % __version__))
 	),
+	install_requires=['django-annoying'],
 	package_dir={'': 'pym'},
 	packages=packages,
 	package_data={},
