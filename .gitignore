@@ -1,4 +1,6 @@
 *~
-*.pyc
+*.py[co]
 euscanwww/rrd/*.rrd
 euscanwww/media/charts/*.png
+*.egg-info
+local_settings.py

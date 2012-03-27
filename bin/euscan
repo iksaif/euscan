@@ -16,7 +16,6 @@ __version__ = "git"
 
 """ Imports """
 
-import os
 import sys
 import getopt
 import errno
@@ -208,7 +207,7 @@ def main():
 
         try:
             ret = scan_upstream(package)
-	except AmbiguousPackageName as e:
+        except AmbiguousPackageName as e:
             pkgs = e.args[0]
             for candidate in pkgs:
                 print(candidate)
@@ -219,7 +218,7 @@ def main():
             print(pp.error("The short ebuild name '%s' is ambiguous. Please specify" % basename(pkgs[0])),
                   file=sys.stderr, end="")
             pp.die(1, "one of the above fully-qualified ebuild names instead.")
-	except GentoolkitException as err:
+        except GentoolkitException as err:
             pp.die(1, '%s: %s' % (package, str(err)))
         except Exception as err:
             pp.die(1, '%s: %s' % (package, str(err)))
