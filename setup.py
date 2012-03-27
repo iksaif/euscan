@@ -4,8 +4,11 @@ from __future__ import print_function
 
 import re
 import sys
-import distutils
-from distutils import core, log
+from distutils import log
+try:
+	from setuptools import setup, Command
+except ImportError:
+	from distutils.core import setup, Command
 from glob import glob
 
 import os
@@ -21,27 +24,29 @@ cwd = os.getcwd()
 try:
 	from portage.const import EPREFIX
 except ImportError:
-	EPREFIX=''
+	EPREFIX = ''
 
 # Python files that need `__version__ = ""` subbed, relative to this dir:
 python_scripts = [os.path.join(cwd, path) for path in (
 	'bin/euscan',
 )]
 
-class set_version(core.Command):
+
+class set_version(Command):
 	"""Set python __version__ to our __version__."""
 	description = "hardcode scripts' version using VERSION from environment"
 	user_options = []  # [(long_name, short_name, desc),]
 
-	def initialize_options (self):
+	def initialize_options(self):
 		pass
 
-	def finalize_options (self):
+	def finalize_options(self):
 		pass
 
 	def run(self):
 		ver = 'git' if __version__ == '9999' else __version__
 		print("Settings version to %s" % ver)
+
 		def sub(files, pattern):
 			for f in files:
 				updated_file = []
@@ -63,7 +68,7 @@ packages = [
 	if '__init__.py' in files
 ]
 
-core.setup(
+setup(
 	name='euscan',
 	version=__version__,
 	description='Ebuild upstream scan utility.',
@@ -72,16 +77,19 @@ core.setup(
 	maintainer='Corentin Chary',
 	maintainer_email='corentin.chary@gmail.com',
 	url='http://euscan.iksaif.net',
-	download_url='https://github.com/iksaif/euscan/tarball/' + ('master' if __version__ == '9999' else ('euscan-%s' % __version__)),
+	download_url=(
+		'https://github.com/iksaif/euscan/tarball/' +
+		('master' if __version__ == '9999' else ('euscan-%s' % __version__))
+	),
 	package_dir={'': 'pym'},
 	packages=packages,
-	package_data = {},
+	package_data={},
 	scripts=python_scripts,
 	data_files=(
-		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'usr/share/man/man1'), glob('man/*')),
+		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'usr/share/man/man1'),
+		glob('man/*')),
 	),
 	cmdclass={
 		'set_version': set_version,
 	},
 )
-
