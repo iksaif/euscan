@@ -9,6 +9,7 @@ GSoC Ideas
 euscan
 ------
 
+- run euscan on .ebuild (see /usr/bin/ebuild + os.environ['PORTDIR_OVERLAY']
 - check other distros (youri, distrowatch, distromatch, whoas; Equivalent-Packages)
 - steal ideas from other tools (uscan, portscout)
 - steal data from other tools (dehs)
@@ -17,6 +18,7 @@ euscan
     - <upsteam><watch options="quirck1 quirck2">http://my.soft/tar-(\d+).ball</watch></upstream>
 - cleaner code to separate gentoo mangled version and upstream unmangled versions
   - try to import $PV -> $MY_PV transformations from ebuilds ?
+  - http://euscan.iksaif.net/package/net-misc/ntp/ 4.2.6p5 -> 4.2.6_p5
 - Add a way to how we failled to find a new version
 - add a HTTP cache (1day, configurable)
 - add a way to enable/disable methods: other_distributions,remote_euscan,handlers, etc....

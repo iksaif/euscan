@@ -7,10 +7,10 @@ from django.forms.models import model_to_dict
 
 from euscan.models import Version, Package, Herd, Maintainer, EuscanResult, VersionLog
 from euscan.forms import WorldForm, PackagesForm
-from api.emitters import EuscanXMLEmitter
 
 # replace default XMLEmitter with ours
 from piston.emitters import Emitter
+from api.emitters import EuscanXMLEmitter
 Emitter.register('xml', EuscanXMLEmitter, 'text/xml; charset=utf-8')
 
 def xint(i):
