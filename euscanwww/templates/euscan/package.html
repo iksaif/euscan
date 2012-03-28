@@ -68,6 +68,11 @@
     <ul>
       {% for version in packaged %}
       <li id="{{ version.version }}-{{version.revision }}:{{ version.slot }}-[{{ version.overlay }}]">
+	{% if version.overlay == "gentoo" %}
+	<img src="{{ MEDIA_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
+	{% else %}
+	<img src="{{ MEDIA_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
+	{% endif %}
 	{{ version.version }}-{{ version.revision }} :{{ version.slot }} [{{ version.overlay }}]
       </li>
       {% endfor %}
@@ -80,6 +85,7 @@
     <ul>
       {% for version in upstream %}
       <li>
+	<img src="{{ MEDIA_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
 	{{ version.version }} - {{ version.urls }}
       </li>
       {% endfor %}
@@ -95,6 +101,13 @@
       {% else %}
       <li class="removed">
       {% endif %}
+	{% if version.overlay == "gentoo" %}
+	<img src="{{ MEDIA_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
+	{% else %}{% if version.overlay %}
+	<img src="{{ MEDIA_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
+	{% else %}
+	<img src="{{ MEDIA_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
+	{% endif %}{% endif %}
 	{{ version }} - {{ version.datetime }}
       </li>
       {% endfor %}
