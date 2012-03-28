@@ -40,7 +40,7 @@ def scan_ftp(data, url, pattern):
 
     return results
 
-def scan_directory_recursive(cp, ver, rev, url, steps):
+def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
     if not steps:
         return []
 
@@ -81,10 +81,11 @@ def scan_directory_recursive(cp, ver, rev, url, steps):
         else:
             path = url + path
 
-        versions.append((path, version))
+        if not steps and path not in orig_url:
+            versions.append((path, version))
 
         if steps:
-            ret = scan_directory_recursive(cp, ver, rev, path, steps)
+            ret = scan_directory_recursive(cp, ver, rev, path, steps, orig_url)
             versions.extend(ret)
 
     return versions
@@ -117,7 +118,7 @@ def scan(cpv, url):
         euscan.output.einfo("Scanning: %s" % template)
 
     steps = helpers.generate_scan_paths(template)
-    return scan_directory_recursive(cp, ver, rev, "", steps)
+    return scan_directory_recursive(cp, ver, rev, "", steps, url)
 
 def brute_force(cpv, url):
     cp, ver, rev = portage.pkgsplit(cpv)
