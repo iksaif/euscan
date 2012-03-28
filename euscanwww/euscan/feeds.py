@@ -66,9 +66,6 @@ class PackageFeed(BaseFeed):
     def title(self, package):
         return "%s" % package
 
-    def description(self, package):
-        return "Last changes for %s" % package
-
     def link(self, package):
         return reverse('euscan.views.package', args=[package.category, package.name])
 
@@ -96,9 +93,6 @@ class MaintainerFeed(BaseFeed):
     def link(self, maintainer):
         return reverse('euscan.views.maintainer', kwargs={'maintainer_id' : maintainer.id})
 
-    def description(self, maintainer):
-        return str(maintainer)
-
     def items(self, maintainer):
         q = VersionLog.objects.filter(package__maintainers__id=maintainer.id)
         return q.order_by('-id')[:50]
@@ -117,9 +111,6 @@ class HerdFeed(BaseFeed):
 
     def link(self, herd):
         return reverse('euscan.views.herd', kwargs={'herd' : herd.herd})
-
-    def description(self, herd):
-        return str(herd)
 
     def items(self, herd):
         q = VersionLog.objects.filter(package__herds__id=herd.id)
