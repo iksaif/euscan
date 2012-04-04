@@ -62,4 +62,5 @@ ROBOTS_TXT_BLACKLIST_DOMAINS = [
     '(.*)berlios(.*)',
     '(.*)qt.nokia.com(.*)',
     '(.*)chromium.org(.*)',
+    '(.*)nodejs.org(.*)',
 ]
