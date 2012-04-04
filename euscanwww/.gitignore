@@ -1,0 +1,4 @@
+var/cache/*/
+var/charts/*.png
+var/rrd/*.rrd
+var/db/euscan.db

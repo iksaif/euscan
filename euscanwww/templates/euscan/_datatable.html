@@ -2,13 +2,13 @@
 
 {% block css %}
 {{ block.super }}
-<link rel="stylesheet" type="text/css" href="{{MEDIA_URL}}css/table.css" media="screen" title="Normal" />
+<link rel="stylesheet" type="text/css" href="{{STATIC_URL}}css/table.css" media="screen" title="Normal" />
 {% endblock %}
 
 {% block javascript %}
 {{ block.super }}
-<script type="text/javascript" language="javascript" src="{{MEDIA_URL}}js/jquery.js"></script>
-<script type="text/javascript" language="javascript" src="{{MEDIA_URL}}js/jquery.dataTables.js"></script>
+<script type="text/javascript" language="javascript" src="{{STATIC_URL}}js/jquery.js"></script>
+<script type="text/javascript" language="javascript" src="{{STATIC_URL}}js/jquery.dataTables.js"></script>
 
 <script type="text/javascript" charset="utf-8">
   $(document).ready(function() {
@@ -26,10 +26,10 @@
 {{ block.super }}
 <div class="menu">
   <ul>
-    <li><img src="{{ MEDIA_URL }}img/gentoo-icon.png" /> Gentoo</li>
-    <li><img src="{{ MEDIA_URL }}img/overlay-icon.png" /> Overlays</li>
-    <li><img src="{{ MEDIA_URL }}img/upstream-icon.png" /> Upstream</li>
-    <li><img src="{{ MEDIA_URL }}img/freshness-icon.png" /> Freshness</li>
+    <li><img src="{{ STATIC_URL }}img/gentoo-icon.png" /> Gentoo</li>
+    <li><img src="{{ STATIC_URL }}img/overlay-icon.png" /> Overlays</li>
+    <li><img src="{{ STATIC_URL }}img/upstream-icon.png" /> Upstream</li>
+    <li><img src="{{ STATIC_URL }}img/freshness-icon.png" /> Freshness</li>
   </ul>
 </div>
 {% endblock %}

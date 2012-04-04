@@ -7,7 +7,7 @@
     <link rel="alternate" type="application/atom+xml" title="Global log" href="{% url global_feed %}" />
     {% endblock %}
     {% block css %}
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/style.css" media="screen" title="Normal" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/style.css" media="screen" title="Normal" />
     {% endblock %}
     {% block javascript %}
     {% endblock %}
@@ -15,7 +15,7 @@
   <body>
     <div id="header">
       <a href="http://www.gentoo.org">
-	<img id="logo" src="{{ MEDIA_URL }}img/gentoo_org.png" />
+	<img id="logo" src="{{ STATIC_URL }}img/gentoo_org.png" />
       </a>
       {% block header %}<h1>Ebuild Upstream Scanner (euscan)</h1>{% endblock %}
     </div>
@@ -42,7 +42,7 @@
 	  <li>---</li>
 	  {% block menu_feed %}
 	  <li>
-	    <img src="{{ MEDIA_URL }}img/feed.png" alt="feed" />
+	    <img src="{{ STATIC_URL }}img/feed.png" alt="feed" />
 	    <a title="Global Feed" href="{% url global_feed %}">Global Feed</a>
 	  </li>
 	  {% endblock %}

@@ -1,5 +1,4 @@
 from django.db import models
-from datetime import datetime
 
 class Herd(models.Model):
     herd = models.CharField(max_length=128, unique=True)
@@ -74,7 +73,7 @@ class VersionLog(models.Model):
     )
 
     package = models.ForeignKey(Package)
-    datetime = models.DateTimeField(default=datetime.now())
+    datetime = models.DateTimeField(auto_now_add=True)
     slot = models.CharField(max_length=128)
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)

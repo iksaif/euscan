@@ -9,7 +9,7 @@
 {% block menu_feed %}
 {{ block.super }}
 <li>
-  <img src="{{ MEDIA_URL }}/img/feed.png" alt="feed" />
+  <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
   <a title="{{ herd.herd }} Feed" href="{% url herd_feed herd.herd %}">{{ herd.herd }}</a>
 </li>
 {% endblock %}

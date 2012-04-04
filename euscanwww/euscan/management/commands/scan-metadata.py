@@ -48,18 +48,18 @@ class Command(BaseCommand):
 
     def scan(self, query=None, obj=None):
         matches = Query(query).find(
-                include_masked=True,
-                in_installed=False,
+            include_masked=True,
+            in_installed=False,
         )
 
         if not matches:
-                sys.stderr.write(self.style.ERROR("Unknown package '%s'\n" % query))
-                return
+            sys.stderr.write(self.style.ERROR("Unknown package '%s'\n" % query))
+            return
 
 	matches = sorted(matches)
         pkg = matches.pop()
 	if '9999' in pkg.version and len(matches):
-		pkg = matches.pop()
+            pkg = matches.pop()
 
         if not obj:
             obj, created = Package.objects.get_or_create(category=pkg.category, name=pkg.name)

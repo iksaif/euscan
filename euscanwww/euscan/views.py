@@ -3,8 +3,8 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Max
 
-from euscan.models import Version, Package, Herd, Maintainer, EuscanResult, VersionLog
-from euscan.forms import WorldForm, PackagesForm
+from models import Version, Package, Herd, Maintainer, EuscanResult, VersionLog
+from forms import WorldForm, PackagesForm
 
 import charts
 

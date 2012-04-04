@@ -12,8 +12,8 @@ import rrdtool
 import pylab
 import matplotlib
 
-CHARTS_ROOT = os.path.join(settings.MEDIA_ROOT, "charts")
-CHARTS_URL = os.path.join(settings.MEDIA_URL, "charts")
+CHARTS_ROOT = os.path.join(settings.EUSCAN_ROOT, 'var', 'charts')
+CHARTS_URL = os.path.join(settings.EUSCAN_ROOT, 'var', 'charts')
 CHARTS_TTL = (24 * 60 * 60)
 
 pylab.rcParams['font.size'] = 10.0

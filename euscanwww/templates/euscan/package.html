@@ -10,7 +10,7 @@
 {% block menu_feed %}
 {{ block.super }}
 <li>
-  <img src="{{ MEDIA_URL }}/img/feed.png" alt="feed" />
+  <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
   <a title="{{ package }} Feed" href="{% url package_feed package.category package.name %}">{{ package }}</a>
 </li>
 {% endblock %}
@@ -69,9 +69,9 @@
       {% for version in packaged %}
       <li id="{{ version.version }}-{{version.revision }}:{{ version.slot }}-[{{ version.overlay }}]">
 	{% if version.overlay == "gentoo" %}
-	<img src="{{ MEDIA_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
+	<img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
 	{% else %}
-	<img src="{{ MEDIA_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
+	<img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
 	{% endif %}
 	{{ version.version }}-{{ version.revision }} :{{ version.slot }} [{{ version.overlay }}]
       </li>
@@ -85,7 +85,7 @@
     <ul>
       {% for version in upstream %}
       <li>
-	<img src="{{ MEDIA_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
+	<img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
 	{{ version.version }} - {{ version.urls }}
       </li>
       {% endfor %}
@@ -102,11 +102,11 @@
       <li class="removed">
       {% endif %}
 	{% if version.overlay == "gentoo" %}
-	<img src="{{ MEDIA_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
+	<img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
 	{% else %}{% if version.overlay %}
-	<img src="{{ MEDIA_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
+	<img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
 	{% else %}
-	<img src="{{ MEDIA_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
+	<img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
 	{% endif %}{% endif %}
 	{{ version }} - {{ version.datetime }}
       </li>
