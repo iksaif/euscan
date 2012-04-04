@@ -34,9 +34,8 @@ Site Handlers
 euscanwww
 ---------
 
-- quick install doc
-- sort verions on package page
-- export a sqlite database
+- rename euscan application django-euscan/djeuscan
+- try to separate portage stuff in django-portage/djportage
 - add last scan in the footer [0.2.0]
 - add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)  [0.2.0]
 - add a table for overlays, change euscan_versions [0.2.0]

@@ -27,13 +27,13 @@
       <div class="menu">
 	<ul>
 	  {% block menu %}
-	  <li><a href="{% url euscan.views.index %}">Home</a></li>
-	  <li><a href="{% url euscan.views.categories %}">Categories</a></li>
-	  <li><a href="{% url euscan.views.herds %}">Herds</a></li>
-	  <li><a href="{% url euscan.views.maintainers %}">Maintainers</a></li>
-	  <li><a href="{% url euscan.views.overlays %}">Overlays</a></li>
-	  <li><a href="{% url euscan.views.world %}">Scan World</a></li>
-	  <li><a href="{% url euscan.views.statistics %}">Statistics</a></li>
+	  <li><a href="{% url djeuscan.views.index %}">Home</a></li>
+	  <li><a href="{% url djeuscan.views.categories %}">Categories</a></li>
+	  <li><a href="{% url djeuscan.views.herds %}">Herds</a></li>
+	  <li><a href="{% url djeuscan.views.maintainers %}">Maintainers</a></li>
+	  <li><a href="{% url djeuscan.views.overlays %}">Overlays</a></li>
+	  <li><a href="{% url djeuscan.views.world %}">Scan World</a></li>
+	  <li><a href="{% url djeuscan.views.statistics %}">Statistics</a></li>
 	  <!--
 	  <li>---</li>
 	  <li><a href="#">Login</a></li>
@@ -47,8 +47,8 @@
 	  </li>
 	  {% endblock %}
 	  <li>---</li>
-	  <li><a href="{% url euscan.views.api %}">API</a></li>
-	  <li><a href="{% url euscan.views.about %}">About</a></li>
+	  <li><a href="{% url djeuscan.views.api %}">API</a></li>
+	  <li><a href="{% url djeuscan.views.about %}">About</a></li>
 	  {% endblock %}
 	</ul>
       </div>

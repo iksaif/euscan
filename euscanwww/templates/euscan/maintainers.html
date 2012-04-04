@@ -23,7 +23,7 @@
   {% for maintainer in maintainers %}
   <tr>
     <td>
-      <a href="{% url euscan.views.maintainer maintainer.maintainers__id %}">
+      <a href="{% url djeuscan.views.maintainer maintainer.maintainers__id %}">
 	{% if maintainer.maintainers__name != maintainer.maintainers__email %}
 	{{ maintainer.maintainers__name }} &lt;{{ maintainer.maintainers__email }}&gt;
 	{% else %}
@@ -35,8 +35,8 @@
     {% package_cols maintainer %}
     {% if request.GET.extras %}
     <td>
-      <img src="{% url euscan.views.chart_maintainer maintainer.maintainers__id 'packages-monthly-small' %}" />
-      <img src="{% url euscan.views.chart_maintainer maintainer.maintainers__id 'versions-monthly-small' %}" />
+      <img src="{% url djeuscan.views.chart_maintainer maintainer.maintainers__id 'packages-monthly-small' %}" />
+      <img src="{% url djeuscan.views.chart_maintainer maintainer.maintainers__id 'versions-monthly-small' %}" />
     </td>
     {% endif %}
   </tr>

@@ -21,18 +21,18 @@
 <h3>Statistics</h2>
 <h4>Current statistics</h4>
 <p>
-  <img src="{% url euscan.views.chart_herd herd.herd 'pie-versions' %}" />
-  <img src="{% url euscan.views.chart_herd herd.herd 'pie-packages' %}" />
+  <img src="{% url djeuscan.views.chart_herd herd.herd 'pie-versions' %}" />
+  <img src="{% url djeuscan.views.chart_herd herd.herd 'pie-packages' %}" />
 </p>
 
 <h4>All Time</h4>
 <p>
-  <img src="{% url euscan.views.chart_herd herd.herd 'versions-weekly' %}" />
-  <img src="{% url euscan.views.chart_herd herd.herd 'versions-monthly' %}" />
+  <img src="{% url djeuscan.views.chart_herd herd.herd 'versions-weekly' %}" />
+  <img src="{% url djeuscan.views.chart_herd herd.herd 'versions-monthly' %}" />
 <p>
 </p>
-  <img src="{% url euscan.views.chart_herd herd.herd 'packages-weekly' %}" />
-  <img src="{% url euscan.views.chart_herd herd.herd 'packages-monthly' %}" />
+  <img src="{% url djeuscan.views.chart_herd herd.herd 'packages-weekly' %}" />
+  <img src="{% url djeuscan.views.chart_herd herd.herd 'packages-monthly' %}" />
 </p>
 
 {% endblock %}
@@ -42,9 +42,9 @@
 <div class="menu">
   <dl>
     <dt>Versions</dt>
-    <dd><img src="{% url euscan.views.chart_herd herd.herd 'versions-monthly-small' %}" /></dd>
+    <dd><img src="{% url djeuscan.views.chart_herd herd.herd 'versions-monthly-small' %}" /></dd>
     <dt>Packages</dt>
-    <dd><img src="{% url euscan.views.chart_herd herd.herd 'packages-monthly-small' %}" /></dd>
+    <dd><img src="{% url djeuscan.views.chart_herd herd.herd 'packages-monthly-small' %}" /></dd>
     </dl>
 </div>
 

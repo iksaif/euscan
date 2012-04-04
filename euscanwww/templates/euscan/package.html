@@ -38,7 +38,7 @@
   <dt>Herds</dt>
   <dd>
     {% for herd in package.herds.all %}
-    <a href="{% url euscan.views.herd herd.herd %}">
+    <a href="{% url djeuscan.views.herd herd.herd %}">
       {{ herd.herd }}
     </a>
     &lt;{{ herd.email }}&gt;
@@ -50,12 +50,12 @@
   <dd>
     {% for maintainer in package.maintainers.all %}
       {% if maintainer.name != maintainer.email %}
-       <a href="{% url euscan.views.maintainer maintainer.id %}">
+       <a href="{% url djeuscan.views.maintainer maintainer.id %}">
 	 {{ maintainer.name }}
        </a>
        &lt;{{ maintainer.email }}&gt;
       {% else %}
-       <a href="{% url euscan.views.maintainer maintainer.id %}">
+       <a href="{% url djeuscan.views.maintainer maintainer.id %}">
        {{ maintainer.email }}
        </a>
       {% endif %}

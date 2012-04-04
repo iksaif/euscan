@@ -22,19 +22,19 @@
 <h3>Statistics</h2>
 <h4>Current statistics</h4>
 <p>
-  <img src="{% url euscan.views.chart_category category 'pie-versions' %}" />
-  <img src="{% url euscan.views.chart_category category 'pie-packages' %}" />
+  <img src="{% url djeuscan.views.chart_category category 'pie-versions' %}" />
+  <img src="{% url djeuscan.views.chart_category category 'pie-packages' %}" />
 </p>
 
 <h4>All Time</h4>
 <p>
-  <img src="{% url euscan.views.chart_category category 'versions-weekly' %}" />
-  <img src="{% url euscan.views.chart_category category 'versions-monthly' %}" />
+  <img src="{% url djeuscan.views.chart_category category 'versions-weekly' %}" />
+  <img src="{% url djeuscan.views.chart_category category 'versions-monthly' %}" />
 </p>
 
 <p>
-  <img src="{% url euscan.views.chart_category category 'packages-weekly' %}" />
-  <img src="{% url euscan.views.chart_category category 'packages-monthly' %}" />
+  <img src="{% url djeuscan.views.chart_category category 'packages-weekly' %}" />
+  <img src="{% url djeuscan.views.chart_category category 'packages-monthly' %}" />
 </p>
 
 {% endblock %}
@@ -44,9 +44,9 @@
 <div class="menu">
   <dl>
     <dt>Versions</dt>
-    <dd><img src="{% url euscan.views.chart_category category 'versions-monthly-small' %}" /></dd>
+    <dd><img src="{% url djeuscan.views.chart_category category 'versions-monthly-small' %}" /></dd>
     <dt>Packages</dt>
-    <dd><img src="{% url euscan.views.chart_category category 'packages-monthly-small' %}" /></dd>
+    <dd><img src="{% url djeuscan.views.chart_category category 'packages-monthly-small' %}" /></dd>
     </dl>
 </div>
 

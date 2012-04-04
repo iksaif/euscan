@@ -23,7 +23,7 @@
   {% for herd in herds %}
   <tr>
     <td>
-      <a href="{% url euscan.views.herd herd.herds__herd %}">
+      <a href="{% url djeuscan.views.herd herd.herds__herd %}">
 	{{ herd.herds__herd }}
       </a>
       {% package_bar herd %}
@@ -31,8 +31,8 @@
     {% package_cols herd %}
     {% if request.GET.extras %}
     <td>
-      <img src="{% url euscan.views.chart_herd herd.herds__herd 'packages-monthly-small' %}" />
-      <img src="{% url euscan.views.chart_herd herd.herds__herd 'versions-monthly-small' %}" />
+      <img src="{% url djeuscan.views.chart_herd herd.herds__herd 'packages-monthly-small' %}" />
+      <img src="{% url djeuscan.views.chart_herd herd.herds__herd 'versions-monthly-small' %}" />
     </td>
     {% endif %}
   </tr>

@@ -18,7 +18,7 @@
   {% for package in packages %}
   <tr>
     <td>
-      <a href="{% url euscan.views.package package.category package.name %}">
+      <a href="{% url djeuscan.views.package package.category package.name %}">
 	{{ package.category }}/{{ package.name }}
       </a>
       {% package_bar package %}

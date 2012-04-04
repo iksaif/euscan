@@ -1,7 +1,8 @@
 ## Basic Install
 
 # Create local_settings.py, you can override settings.py stuff here
-touch local_settings.py
+# You should at least define SECRET_KEY
+touch euscanwww/local_settings.py
 
 # Initialize database
 ./manage.py syncdb
@@ -35,10 +36,10 @@ eix --only-names -C dev-python | ./manage.py scan-upstream
 ./manage.py migrate
 
 # Import snapshot
-./manage.py loaddata snapshot-yyyymmdd.js
+./manage.py loaddata var/snapshots/snapshot-yyyymmdd.js
 
-rm -rf rrd/*
-rm -rf euscan.cache
-rm -rf media/charts/*
+rm -rf var/rrd/*
+rm -rf var/cache/*
+rm -rf var/charts/*
 
 ./manage.py regen-rrds
