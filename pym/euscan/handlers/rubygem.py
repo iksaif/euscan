@@ -56,11 +56,12 @@ def scan(cpv, url):
     ret = []
 
     for version in versions:
-        version = version['number']
-        if helpers.version_filtered(cp, ver, version):
+        up_pv = version['number']
+        pv = helpers.gentoo_mangle_version(up_pv)
+        if helpers.version_filtered(cp, ver, pv):
             continue
-        url = 'http://rubygems.org/gems/%s-%s.gem' % (gem, version)
-        ret.append(( url, version ))
+        url = 'http://rubygems.org/gems/%s-%s.gem' % (gem, up_pv)
+        ret.append(( url, pv ))
 
     return ret
 

@@ -39,12 +39,13 @@ def scan(cpv, url):
 
     ret = []
 
-    for version in versions:
-        if helpers.version_filtered(cp, ver, version):
+    for up_pv in versions:
+        pv = helpers.gentoo_mangle_version(up_pv)
+        if helpers.version_filtered(cp, ver, pv):
             continue
-        urls = client.release_urls(package, version)
+        urls = client.release_urls(package, up_pv)
         urls = " ".join([ infos['url'] for infos in urls ])
-        ret.append(( urls, version ))
+        ret.append(( urls, pv ))
 
     return ret
 

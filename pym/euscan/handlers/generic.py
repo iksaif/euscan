@@ -72,8 +72,9 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
 
     versions = []
 
-    for version, path in results:
-        if helpers.version_filtered(cp, ver, version):
+    for up_pv, path in results:
+        pv = helpers.gentoo_mangle_version(up_pv)
+        if helpers.version_filtered(cp, ver, pv):
             continue
 
         if not url.endswith('/') and not path.startswith('/'):
@@ -82,7 +83,7 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
             path = url + path
 
         if not steps and path not in orig_url:
-            versions.append((path, version))
+            versions.append((path, pv))
 
         if steps:
             ret = scan_directory_recursive(cp, ver, rev, path, steps, orig_url)

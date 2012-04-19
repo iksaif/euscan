@@ -52,16 +52,17 @@ def scan(cpv, url):
     cp, ver, rev = portage.pkgsplit(cpv)
 
     for node in nodes:
-        version = node.childNodes[0].data
-        if helpers.version_filtered(cp, ver, version):
+        up_pv = node.childNodes[0].data
+        pv = helpers.gentoo_mangle_version(up_pv)
+        if helpers.version_filtered(cp, ver, pv):
             continue
 
-        url = 'http://%s/get/%s-%s.tgz' % (channel, pkg, version)
+        url = 'http://%s/get/%s-%s.tgz' % (channel, pkg, up_pv)
 
         if url == orig_url:
             continue
 
-        ret.append(( url, version ))
+        ret.append(( url, pv ))
 
     return ret
 
