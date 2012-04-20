@@ -22,6 +22,9 @@ euscan
 - Add a way to how we failled to find a new version
 - add a HTTP cache (1day, configurable)
 - add a way to enable/disable methods: other_distributions,remote_euscan,handlers, etc....
+- try to differenciate stable, beta, alpha versions
+- give the full Package() to handlers, not just the cpv string
+- better handlers detection logic __init__.py
 
 Site Handlers
 -------------

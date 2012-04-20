@@ -25,7 +25,8 @@ def guess_package_and_channel(cp, url):
     return pkg, host
 
 def scan(cpv, url):
-    pkg, channel = guess_package_and_channel(cpv, url)
+    cp, ver, rev = portage.pkgsplit(cpv)
+    pkg, channel = guess_package_and_channel(cp, url)
 
     orig_url = url
     url = 'http://%s/rest/r/%s/allreleases.xml' % (channel, pkg.lower())
@@ -48,8 +49,6 @@ def scan(cpv, url):
 
     nodes = dom.getElementsByTagName("v")
     ret = []
-
-    cp, ver, rev = portage.pkgsplit(cpv)
 
     for node in nodes:
         up_pv = node.childNodes[0].data

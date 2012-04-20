@@ -1,6 +1,6 @@
-from euscan.handlers import generic, php, pypi, rubygem, kde
+from euscan.handlers import generic, php, pypi, rubygem, kde, cpan
 
-handlers = [ kde, php, pypi, rubygem, generic ]
+handlers = [ kde, php, pypi, rubygem, cpan, generic ]
 
 def find_best_handler(cpv, url):
     for handler in handlers:
