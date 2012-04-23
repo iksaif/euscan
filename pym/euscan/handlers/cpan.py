@@ -27,6 +27,47 @@ def guess_package(cp, url):
 
     return pkg
 
+def gentoo_mangle_version(up_pv):
+    pv = ""
+
+    if up_pv.count('.') == 1:
+        digits = 0
+        for i in range(len(up_pv)):
+            if digits == 3:
+                pv += "."
+                digits = 0
+            c = up_pv[i]
+            pv += c
+            digits += int(c.isdigit())
+            if c == '.': digits = 0
+    else:
+        pv = up_pv
+
+    return helpers.gentoo_mangle_version(pv)
+
+def cpan_trim_version(pv):
+    pv = re.sub('^[a-zA-Z]+', '', pv)
+    pv = re.sub('[a-zA-Z]$', '', pv)
+    return pv
+
+def cpan_mangle_version(pv):
+    pos = pv.find('.')
+    if pos < 0:
+        return pv
+    up_pv = pv.replace('.', '')
+    up_pv = up_pv[0:pos] + '.' + up_pv[pos:]
+    up_pv = cpan_trim_version(up_pv)
+    return up_pv
+
+def cpan_vercmp(cp, a, b):
+    try:
+        return float(a) - float(b)
+    except:
+        if a < b:
+            return -1
+        else:
+            return 1
+
 def scan(cpv, url):
     cp, ver, rev = portage.pkgsplit(cpv)
     pkg = guess_package(cp, url)
@@ -55,10 +96,15 @@ def scan(cpv, url):
     ret = []
 
     for version in data['releases']:
-        up_pv = version['version']
-        pv = helpers.gentoo_mangle_version(up_pv)
+        #if version['status'] == 'testing':
+        #    continue
 
-        if helpers.version_filtered(cp, ver, pv):
+        up_pv = version['version']
+        up_pv = cpan_trim_version(up_pv)
+        pv = gentoo_mangle_version(up_pv)
+        up_ver = cpan_mangle_version(ver)
+
+        if helpers.version_filtered(cp, up_ver, up_pv, cpan_vercmp):
             continue
 
         url = 'mirror://cpan/authors/id/%s/%s/%s/%s' % \

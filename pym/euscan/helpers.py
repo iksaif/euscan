@@ -218,7 +218,7 @@ def version_change_end_sep(version):
         return None
     return version.replace(end, newend)
 
-def version_filtered(cp, base, version):
+def version_filtered(cp, base, version, vercmp=vercmp):
     if vercmp(cp, base, version) >= 0:
         return True
 
