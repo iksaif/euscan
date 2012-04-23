@@ -88,7 +88,7 @@ class Command(BaseCommand):
             old_maintainers = set(existing_maintainers).difference(maintainers.keys())
 
             for herd in obj.herds.all():
-                if herd.email in old_herds:
+                if herd.herd in old_herds:
                     obj.herds.remove(herd)
 
             for herd in new_herds:

@@ -9,6 +9,7 @@ from datetime import datetime
 from portage import versions
 from optparse import make_option
 
+from django.utils import timezone
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand, CommandError
 from djeuscan.models import Package, Version, EuscanResult, VersionLog
@@ -120,7 +121,7 @@ class Command(BaseCommand):
         obj = EuscanResult()
         obj.package = package
         obj.result = log
-        obj.datetime = datetime.now()
+        obj.datetime = timezone.now()
         obj.save()
 
 

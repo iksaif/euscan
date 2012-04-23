@@ -5,6 +5,7 @@ from optparse import make_option
 from django.db.models import Count, Sum
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
 from djeuscan.models import Package, Herd, Maintainer, Version
 from djeuscan.models import HerdLog, MaintainerLog, CategoryLog, WorldLog
@@ -44,7 +45,7 @@ class Command(BaseCommand):
 
     @commit_on_success
     def handle(self, *args, **options):
-        now = datetime.datetime.now()
+        now = timezone.now()
 
         categories = {}
         herds = {}
