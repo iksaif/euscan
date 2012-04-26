@@ -82,7 +82,7 @@ setup(
         ('master' if __version__ == '9999' else ('euscan-%s' % __version__))
     ),
     install_requires=['Django==1.3.1', 'django-annoying', 'South',
-                      'django-piston', 'matplotlib'],
+                      'django-piston', 'matplotlib', 'BeautifulSoup'],
     package_dir={'': 'pym'},
     packages=packages,
     package_data={},
