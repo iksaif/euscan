@@ -22,4 +22,3 @@ if settings.DEBUG:
             'document_root': os.path.join(settings.EUSCAN_ROOT, 'htdocs'),
         }),
    )
-

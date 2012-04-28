@@ -3,14 +3,12 @@ import time
 
 from euscanwww import settings
 
-from django.db.models import F, Sum, Max
-from djeuscan.models import Version, Package, Herd, Maintainer
-from djeuscan.models import CategoryLog
+from django.db.models import F, Sum
+from djeuscan.models import Package
 
 import rrdtool
 
 import pylab
-import matplotlib
 
 CHARTS_ROOT = os.path.join(settings.EUSCAN_ROOT, 'var', 'charts')
 CHARTS_URL = os.path.join(settings.EUSCAN_ROOT, 'var', 'charts')
@@ -21,11 +19,13 @@ pylab.rcParams['axes.titlesize'] = 10.0
 pylab.rcParams['xtick.labelsize'] = 8.0
 pylab.rcParams['legend.fontsize'] = 8.0
 
+
 def xint(i):
     try:
         return int(i)
     except:
         return 0
+
 
 def chart_alive(name):
     path = os.path.join(CHARTS_ROOT, name)
@@ -36,6 +36,7 @@ def chart_alive(name):
     if os.path.getmtime(path) + CHARTS_TTL < time.time():
         return False
     return True
+
 
 def rrd_name(**kwargs):
     name = ""
@@ -50,6 +51,7 @@ def rrd_name(**kwargs):
         name = 'world'
 
     return name
+
 
 def chart_name(name, **kwargs):
     name = name.replace('_', '-')
@@ -67,6 +69,7 @@ def chart_name(name, **kwargs):
 
     return name + ".png"
 
+
 def getpackages(**kwargs):
     packages = Package.objects
 
@@ -78,6 +81,7 @@ def getpackages(**kwargs):
         packages = packages.filter(maintainers__id=kwargs['maintainer'].id)
 
     return packages
+
 
 def cached_pylab_chart(f):
     def new_f(*args, **kwds):
@@ -93,14 +97,16 @@ def cached_pylab_chart(f):
     new_f.func_name = f.func_name
     return new_f
 
+
 @cached_pylab_chart
 def pie_versions(**kwargs):
-    n_packaged = xint(getpackages(**kwargs).aggregate(Sum('n_packaged'))['n_packaged__sum'])
-    n_overlay = xint(getpackages(**kwargs).aggregate(Sum('n_overlay'))['n_overlay__sum'])
-    n_versions = xint(getpackages(**kwargs).aggregate(Sum('n_versions'))['n_versions__sum'])
+    gpk = getpackages(**kwargs)
+    n_packaged = xint(gpk.aggregate(Sum('n_packaged'))['n_packaged__sum'])
+    n_overlay = xint(gpk.aggregate(Sum('n_overlay'))['n_overlay__sum'])
+    n_versions = xint(gpk.aggregate(Sum('n_versions'))['n_versions__sum'])
     n_upstream = n_versions - n_packaged - n_overlay
 
-    pylab.figure(1, figsize=(3.5,3.5))
+    pylab.figure(1, figsize=(3.5, 3.5))
 
     if n_overlay:
         labels = 'Gentoo', 'Overlays', 'Upstream'
@@ -111,34 +117,42 @@ def pie_versions(**kwargs):
         fracs = [n_packaged, n_upstream]
         colors = '#008000', '#FF0000'
 
-    pylab.pie(fracs, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True)
-    pylab.title('Versions', bbox={'facecolor':'0.8', 'pad':5})
+    pylab.pie(fracs, labels=labels, colors=colors, autopct='%1.1f%%',
+              shadow=True)
+    pylab.title('Versions', bbox={'facecolor': '0.8', 'pad': 5})
+
 
 @cached_pylab_chart
 def pie_packages(**kwargs):
-    n_packages = getpackages(**kwargs).count()
-    n_packages_uptodate_main = getpackages(**kwargs).filter(n_versions=F('n_packaged')).count()
-    n_packages_uptodate_all = getpackages(**kwargs).filter(n_versions=F('n_packaged') + F('n_overlay')).count()
+    gpk = getpackages(**kwargs)
+    n_packages = gpk.count()
+    n_packages_uptodate_main = gpk.filter(n_versions=F('n_packaged')).count()
+    n_packages_uptodate_all = gpk.filter(n_versions=F('n_packaged') + \
+                              F('n_overlay')).count()
     n_packages_outdated = n_packages - n_packages_uptodate_all
-    n_packages_uptodate_ovl = n_packages_uptodate_all - n_packages_uptodate_main
+    n_packages_uptodate_ovl = n_packages_uptodate_all - \
+                              n_packages_uptodate_main
 
-    pylab.figure(1, figsize=(3.5,3.5))
+    pylab.figure(1, figsize=(3.5, 3.5))
 
     if n_packages_uptodate_ovl:
         labels = 'Ok (gentoo)', 'Ok (overlays)', 'Outdated'
-        fracs = [n_packages_uptodate_main, n_packages_uptodate_ovl, n_packages_outdated]
+        fracs = [n_packages_uptodate_main, n_packages_uptodate_ovl,
+                 n_packages_outdated]
         colors = '#008000', '#0B17FD', '#FF0000'
     else:
         labels = 'Ok (gentoo)', 'Outdated'
         fracs = [n_packages_uptodate_main, n_packages_outdated]
         colors = '#008000', '#FF0000'
 
-    pylab.pie(fracs, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True)
-    pylab.title('Packages', bbox={'facecolor':'0.8', 'pad':5})
+    pylab.pie(fracs, labels=labels, colors=colors, autopct='%1.1f%%',
+              shadow=True)
+    pylab.title('Packages', bbox={'facecolor': '0.8', 'pad': 5})
 
 
 def rrd_path(name):
     return str(os.path.join(settings.RRD_ROOT, name + '.rrd'))
+
 
 def rrd_create(name, start):
     path = rrd_path(name)
@@ -156,13 +170,17 @@ def rrd_create(name, start):
                    'RRA:AVERAGE:0.5:5:200',
                    'RRA:AVERAGE:0.5:10:200')
 
+
 def rrd_update(name, datetime, values):
     now = time.mktime(datetime.timetuple())
     rrd_create(name, now)
-    rrdtool.update(rrd_path(name),
-                   '%d:%d:%d:%d:%d:%d:%d' % \
-                       (now, values.n_packages_gentoo, values.n_packages_overlay, values.n_packages_outdated, \
-                            values.n_versions_gentoo, values.n_versions_overlay, values.n_versions_upstream))
+    rrdtool.update(
+        rrd_path(name),
+        '%d:%d:%d:%d:%d:%d:%d' % \
+            (now, values.n_packages_gentoo, values.n_packages_overlay,
+             values.n_packages_outdated, values.n_versions_gentoo,
+             values.n_versions_overlay, values.n_versions_upstream)
+    )
 
 
 """
@@ -174,6 +192,7 @@ def rrd_update(name, datetime, values):
 [-M|--alt-autoscale-max]
 [-J|--alt-autoscale-min]
 """
+
 
 def cached_rrd_chart(f):
     def new_f(*args, **kwds):
@@ -215,47 +234,55 @@ def cached_rrd_chart(f):
     new_f.func_name = f.func_name
     return new_f
 
+
 @cached_rrd_chart
 def packages(**kwargs):
-    rrdtool.graph(str(kwargs['path']),
-                  '--imgformat', 'PNG',
-                  '--width', kwargs['width'],
-                  '--height', kwargs['height'],
-                  kwargs['graph-mode'],
-                  '--color', 'CANVAS#FFFFFF00',
-                  '--color', 'BACK#FFFFFF00',
+    rrdtool.graph(
+        str(kwargs['path']),
+        '--imgformat', 'PNG',
+        '--width', kwargs['width'],
+        '--height', kwargs['height'],
+        kwargs['graph-mode'],
+        '--color', 'CANVAS#FFFFFF00',
+        '--color', 'BACK#FFFFFF00',
 
-                  '--start', kwargs['start'],
-                  '--end', kwargs['end'],
-                  '--vertical-label', kwargs['vertical-label'],
-                  '--title', kwargs['title'],
-                  '--lower-limit', '0',
-                  'DEF:n_packages_gentoo=%s:n_packages_gentoo:AVERAGE' % (kwargs['rrd']),
-                  'DEF:n_packages_overlay=%s:n_packages_overlay:AVERAGE' % (kwargs['rrd']),
-                  'DEF:n_packages_outdated=%s:n_packages_outdated:AVERAGE' % (kwargs['rrd']),
-                  'LINE1.25:n_packages_gentoo#008000:Gentoo',
-                  'LINE1.25:n_packages_overlay#0B17FD:Overlay',
-                  'LINE1.25:n_packages_outdated#FF0000:Outdated')
+        '--start', kwargs['start'],
+        '--end', kwargs['end'],
+        '--vertical-label', kwargs['vertical-label'],
+        '--title', kwargs['title'],
+        '--lower-limit', '0',
+        'DEF:n_packages_gentoo=%s:n_packages_gentoo:AVERAGE' % (kwargs['rrd']),
+        'DEF:n_packages_overlay=%s:n_packages_overlay:AVERAGE' % \
+            (kwargs['rrd']),
+        'DEF:n_packages_outdated=%s:n_packages_outdated:AVERAGE' % \
+            (kwargs['rrd']),
+        'LINE1.25:n_packages_gentoo#008000:Gentoo',
+        'LINE1.25:n_packages_overlay#0B17FD:Overlay',
+        'LINE1.25:n_packages_outdated#FF0000:Outdated'
+    )
+
 
 @cached_rrd_chart
 def versions(**kwargs):
-    rrdtool.graph(str(kwargs['path']),
-                  '--imgformat', 'PNG',
-                  '--width', kwargs['width'],
-                  '--height', kwargs['height'],
-                  kwargs['graph-mode'],
-                  '--color', 'CANVAS#FFFFFF00',
-                  '--color', 'BACK#FFFFFF00',
-                  '--start', kwargs['start'],
-                  '--end', kwargs['end'],
-                  '--vertical-label', kwargs['vertical-label'],
-                  '--title', kwargs['title'],
-                  '--lower-limit', '0',
-                  'DEF:n_versions_gentoo=%s:n_versions_gentoo:AVERAGE' % (kwargs['rrd']),
-                  'DEF:n_versions_overlay=%s:n_versions_overlay:AVERAGE' % (kwargs['rrd']),
-                  'DEF:n_versions_outdated=%s:n_versions_upstream:AVERAGE' % (kwargs['rrd']),
-                  'LINE1.25:n_versions_gentoo#008000:Gentoo',
-                  'LINE1.25:n_versions_overlay#0B17FD:Overlay',
-                  'LINE1.25:n_versions_outdated#FF0000:Outdated')
-
-
+    rrdtool.graph(
+        str(kwargs['path']),
+        '--imgformat', 'PNG',
+        '--width', kwargs['width'],
+        '--height', kwargs['height'],
+        kwargs['graph-mode'],
+        '--color', 'CANVAS#FFFFFF00',
+        '--color', 'BACK#FFFFFF00',
+        '--start', kwargs['start'],
+        '--end', kwargs['end'],
+        '--vertical-label', kwargs['vertical-label'],
+        '--title', kwargs['title'],
+        '--lower-limit', '0',
+        'DEF:n_versions_gentoo=%s:n_versions_gentoo:AVERAGE' % (kwargs['rrd']),
+        'DEF:n_versions_overlay=%s:n_versions_overlay:AVERAGE' % \
+            (kwargs['rrd']),
+        'DEF:n_versions_outdated=%s:n_versions_upstream:AVERAGE' % \
+            (kwargs['rrd']),
+        'LINE1.25:n_versions_gentoo#008000:Gentoo',
+        'LINE1.25:n_versions_overlay#0B17FD:Overlay',
+        'LINE1.25:n_versions_outdated#FF0000:Outdated'
+    )

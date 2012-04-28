@@ -1,9 +1,11 @@
 from euscan.handlers import generic
 
+
 def can_handle(cpv, url):
     if url.startswith('mirror://kde/'):
         return True
     return False
+
 
 def clean_results(results):
     ret = []
@@ -15,6 +17,7 @@ def clean_results(results):
 
     return ret
 
+
 def scan(cpv, url):
     results = generic.scan(cpv, url)
 
@@ -23,6 +26,7 @@ def scan(cpv, url):
         results += generic.scan(cpv, url)
 
     return clean_results(results)
+
 
 def brute_force(cpv, url):
     results = generic.brute_force(cpv, url)

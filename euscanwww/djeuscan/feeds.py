@@ -1,11 +1,10 @@
 from django.contrib.syndication.views import Feed, FeedDoesNotExist
 from django.shortcuts import get_object_or_404
-from django.http import Http404
 from django.utils.feedgenerator import Atom1Feed
 from django.core.urlresolvers import reverse
 
-from djeuscan.models import Version, Package, Herd, Maintainer, VersionLog
-from djeuscan.views import *
+from djeuscan.models import Package, Herd, Maintainer, VersionLog
+
 
 class BaseFeed(Feed):
     feed_type = Atom1Feed
@@ -18,8 +17,8 @@ class BaseFeed(Feed):
 
     def item_description(self, vlog):
         if vlog.overlay:
-            txt = 'Version %s-%s [%s] of package %s ' % (vlog.version, vlog.revision,
-                                                         vlog.slot, vlog.package)
+            txt = 'Version %s-%s [%s] of package %s ' % \
+                (vlog.version, vlog.revision, vlog.slot, vlog.package)
         else:
             txt = 'Version %s of package %s ' % (vlog.version, vlog.package)
         if vlog.action == vlog.VERSION_REMOVED:
@@ -36,8 +35,10 @@ class BaseFeed(Feed):
         return txt
 
     def item_link(self, vlog):
-        kwargs = {'category' : vlog.package.category, 'package' : vlog.package.name }
-        return reverse('djeuscan.views.package', kwargs=kwargs) + '#' + vlog.tag()
+        kwargs = {'category': vlog.package.category,
+                  'package': vlog.package.name}
+        return "%s#%s" % (reverse('djeuscan.views.package', kwargs=kwargs),
+                          vlog.tag())
 
     def item_pubdate(self, vlog):
         return vlog.datetime
@@ -45,17 +46,19 @@ class BaseFeed(Feed):
     def item_categories(self, vlog):
         return [vlog.package.category]
 
+
 class GlobalFeed(BaseFeed):
     title = "euscan"
     link = "/"
     description = "Last euscan changes"
 
     def categories(self):
-        categories = Package.objects.values('category').distinct();
-        return [ category['category'] for category in categories ]
+        categories = Package.objects.values('category').distinct()
+        return [category['category'] for category in categories]
 
     def items(self):
         return VersionLog.objects.order_by('-id')[:250]
+
 
 class PackageFeed(BaseFeed):
     feed_type = Atom1Feed
@@ -67,7 +70,8 @@ class PackageFeed(BaseFeed):
         return "%s" % package
 
     def link(self, package):
-        return reverse('djeuscan.views.package', args=[package.category, package.name])
+        return reverse('djeuscan.views.package', args=[package.category,
+                       package.name])
 
     def description(self, package):
         return package.description
@@ -77,6 +81,7 @@ class PackageFeed(BaseFeed):
 
     def item_description(self, vlog):
         return ''
+
 
 class MaintainerFeed(BaseFeed):
     feed_type = Atom1Feed
@@ -91,11 +96,13 @@ class MaintainerFeed(BaseFeed):
         return "Last changes for %s" % maintainer
 
     def link(self, maintainer):
-        return reverse('djeuscan.views.maintainer', kwargs={'maintainer_id' : maintainer.id})
+        return reverse('djeuscan.views.maintainer',
+                       kwargs={'maintainer_id': maintainer.id})
 
     def items(self, maintainer):
         q = VersionLog.objects.filter(package__maintainers__id=maintainer.id)
         return q.order_by('-id')[:50]
+
 
 class HerdFeed(BaseFeed):
     feed_type = Atom1Feed
@@ -110,11 +117,12 @@ class HerdFeed(BaseFeed):
         return "Last changes for %s" % herd
 
     def link(self, herd):
-        return reverse('djeuscan.views.herd', kwargs={'herd' : herd.herd})
+        return reverse('djeuscan.views.herd', kwargs={'herd': herd.herd})
 
     def items(self, herd):
         q = VersionLog.objects.filter(package__herds__id=herd.id)
         return q.order_by('-id')[:100]
+
 
 class CategoryFeed(BaseFeed):
     feed_type = Atom1Feed

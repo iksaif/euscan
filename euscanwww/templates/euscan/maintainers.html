@@ -24,11 +24,11 @@
   <tr>
     <td>
       <a href="{% url djeuscan.views.maintainer maintainer.maintainers__id %}">
-	{% if maintainer.maintainers__name != maintainer.maintainers__email %}
-	{{ maintainer.maintainers__name }} &lt;{{ maintainer.maintainers__email }}&gt;
-	{% else %}
-	{{ maintainer.maintainers__name }}
-	{% endif %}
+        {% if maintainer.maintainers__name != maintainer.maintainers__email %}
+          {{ maintainer.maintainers__name }} &lt;{{ maintainer.maintainers__email }}&gt;
+        {% else %}
+          {{ maintainer.maintainers__name }}
+        {% endif %}
       </a>
       {% package_bar maintainer %}
     </td>

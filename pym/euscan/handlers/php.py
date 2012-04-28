@@ -6,12 +6,14 @@ import xml.dom.minidom
 from euscan import helpers
 import euscan
 
+
 def can_handle(cpv, url):
     if url.startswith('http://pear.php.net/get/'):
         return True
     if url.startswith('http://pecl.php.net/get/'):
         return True
     return False
+
 
 def guess_package_and_channel(cp, url):
     match = re.search('http://(.*)/get/(.*)-(.*).tgz', url)
@@ -23,6 +25,7 @@ def guess_package_and_channel(cp, url):
         cat, pkg = cp.split("/")
 
     return pkg, host
+
 
 def scan(cpv, url):
     cp, ver, rev = portage.pkgsplit(cpv)
@@ -61,9 +64,10 @@ def scan(cpv, url):
         if url == orig_url:
             continue
 
-        ret.append(( url, pv ))
+        ret.append((url, pv))
 
     return ret
+
 
 def brute_force(cpv, url):
     return []

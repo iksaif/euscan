@@ -34,11 +34,12 @@ from euscan.scan import scan_upstream
 
 """ Globals """
 
+
 def setupSignals():
     """ This block ensures that ^C interrupts are handled quietly. """
     import signal
 
-    def exithandler(signum,frame):
+    def exithandler(signum, frame):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         print ()
@@ -51,10 +52,10 @@ def setupSignals():
 
 def printVersion():
     """Output the version info."""
-    print( "%s (%s) - %s" \
+    print("%s (%s) - %s" \
             % (__productname__, __version__, __description__))
     print()
-    print("Author: %s <%s>" % (__author__,__email__))
+    print("Author: %s <%s>" % (__author__, __email__))
     print("Copyright 2011 Gentoo Foundation")
     print("Distributed under the terms of the GNU General Public License v2")
 
@@ -68,45 +69,49 @@ def printUsage(_error=None, help=None):
         out = sys.stderr
     if not _error in ('global-options', 'packages',):
         _error = None
-    if not _error and not help: help = 'all'
+    if not _error and not help:
+        help = 'all'
     if _error in ('global-options',):
-        print( pp.error("Wrong option on command line."), file=out)
-        print( file=out)
+        print(pp.error("Wrong option on command line."), file=out)
+        print(file=out)
     if _error in ('packages',):
-        print( pp.error("You need to specify exactly one package."), file=out)
-        print( file=out)
-    print( white("Usage:"), file=out)
+        print(pp.error("You need to specify exactly one package."), file=out)
+        print(file=out)
+    print(white("Usage:"), file=out)
     if _error in ('global-options', 'packages',) or help == 'all':
-        print( " "+turquoise(__productname__),
+        print(" " + turquoise(__productname__),
                yellow("[options]"),
                green("<package> [<package> [...]]"), file=out)
     if _error in ('global-options',) or help == 'all':
-        print( " "+turquoise(__productname__),
+        print(" " + turquoise(__productname__),
                yellow("[--help, --version]"), file=out)
 
     print(file=out)
     if _error in ('global-options',) or help:
-        print( "Available ", yellow("options")+":", file=out)
-        print( yellow(" -C, --nocolor")+
-               "             - turn off colors on output", file=out)
-        print( yellow(" -q, --quiet")+
-               "               - be as quiet as possible", file=out)
-        print( yellow(" -h, --help")+ \
-                   "                - display the help screen", file=out)
-        print( yellow(" -V, --version")+
-               "             - display version info", file=out)
-        print( file=out)
-        print( yellow(" -1, --oneshot")+
-               "             - stop as soon as a new version is found", file=out)
-        print( yellow(" -b, --brute-force=<level>")+
-               " - define the brute force "+yellow("<level>")+" (default: 2)\n" +
-               " " * 29  + "bigger levels will generate more versions numbers\n" +
-               " " * 29  + "0 means disabled", file=out)
-        print( file=out)
+        print("Available ", yellow("options") + ":", file=out)
+        print(yellow(" -C, --nocolor") +
+            "             - turn off colors on output", file=out)
+        print(yellow(" -q, --quiet") +
+            "               - be as quiet as possible", file=out)
+        print(yellow(" -h, --help") +
+            "                - display the help screen", file=out)
+        print(yellow(" -V, --version") +
+            "             - display version info", file=out)
+        print(file=out)
+        print(yellow(" -1, --oneshot") +
+            "             - stop as soon as a new version is found",
+            file=out)
+        print(yellow(" -b, --brute-force=<level>") +
+            " - define the brute force " + yellow("<level>") +
+            " (default: 2)\n" +
+            " " * 29 + "bigger levels will generate more versions numbers\n" +
+            " " * 29 + "0 means disabled", file=out)
+        print(file=out)
     if _error in ('packages',) or help:
-        print( green(" package")+
-               "                   - the packages (or ebuilds) you want to scan", file=out)
-        print( file=out)
+        print(green(" package") +
+            "                   - the packages (or ebuilds) you want to scan",
+            file=out)
+        print(file=out)
         '''print( "More detailed instruction can be found in",
         turquoise("`man %s`" % __productname__), file=out)'''
 
@@ -115,6 +120,7 @@ class ParseArgsException(Exception):
     """For parseArgs() -> main() communications."""
     def __init__(self, value):
         self.value = value
+
     def __str__(self):
         return repr(self.value)
 
@@ -130,7 +136,7 @@ def parseArgs():
         return_code = True
         for o, a in opts:
             if o in ("-h", "--help"):
-                   raise ParseArgsException('help')
+                raise ParseArgsException('help')
             elif o in ("-V", "--version"):
                 raise ParseArgsException('version')
             elif o in ("-C", "--nocolor"):
@@ -151,7 +157,7 @@ def parseArgs():
         return return_code
 
     ' here are the different allowed command line options (getopt args) '
-    getopt_options = {'short':{}, 'long':{}}
+    getopt_options = {'short': {}, 'long': {}}
     getopt_options['short']['global'] = "hVCqv1b:"
     getopt_options['long']['global'] = ["help", "version", "nocolor", "quiet",
                         "verbose", "oneshot", "brute-force="]
@@ -164,19 +170,20 @@ def parseArgs():
     try:
         opts, args = getopt.getopt(sys.argv[1:], short_opts, long_opts)
     except:
-        raise ParseArgsException(opts_mode+'-options')
+        raise ParseArgsException(opts_mode + '-options')
 
     ' set options accordingly '
     optionSwitch(opts)
 
     if len(args) < 1:
-           raise ParseArgsException('packages')
+        raise ParseArgsException('packages')
 
     return args
 
+
 def main():
     """Parse command line and execute all actions."""
-    CONFIG['nocolor'] = (port_settings["NOCOLOR"] in ('yes','true')
+    CONFIG['nocolor'] = (port_settings["NOCOLOR"] in ('yes', 'true')
         or not sys.stdout.isatty())
     if CONFIG['nocolor']:
         pp.output.nocolor()
@@ -212,11 +219,16 @@ def main():
             for candidate in pkgs:
                 print(candidate)
 
-            from os.path import basename # To get the short name
+            from os.path import basename  # To get the short name
 
             print(file=sys.stderr)
-            print(pp.error("The short ebuild name '%s' is ambiguous. Please specify" % basename(pkgs[0])),
-                  file=sys.stderr, end="")
+            print(
+                pp.error(
+                    "The short ebuild name '%s' is ambiguous. Please specify" \
+                    % basename(pkgs[0])
+                ),
+                file=sys.stderr, end=""
+            )
             pp.die(1, "one of the above fully-qualified ebuild names instead.")
         except GentoolkitException as err:
             pp.die(1, '%s: %s' % (package, str(err)))
@@ -233,12 +245,12 @@ def main():
                        + pp.path(" %s" % url))
             else:
                 print (pp.cpv("%s-%s" % (cp, version))
-                       + ": " +  pp.path(url))
+                       + ": " + pp.path(url))
 
         if not len(ret) and not CONFIG['quiet']:
             print (pp.warn("Didn't find any new version, "
                            + "check package's homepage for "
-                           + "more informations"));
+                           + "more informations"))
 
 
 if __name__ == "__main__":
@@ -246,6 +258,6 @@ if __name__ == "__main__":
         setupSignals()
         main()
     except KeyboardInterrupt:
-        print( "Aborted.")
+        print("Aborted.")
         sys.exit(errno.EINTR)
     sys.exit(0)

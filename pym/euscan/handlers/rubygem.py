@@ -6,8 +6,10 @@ import urllib2
 from euscan import helpers
 import euscan
 
+
 def can_handle(cpv, url):
     return url.startswith('mirror://rubygems/')
+
 
 def guess_gem(cpv, url):
     match = re.search('mirror://rubygems/(.*).gem', url)
@@ -23,12 +25,14 @@ def guess_gem(cpv, url):
 
     return pkg
 
+
 def scan(cpv, url):
     'http://guides.rubygems.org/rubygems-org-api/#gemversion'
 
     gem = guess_gem(cpv, url)
     if not gem:
-        euscan.output.eerror("Can't guess gem name using %s and %s" % (cpv, url))
+        euscan.output.eerror("Can't guess gem name using %s and %s" % \
+            (cpv, url))
         return []
 
     url = 'http://rubygems.org/api/v1/versions/%s.json' % gem
@@ -61,9 +65,10 @@ def scan(cpv, url):
         if helpers.version_filtered(cp, ver, pv):
             continue
         url = 'http://rubygems.org/gems/%s-%s.gem' % (gem, up_pv)
-        ret.append(( url, pv ))
+        ret.append((url, pv))
 
     return ret
+
 
 def brute_force(cpv, url):
     return []

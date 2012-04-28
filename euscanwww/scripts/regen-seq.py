@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 sys.path.insert(0, '../')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'euscanwww.settings'
 
@@ -19,6 +20,6 @@ try:
         rel_name = seq_name.split("_id_seq")[0]
         to_update.append((seq_name, rel_name,))
     for row in to_update:
-        c.execute(r"SELECT setval('%s', max(id)) FROM %s"%row)
+        c.execute(r"SELECT setval('%s', max(id)) FROM %s" % row)
 finally:
     c.close()

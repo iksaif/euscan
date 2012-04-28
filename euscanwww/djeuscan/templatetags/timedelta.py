@@ -6,6 +6,7 @@ from datetime import datetime
 
 register = template.Library()
 
+
 def timedelta(value, arg=None):
     if not value:
         return ''
@@ -16,8 +17,8 @@ def timedelta(value, arg=None):
         if settings.USE_TZ:
             cmp = make_aware(cmp, get_default_timezone())
     if value > cmp:
-        return "in %s" % timesince(cmp,value)
+        return "in %s" % timesince(cmp, value)
     else:
-        return "%s ago" % timesince(value,cmp)
+        return "%s ago" % timesince(value, cmp)
 
-register.filter('timedelta',timedelta)
+register.filter('timedelta', timedelta)

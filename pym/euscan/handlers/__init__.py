@@ -1,6 +1,7 @@
 from euscan.handlers import generic, php, pypi, rubygem, kde, cpan
 
-handlers = [ kde, php, pypi, rubygem, cpan, generic ]
+handlers = [kde, php, pypi, rubygem, cpan, generic]
+
 
 def find_best_handler(cpv, url):
     for handler in handlers:
@@ -8,11 +9,13 @@ def find_best_handler(cpv, url):
             return handler
     return None
 
+
 def scan(cpv, url):
     handler = find_best_handler(cpv, url)
     if handler:
         return handler.scan(cpv, url)
     return []
+
 
 def brute_force(cpv, url):
     handler = find_best_handler(cpv, url)

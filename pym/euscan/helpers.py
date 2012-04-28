@@ -18,6 +18,7 @@ from portage import dep
 from euscan import CONFIG, BLACKLIST_VERSIONS, ROBOTS_TXT_BLACKLIST_DOMAINS
 import euscan
 
+
 def htop_vercmp(a, b):
     def fixver(v):
         if v in ['0.11', '0.12', '0.13']:
@@ -27,11 +28,12 @@ def htop_vercmp(a, b):
     return simple_vercmp(fixver(a), fixver(b))
 
 VERSION_CMP_PACKAGE_QUIRKS = {
-    'sys-process/htop' : htop_vercmp
+    'sys-process/htop': htop_vercmp
 }
 
 _v_end = '((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)'
 _v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(' + _v_end + '*))'
+
 
 # Stolen from g-pypi
 def gentoo_mangle_version(up_pv):
@@ -146,6 +148,7 @@ def gentoo_mangle_version(up_pv):
 
     return pv
 
+
 def cast_int_components(version):
     for i, obj in enumerate(version):
         try:
@@ -153,6 +156,7 @@ def cast_int_components(version):
         except ValueError:
             pass
     return version
+
 
 def simple_vercmp(a, b):
     if a == b:
@@ -173,10 +177,12 @@ def simple_vercmp(a, b):
     else:
         return 1
 
+
 def vercmp(package, a, b):
     if package in VERSION_CMP_PACKAGE_QUIRKS:
         return VERSION_CMP_PACKAGE_QUIRKS[package](a, b)
     return simple_vercmp(a, b)
+
 
 def version_is_nightly(a, b):
     a = pkg_resources.parse_version(a)
@@ -187,6 +193,7 @@ def version_is_nightly(a, b):
         if b[0][:4] != '0000':
             return True
     return False
+
 
 def version_blacklisted(cp, version):
     rule = None
@@ -205,6 +212,7 @@ def version_blacklisted(cp, version):
         euscan.output.einfo("%s is blacklisted by rule %s" % (cpv, bv))
     return rule is not None
 
+
 def version_change_end_sep(version):
     match = re.match('.*' + _v_end, version)
     if not match:
@@ -218,6 +226,7 @@ def version_change_end_sep(version):
         return None
     return version.replace(end, newend)
 
+
 def version_filtered(cp, base, version, vercmp=vercmp):
     if vercmp(cp, base, version) >= 0:
         return True
@@ -229,6 +238,7 @@ def version_filtered(cp, base, version, vercmp=vercmp):
         return True
 
     return False
+
 
 def generate_templates_vars(version):
     ret = []
@@ -246,6 +256,7 @@ def generate_templates_vars(version):
     ret.reverse()
     return ret
 
+
 def template_from_url(url, version):
     prefix, chunks = url.split('://')
     chunks = chunks.split('/')
@@ -261,6 +272,7 @@ def template_from_url(url, version):
 
     return prefix + "://" + "/".join(chunks)
 
+
 def url_from_template(url, version):
     components = split_version(version)
 
@@ -269,6 +281,7 @@ def url_from_template(url, version):
         url = url.replace('${%d}' % i, str(components[i]))
 
     return url
+
 
 # Stolen from distutils.LooseVersion
 # Used for brute force to increment the version
@@ -282,6 +295,7 @@ def split_version(version):
             pass
     return components
 
+
 def join_version(components):
     version = ""
     for i in range(len(components)):
@@ -291,6 +305,7 @@ def join_version(components):
         if type(components[i]) != str and type(components[i + 1]) != str:
             version += "."
     return version
+
 
 def increment_version(components, level):
     n = len(components)
@@ -306,6 +321,7 @@ def increment_version(components, level):
         components[level] += 1
 
     return components
+
 
 def gen_versions(components, level):
     n = len(components)
@@ -325,6 +341,7 @@ def gen_versions(components, level):
 
     return versions
 
+
 def timeout_for_url(url):
     if 'sourceforge' in url:
         timeout = 15
@@ -332,12 +349,15 @@ def timeout_for_url(url):
         timeout = 5
     return timeout
 
+
 class HeadRequest(urllib2.Request):
     def get_method(self):
         return "HEAD"
 
+
 """ RobotParser cache """
 rpcache = {}
+
 
 def urlallowed(url):
     if CONFIG['skip-robots-txt']:
@@ -359,7 +379,7 @@ def urlallowed(url):
     baseurl = '%s://%s' % (protocol, domain)
     robotsurl = urlparse.urljoin(baseurl, 'robots.txt')
 
-    if rpcache.has_key(baseurl):
+    if baseurl in rpcache:
         rp = rpcache[baseurl]
     else:
         from socket import setdefaulttimeout, getdefaulttimeout
@@ -378,6 +398,7 @@ def urlallowed(url):
         setdefaulttimeout(timeout)
 
     return rp.can_fetch(CONFIG['user-agent'], url) if rp else False
+
 
 def urlopen(url, timeout=None, verb="GET"):
     if not urlallowed(url):
@@ -410,6 +431,7 @@ def urlopen(url, timeout=None, verb="GET"):
 
     return opener.open(request, None, timeout)
 
+
 def tryurl(fileurl, template):
     result = True
 
@@ -429,13 +451,16 @@ def tryurl(fileurl, template):
 
         headers = fp.info()
 
-        if 'Content-disposition' in headers and basename not in headers['Content-disposition']:
+        if 'Content-disposition' in headers and \
+           basename not in headers['Content-disposition']:
             result = None
         elif 'Content-Length' in headers and headers['Content-Length'] == '0':
             result = None
-        elif 'Content-Type' in headers and 'text/html' in headers['Content-Type']:
+        elif 'Content-Type' in headers and \
+             'text/html' in headers['Content-Type']:
             result = None
-        elif 'Content-Type' in headers and 'application/x-httpd-php' in headers['Content-Type']:
+        elif 'Content-Type' in headers and \
+             'application/x-httpd-php' in headers['Content-Type']:
             result = None
         elif fp.geturl() != fileurl:
             regex = regex_from_template(template)
@@ -443,9 +468,9 @@ def tryurl(fileurl, template):
             basename2 = os.path.basename(fp.geturl())
 
             # Redirect to another (earlier?) version
-            if basename != basename2 and (re.match(regex, fp.geturl()) or re.match(baseregex, basename2)):
+            if basename != basename2 and (re.match(regex, fp.geturl()) or \
+               re.match(baseregex, basename2)):
                 result = None
-
 
             if result:
                 result = (fp.geturl(), fp.info())
@@ -458,6 +483,7 @@ def tryurl(fileurl, template):
     euscan.output.eend(errno.ENOENT if not result else 0)
 
     return result
+
 
 def regex_from_template(template):
     # Escape
@@ -483,6 +509,7 @@ def regex_from_template(template):
     template = template + r'/?$'
     return template
 
+
 def basedir_from_template(template):
     idx = template.find('${')
     if idx == -1:
@@ -493,6 +520,7 @@ def basedir_from_template(template):
         return ""
 
     return template[0:idx]
+
 
 def generate_scan_paths(url):
     prefix, chunks = url.split('://')
@@ -511,6 +539,7 @@ def generate_scan_paths(url):
 
     return steps
 
+
 def parse_mirror(uri):
     from random import shuffle
 
@@ -526,7 +555,7 @@ def parse_mirror(uri):
         return None
 
     mirrorname = uri[9:eidx]
-    path = uri[eidx+1:]
+    path = uri[eidx + 1:]
 
     if mirrorname in mirrors:
         mirrors = mirrors[mirrorname]

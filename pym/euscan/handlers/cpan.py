@@ -8,8 +8,10 @@ import euscan
 
 _cpan_package_name_re = re.compile("mirror://cpan/authors/.*/([^/.]*).*")
 
+
 def can_handle(cpv, url):
     return url.startswith('mirror://cpan/')
+
 
 def guess_package(cp, url):
     match = _cpan_package_name_re.search(url)
@@ -27,6 +29,7 @@ def guess_package(cp, url):
 
     return pkg
 
+
 def gentoo_mangle_version(up_pv):
     pv = ""
 
@@ -39,16 +42,19 @@ def gentoo_mangle_version(up_pv):
             c = up_pv[i]
             pv += c
             digits += int(c.isdigit())
-            if c == '.': digits = 0
+            if c == '.':
+                digits = 0
     else:
         pv = up_pv
 
     return helpers.gentoo_mangle_version(pv)
 
+
 def cpan_trim_version(pv):
     pv = re.sub('^[a-zA-Z]+', '', pv)
     pv = re.sub('[a-zA-Z]$', '', pv)
     return pv
+
 
 def cpan_mangle_version(pv):
     pos = pv.find('.')
@@ -59,6 +65,7 @@ def cpan_mangle_version(pv):
     up_pv = cpan_trim_version(up_pv)
     return up_pv
 
+
 def cpan_vercmp(cp, a, b):
     try:
         return float(a) - float(b)
@@ -67,6 +74,7 @@ def cpan_vercmp(cp, a, b):
             return -1
         else:
             return 1
+
 
 def scan(cpv, url):
     cp, ver, rev = portage.pkgsplit(cpv)
@@ -107,15 +115,20 @@ def scan(cpv, url):
         if helpers.version_filtered(cp, up_ver, up_pv, cpan_vercmp):
             continue
 
-        url = 'mirror://cpan/authors/id/%s/%s/%s/%s' % \
-            (version['cpanid'][0], version['cpanid'][0:1], version['cpanid'], version['archive'])
+        url = 'mirror://cpan/authors/id/%s/%s/%s/%s' % (
+            version['cpanid'][0],
+            version['cpanid'][0:1],
+            version['cpanid'],
+            version['archive']
+        )
 
         if url == orig_url:
             continue
 
-        ret.append(( url, pv ))
+        ret.append((url, pv))
 
     return ret
+
 
 def brute_force(cpv, url):
     return []

@@ -1,10 +1,7 @@
-import datetime
-
 from optparse import make_option
 
-from django.db.models import Count, Sum
 from django.db.transaction import commit_on_success
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from djeuscan.models import Package, Herd, Maintainer, Version
@@ -13,12 +10,14 @@ from djeuscan import charts
 
 from distutils.version import StrictVersion, LooseVersion
 
+
 def compare_versions(version1, version2):
     try:
         return cmp(StrictVersion(version1), StrictVersion(version2))
     # in case of abnormal version number, fall back to LooseVersion
     except ValueError:
         return cmp(LooseVersion(version1), LooseVersion(version2))
+
 
 class Command(BaseCommand):
     _overlays = {}
@@ -98,7 +97,8 @@ class Command(BaseCommand):
                 return
             if version['version'].startswith('9999'):
                 return
-            if compare_versions(storage[key]['version'], version['version']) < 0:
+            if compare_versions(storage[key]['version'],
+                                version['version']) < 0:
                 storage[key] = version
 
         if not options['fast']:
@@ -125,25 +125,36 @@ class Command(BaseCommand):
                 package.n_packaged = n_packaged.get(package.id, 0)
                 package.n_overlay = n_overlay.get(package.id, 0)
 
-                default = {'id' : None}
-                package.last_version_gentoo_id = last_versions_gentoo.get(package.id, default)['id']
-                package.last_version_overlay_id = last_versions_overlay.get(package.id, default)['id']
-                package.last_version_upstream_id = last_versions_upstream.get(package.id, default)['id']
+                default = {'id': None}
+                package.last_version_gentoo_id = last_versions_gentoo.get(
+                    package.id, default
+                )['id']
+                package.last_version_overlay_id = last_versions_overlay.get(
+                    package.id, default
+                )['id']
+                package.last_version_upstream_id = last_versions_upstream.get(
+                    package.id, default
+                )['id']
 
                 package.save()
 
             n_packages_gentoo = int(package.n_packaged == package.n_versions)
-            n_packages_overlay = int(package.n_overlay and package.n_packaged + package.n_overlay == package.n_versions)
-            n_packages_outdated = int(package.n_packaged + package.n_overlay < package.n_versions)
+            n_packages_overlay = int(package.n_overlay and package.n_packaged \
+                                     + package.n_overlay == package.n_versions)
+            n_packages_outdated = int(package.n_packaged + package.n_overlay \
+                                      < package.n_versions)
 
             def update_row(storage, key):
-                storage[key].n_packages_gentoo   += n_packages_gentoo
-                storage[key].n_packages_overlay  += n_packages_overlay
+                storage[key].n_packages_gentoo += n_packages_gentoo
+                storage[key].n_packages_overlay += n_packages_overlay
                 storage[key].n_packages_outdated += n_packages_outdated
 
-                storage[key].n_versions_gentoo   += package.n_packaged
-                storage[key].n_versions_overlay  += package.n_overlay
-                storage[key].n_versions_upstream += package.n_versions - package.n_packaged - package.n_overlay
+                storage[key].n_versions_gentoo += package.n_packaged
+                storage[key].n_versions_overlay += package.n_overlay
+                storage[key].n_versions_upstream += package.n_versions - \
+                                                    package.n_packaged - \
+                                                    package.n_overlay
+
             def update_log(storage, qs):
                 for row in qs:
                     update_row(storage, row['id'])
@@ -153,13 +164,15 @@ class Command(BaseCommand):
                 update_log(maintainers, package.maintainers.all().values('id'))
                 update_row(categories, package.category)
 
-                wlog.n_packages_gentoo   += n_packages_gentoo
-                wlog.n_packages_overlay  += n_packages_overlay
+                wlog.n_packages_gentoo += n_packages_gentoo
+                wlog.n_packages_overlay += n_packages_overlay
                 wlog.n_packages_outdated += n_packages_outdated
 
-                wlog.n_versions_gentoo   += package.n_packaged
-                wlog.n_versions_overlay  += package.n_overlay
-                wlog.n_versions_upstream += package.n_versions - package.n_packaged - package.n_overlay
+                wlog.n_versions_gentoo += package.n_packaged
+                wlog.n_versions_overlay += package.n_overlay
+                wlog.n_versions_upstream += package.n_versions - \
+                                            package.n_packaged - \
+                                            package.n_overlay
 
         if options['nolog']:
             return
