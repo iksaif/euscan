@@ -51,7 +51,7 @@
     {% for maintainer in package.maintainers.all %}
       {% if maintainer.name != maintainer.email %}
        <a href="{% url djeuscan.views.maintainer maintainer.id %}">
-	 {{ maintainer.name }}
+         {{ maintainer.name }}
        </a>
        &lt;{{ maintainer.email }}&gt;
       {% else %}
@@ -68,12 +68,12 @@
     <ul>
       {% for version in packaged %}
       <li id="{{ version.version }}-{{version.revision }}:{{ version.slot }}-[{{ version.overlay }}]">
-	{% if version.overlay == "gentoo" %}
-	<img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
-	{% else %}
-	<img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
-	{% endif %}
-	{{ version.version }}-{{ version.revision }} :{{ version.slot }} [{{ version.overlay }}]
+        {% if version.overlay == "gentoo" %}
+          <img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
+        {% else %}
+          <img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
+        {% endif %}
+        {{ version.version }}-{{ version.revision }} :{{ version.slot }} [{{ version.overlay }}]
       </li>
       {% endfor %}
     </ul>
@@ -85,8 +85,8 @@
     <ul>
       {% for version in upstream %}
       <li>
-	<img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
-	{{ version.version }} - {{ version.urls }}
+        <img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
+        {{ version.version }} - {{ version.urls }}
       </li>
       {% endfor %}
      </ul>
@@ -101,14 +101,16 @@
       {% else %}
       <li class="removed">
       {% endif %}
-	{% if version.overlay == "gentoo" %}
-	<img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
-	{% else %}{% if version.overlay %}
-	<img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
-	{% else %}
-	<img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
-	{% endif %}{% endif %}
-	{{ version }} - {{ version.datetime }}
+        {% if version.overlay == "gentoo" %}
+          <img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
+        {% elif version.overlay %}
+          <img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
+        {% else %}
+          <img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
+        {% endif %}
+
+        {{ version }} - {{ version.datetime }}
+
       </li>
       {% endfor %}
     </ul>
