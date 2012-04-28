@@ -4,10 +4,8 @@ import sys
 import portage
 
 from portage.dbapi import porttree
-from portage.output import white, yellow, turquoise, green, teal, red, EOutput
 
 import gentoolkit.pprinter as pp
-from gentoolkit import errors
 from gentoolkit.query import Query
 from gentoolkit.eclean.search import (port_settings)
 
@@ -16,6 +14,7 @@ from euscan import handlers
 from euscan import helpers
 
 import euscan
+
 
 def filter_versions(cp, versions):
     filtered = {}
@@ -32,7 +31,8 @@ def filter_versions(cp, versions):
 
         filtered[version] = url
 
-    return [ (cp, filtered[version], version) for version in filtered ]
+    return [(cp, filtered[version], version) for version in filtered]
+
 
 def scan_upstream_urls(cpv, urls):
     versions = []
@@ -72,7 +72,9 @@ def scan_upstream(query):
     )
 
     if not matches:
-        sys.stderr.write(pp.warn("No package matching '%s'" % pp.pkgquery(query)))
+        sys.stderr.write(
+            pp.warn("No package matching '%s'" % pp.pkgquery(query))
+        )
         return []
 
     matches = sorted(matches)
@@ -87,11 +89,15 @@ def scan_upstream(query):
         return []
 
     if pkg.cp in BLACKLIST_PACKAGES:
-        sys.stderr.write(pp.warn("Package '%s' is blacklisted" % pp.pkgquery(pkg.cp)))
+        sys.stderr.write(
+            pp.warn("Package '%s' is blacklisted" % pp.pkgquery(pkg.cp))
+        )
         return []
 
     if not CONFIG['quiet']:
-        pp.uprint(" * %s [%s]" % (pp.cpv(pkg.cpv), pp.section(pkg.repo_name())))
+        pp.uprint(
+            " * %s [%s]" % (pp.cpv(pkg.cpv), pp.section(pkg.repo_name()))
+        )
         pp.uprint()
 
         ebuild_path = pkg.ebuild_path()
@@ -104,8 +110,8 @@ def scan_upstream(query):
 
     cpv = pkg.cpv
     metadata = {
-        "EAPI"    : port_settings["EAPI"],
-        "SRC_URI" : pkg.environment("SRC_URI", False),
+        "EAPI": port_settings["EAPI"],
+        "SRC_URI": pkg.environment("SRC_URI", False),
     }
     use = frozenset(port_settings["PORTAGE_USE"].split())
     try:
@@ -113,7 +119,9 @@ def scan_upstream(query):
         aalist = porttree._parse_uri_map(cpv, metadata)
     except Exception as e:
         sys.stderr.write(pp.warn("%s\n" % str(e)))
-        sys.stderr.write(pp.warn("Invalid SRC_URI for '%s'" % pp.pkgquery(cpv)))
+        sys.stderr.write(
+            pp.warn("Invalid SRC_URI for '%s'" % pp.pkgquery(cpv))
+        )
         return []
 
     if "mirror" in portage.settings.features:

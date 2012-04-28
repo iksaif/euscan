@@ -6,9 +6,11 @@ from BeautifulSoup import BeautifulSoup
 
 import portage
 
-from euscan import CONFIG, SCANDIR_BLACKLIST_URLS, BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS
+from euscan import CONFIG, SCANDIR_BLACKLIST_URLS, \
+    BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS
 from euscan import helpers
 import euscan
+
 
 def scan_html(data, url, pattern):
     soup = BeautifulSoup(data)
@@ -28,6 +30,7 @@ def scan_html(data, url, pattern):
 
     return results
 
+
 def scan_ftp(data, url, pattern):
     buf = StringIO.StringIO(data)
     results = []
@@ -39,6 +42,7 @@ def scan_ftp(data, url, pattern):
             results.append((match.group(1), match.group(0)))
 
     return results
+
 
 def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
     if not steps:
@@ -91,6 +95,7 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
 
     return versions
 
+
 def scan(cpv, url):
     for bu in SCANDIR_BLACKLIST_URLS:
         if re.match(bu, url):
@@ -107,19 +112,24 @@ def scan(cpv, url):
     if ver not in resolved_url:
         newver = helpers.version_change_end_sep(ver)
         if newver and newver in resolved_url:
-            euscan.output.einfo("Version: using %s instead of %s" % (newver, ver))
+            euscan.output.einfo(
+                "Version: using %s instead of %s" % (newver, ver)
+            )
             ver = newver
 
     template = helpers.template_from_url(resolved_url, ver)
     if '${' not in template:
-        euscan.output.einfo("Url doesn't seems to depend on version: %s not found in %s"
-                     % (ver, resolved_url))
+        euscan.output.einfo(
+            "Url doesn't seems to depend on version: %s not found in %s" %
+            (ver, resolved_url)
+        )
         return []
     else:
         euscan.output.einfo("Scanning: %s" % template)
 
     steps = helpers.generate_scan_paths(template)
     return scan_directory_recursive(cp, ver, rev, "", steps, url)
+
 
 def brute_force(cpv, url):
     cp, ver, rev = portage.pkgsplit(cpv)
@@ -155,8 +165,9 @@ def brute_force(cpv, url):
     template = helpers.template_from_url(url, ver)
 
     if '${PV}' not in template:
-        euscan.output.einfo("Url doesn't seems to depend on full version: %s not found in %s"
-                     % (ver, url))
+        euscan.output.einfo(
+            "Url doesn't seems to depend on full version: %s not found in %s" %
+            (ver, url))
         return []
     else:
         euscan.output.einfo("Brute forcing: %s" % template)
@@ -187,11 +198,14 @@ def brute_force(cpv, url):
         result.append([url, version])
 
         if len(result) > CONFIG['brute-force-false-watermark']:
-            euscan.output.einfo("Broken server detected ! Skipping brute force.")
+            euscan.output.einfo(
+                "Broken server detected ! Skipping brute force."
+            )
             return []
 
         if CONFIG["brute-force-recursive"]:
-            for v in helpers.gen_versions(list(components), CONFIG["brute-force"]):
+            for v in helpers.gen_versions(list(components),
+                                          CONFIG["brute-force"]):
                 if v not in versions and tuple(v) not in done:
                     versions.append(v)
 
@@ -199,6 +213,7 @@ def brute_force(cpv, url):
             break
 
     return result
+
 
 def can_handle(cpv, url):
     return True

@@ -1,18 +1,16 @@
 import subprocess
 import portage
 import sys
-import os
 import re
 
 from StringIO import StringIO
-from datetime import datetime
-from portage import versions
 from optparse import make_option
 
 from django.utils import timezone
 from django.db.transaction import commit_on_success
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from djeuscan.models import Package, Version, EuscanResult, VersionLog
+
 
 class Command(BaseCommand):
     _overlays = {}
@@ -60,7 +58,7 @@ class Command(BaseCommand):
         elif args:
             packages = list(args)
         else:
-            packages = [ package[:-1] for package in sys.stdin.readlines() ]
+            packages = [package[:-1] for package in sys.stdin.readlines()]
 
         self.scan(options, packages)
 
@@ -83,8 +81,12 @@ class Command(BaseCommand):
     def parse_output(self, options, output):
         from portage.versions import _cp
 
-        package_re = re.compile(r'^ \* (?P<cpv>' + _cp + ') \[(?P<overlay>.*?)\]$')
-        version_re = re.compile(r'^Upstream Version: (?P<ver>.*?) (?P<url>.*?)$')
+        package_re = re.compile(
+            r'^ \* (?P<cpv>' + _cp + ') \[(?P<overlay>.*?)\]$'
+        )
+        version_re = re.compile(
+            r'^Upstream Version: (?P<ver>.*?) (?P<url>.*?)$'
+        )
 
         package = None
         log = ""
@@ -124,7 +126,6 @@ class Command(BaseCommand):
         obj.datetime = timezone.now()
         obj.save()
 
-
     def store_package(self, options, cpv):
         cat, pkg, ver, rev = portage.catpkgsplit(cpv)
 
@@ -133,15 +134,16 @@ class Command(BaseCommand):
         if created and not options['quiet']:
             sys.stdout.write('+ [p] %s/%s\n' % (cat, pkg))
 
-        ' Set all versions dead, then set found versions alive and delete old versions '
+        # Set all versions dead, then set found versions alive and
+        # delete old versions
         Version.objects.filter(package=obj, packaged=False).update(alive=False)
 
         return obj
 
     def store_version(self, options, package, ver, url):
-        obj, created = Version.objects.get_or_create(package=package, slot='',
-                                                     revision='r0', version=ver,
-                                                     overlay='')
+        obj, created = Version.objects.get_or_create(
+            package=package, slot='', revision='r0', version=ver, overlay=''
+        )
 
         obj.alive = True
         obj.urls = url
@@ -155,7 +157,10 @@ class Command(BaseCommand):
         if not options['quiet']:
             sys.stdout.write('+ [u] %s %s\n' % (obj, url))
 
-        entry = VersionLog.objects.create(package=package, action=VersionLog.VERSION_ADDED)
+        entry = VersionLog.objects.create(
+            package=package,
+            action=VersionLog.VERSION_ADDED
+        )
         entry.slot = ''
         entry.revision = 'r0'
         entry.version = ver
@@ -165,12 +170,14 @@ class Command(BaseCommand):
         package.n_versions += 1
         package.save()
 
-
     @commit_on_success
     def purge_versions(self, options):
         ' For each dead versions '
         for version in Version.objects.filter(packaged=False, alive=False):
-            entry = VersionLog.objects.create(package=version.package, action=VersionLog.VERSION_REMOVED)
+            entry = VersionLog.objects.create(
+                package=version.package,
+                action=VersionLog.VERSION_REMOVED
+            )
             entry.slot = version.slot
             entry.revision = version.revision
             entry.version = version.version
@@ -183,4 +190,3 @@ class Command(BaseCommand):
             if not options['quiet']:
                 sys.stdout.write('- [u] %s %s\n' % (version, version.urls))
         Version.objects.filter(packaged=False, alive=False).delete()
-

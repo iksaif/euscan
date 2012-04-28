@@ -1,5 +1,4 @@
 import xmlrpclib
-import pprint
 import re
 
 import portage
@@ -7,8 +6,10 @@ import portage
 from euscan import helpers
 import euscan
 
+
 def can_handle(cpv, url):
     return url.startswith('mirror://pypi/')
+
 
 def guess_package(cp, url):
     match = re.search('mirror://pypi/\w+/(.*)/.*', url)
@@ -19,9 +20,9 @@ def guess_package(cp, url):
 
     return pkg
 
+
 def scan(cpv, url):
     'http://wiki.python.org/moin/PyPiXmlRpc'
-
 
     package = guess_package(cpv, url)
 
@@ -44,10 +45,11 @@ def scan(cpv, url):
         if helpers.version_filtered(cp, ver, pv):
             continue
         urls = client.release_urls(package, up_pv)
-        urls = " ".join([ infos['url'] for infos in urls ])
-        ret.append(( urls, pv ))
+        urls = " ".join([infos['url'] for infos in urls])
+        ret.append((urls, pv))
 
     return ret
+
 
 def brute_force(cpv, url):
     return []

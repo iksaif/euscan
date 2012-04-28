@@ -1,18 +1,14 @@
-import subprocess
-import portage
 import sys
-import os
-import re
 
-from portage import versions
 from optparse import make_option
 
 from django.db.transaction import commit_on_success
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from djeuscan.models import Package, Herd, Maintainer
 
 from gentoolkit.query import Query
 from gentoolkit.errors import GentoolkitFatalError
+
 
 class Command(BaseCommand):
     _overlays = {}
@@ -53,16 +49,20 @@ class Command(BaseCommand):
         )
 
         if not matches:
-            sys.stderr.write(self.style.ERROR("Unknown package '%s'\n" % query))
+            sys.stderr.write(
+                self.style.ERROR("Unknown package '%s'\n" % query)
+            )
             return
 
-	matches = sorted(matches)
+        matches = sorted(matches)
         pkg = matches.pop()
-	if '9999' in pkg.version and len(matches):
+        if '9999' in pkg.version and len(matches):
             pkg = matches.pop()
 
         if not obj:
-            obj, created = Package.objects.get_or_create(category=pkg.category, name=pkg.name)
+            obj, created = Package.objects.get_or_create(
+                category=pkg.category, name=pkg.name
+            )
         else:
             created = False
 
@@ -70,22 +70,34 @@ class Command(BaseCommand):
             obj.homepage = pkg.environment("HOMEPAGE")
             obj.description = pkg.environment("DESCRIPTION")
         except GentoolkitFatalError, err:
-            sys.stderr.write(self.style.ERROR("Gentoolkit fatal error: '%s'\n" % str(err)))
+            sys.stderr.write(
+                self.style.ERROR(
+                    "Gentoolkit fatal error: '%s'\n" % str(err)
+                )
+            )
 
         if created and not self.options['quiet']:
             sys.stdout.write('+ [p] %s/%s\n' % (pkg.category, pkg.name))
 
         if pkg.metadata:
-            herds = dict([(herd[0], herd) for herd in pkg.metadata.herds(True)])
-            maintainers = dict([(m.email, m) for m in pkg.metadata.maintainers()])
+            herds = dict(
+                [(herd[0], herd) for herd in pkg.metadata.herds(True)]
+            )
+            maintainers = dict(
+                [(m.email, m) for m in pkg.metadata.maintainers()]
+            )
 
             existing_herds = [h.herd for h in obj.herds.all()]
             new_herds = set(herds.keys()).difference(existing_herds)
             old_herds = set(existing_herds).difference(herds.keys())
 
             existing_maintainers = [m.email for m in obj.maintainers.all()]
-            new_maintainers = set(maintainers.keys()).difference(existing_maintainers)
-            old_maintainers = set(existing_maintainers).difference(maintainers.keys())
+            new_maintainers = set(
+                maintainers.keys()).difference(existing_maintainers
+            )
+            old_maintainers = set(
+                existing_maintainers).difference(maintainers.keys()
+            )
 
             for herd in obj.herds.all():
                 if herd.herd in old_herds:
@@ -101,7 +113,9 @@ class Command(BaseCommand):
 
             for maintainer in new_maintainers:
                 maintainer = maintainers[maintainer]
-                maintainer = self.store_maintainer(maintainer.name, maintainer.email)
+                maintainer = self.store_maintainer(
+                    maintainer.name, maintainer.email
+                )
                 obj.maintainers.add(maintainer)
 
         obj.save()
@@ -131,9 +145,12 @@ class Command(BaseCommand):
 
         if created:
             if not self.options['quiet']:
-                sys.stdout.write('+ [m] %s <%s>\n' % (name.encode('utf-8'), email))
+                sys.stdout.write(
+                    '+ [m] %s <%s>\n' % (name.encode('utf-8'), email)
+                )
 
-            if not maintainer.name or name not in [maintainer.name, email, '{nil}']:
+            if not maintainer.name or \
+               name not in [maintainer.name, email, '{nil}']:
                 maintainer.name = name
             maintainer.save()
 
