@@ -81,8 +81,8 @@ setup(
         'https://github.com/iksaif/euscan/tarball/' +
         ('master' if __version__ == '9999' else ('euscan-%s' % __version__))
     ),
-    install_requires=['Django==1.3.1', 'django-annoying', 'South',
-                      'django-piston', 'matplotlib'],
+    install_requires=['Django==1.4', 'django-annoying', 'South',
+                      'django-piston', 'matplotlib', 'BeautifulSoup'],
     package_dir={'': 'pym'},
     packages=packages,
     package_data={},

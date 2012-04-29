@@ -5,7 +5,6 @@
 
 __version__ = "git"
 
-import sys
 
 from portage.output import EOutput
 
@@ -19,15 +18,16 @@ CONFIG = {
     'brute-force-false-watermark': 50,
     'scan-dir': True,
     'oneshot': True,
-    'user-agent' : 'escan (http://euscan.iksaif.net)',
-    'skip-robots-txt' : False,
-    'cache' : False
+    'user-agent': 'escan (http://euscan.iksaif.net)',
+    'skip-robots-txt': False,
+    'cache': False
 }
 
 output = EOutput(CONFIG['quiet'])
 
 BLACKLIST_VERSIONS = [
-    # Compatibility package for running binaries linked against a pre gcc 3.4 libstdc++, won't be updated
+    # Compatibility package for running binaries linked against a
+    # pre gcc 3.4 libstdc++, won't be updated
     '>=sys-libs/libstdc++-v3-3.4',
 ]
 
@@ -39,21 +39,24 @@ BLACKLIST_PACKAGES = [
 ]
 
 SCANDIR_BLACKLIST_URLS = [
-    'mirror://rubygems/(.*)', # Not browsable
-    'mirror://gentoo/(.*)' # Directory too big
+    'mirror://rubygems/(.*)',  # Not browsable
+    'mirror://gentoo/(.*)'  # Directory too big
 ]
 
 BRUTEFORCE_BLACKLIST_PACKAGES = [
-    'net-zope/plonepopoll' # infinite loop any http://plone.org/products/plonepopoll/releases/*/plonepopoll-2-6-1.tgz link will work
+    # infinite loop any
+    # http://plone.org/products/plonepopoll/releases/*/plonepopoll-2-6-1.tgz
+    # link will work
+    'net-zope/plonepopoll'
 ]
 
 BRUTEFORCE_BLACKLIST_URLS = [
-    'http://(.*)dockapps.org/download.php/id/(.*)', # infinite loop
-    'http://hydra.nixos.org/build/(.*)', # infinite loop
-    'http://www.rennings.net/gentoo/distfiles/(.*)', # Doesn't respect 404, infinite loop
-    'http://art.gnome.org/download/(.*)', # Doesn't respect 404, infinite loop
-    'http://barelysufficient.org/~olemarkus/(.*)', # Doesn't respect 404, infinite loop
-    'http://olemarkus.org/~olemarkus/(.*)', # Doesn't respect 404, infinite loop
+    'http://(.*)dockapps.org/download.php/id/(.*)',  # infinite loop
+    'http://hydra.nixos.org/build/(.*)',  # infinite loop
+    'http://www.rennings.net/gentoo/distfiles/(.*)',  # Doesn't respect 404, infinite loop
+    'http://art.gnome.org/download/(.*)',  # Doesn't respect 404, infinite loop
+    'http://barelysufficient.org/~olemarkus/(.*)',  # Doesn't respect 404, infinite loop
+    'http://olemarkus.org/~olemarkus/(.*)',  # Doesn't respect 404, infinite loop
 ]
 
 ROBOTS_TXT_BLACKLIST_DOMAINS = [

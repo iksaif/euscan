@@ -88,6 +88,15 @@ tree to avoid messing with your system.
 
 ### Installation
 
+Install requirements from PyPI using
+
+  $ python setup.py develop
+
+Extra dependencies:
+
+  * portage python api
+  * rrdtool[python]
+
 Like any django web app, just start by editing settings.py and then run
 these two commands.
 

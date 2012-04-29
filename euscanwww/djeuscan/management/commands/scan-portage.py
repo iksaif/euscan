@@ -4,12 +4,12 @@ import sys
 import os
 import re
 
-from portage import versions
 from optparse import make_option
 
 from django.db.transaction import commit_on_success
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from djeuscan.models import Package, Version, VersionLog
+
 
 class Command(BaseCommand):
     _overlays = {}
@@ -39,7 +39,8 @@ class Command(BaseCommand):
             action='store_true',
             dest='prefetch',
             default=False,
-            help='Prefetch all versions and packages from DB to speedup full scan process.'),
+            help=('Prefetch all versions and packages from DB to '
+                  'speedup full scan process.')),
         make_option('--quiet',
             action='store_true',
             dest='quiet',
@@ -49,7 +50,7 @@ class Command(BaseCommand):
     args = '[package package ...]'
     help = 'Scans portage tree and fills database'
 
-    _cache = {'packages' : {}, 'versions' : {}}
+    _cache = {'packages': {}, 'versions': {}}
 
     def cache_hash_package(self, category, name):
         return '%s/%s' % (category, name)
@@ -59,22 +60,28 @@ class Command(BaseCommand):
         self._cache['packages'][key] = package
 
     def cache_get_package(self, category, name):
-        return self._cache['packages'].get(self.cache_hash_package(category, name))
+        return self._cache['packages'].get(
+            self.cache_hash_package(category, name)
+        )
 
-    def cache_hash_version(self, category, name, version, revision, slot, overlay):
+    def cache_hash_version(self, category, name, version, revision, slot,
+                           overlay):
         key = '%s/%s-%s-r%s %s %s' % (category, name,
                                       version, revision,
                                       slot, overlay)
         return key
 
-    def cache_get_version(self, category, name, version, revision, slot, overlay):
-        key = self.cache_hash_version(category, name, version, revision, slot, overlay)
+    def cache_get_version(self, category, name, version, revision, slot,
+                          overlay):
+        key = self.cache_hash_version(category, name, version, revision, slot,
+                                      overlay)
         return self._cache['versions'].get(key)
 
     def cache_store_version(self, version):
-        key = self.cache_hash_version(version.package.category, version.package.name,
-                                      version.version, version.revision, version.slot,
-                                      version.overlay)
+        key = self.cache_hash_version(
+            version.package.category, version.package.name, version.version,
+            version.revision, version.slot, version.overlay
+        )
         self._cache['versions'][key] = version
 
     def handle(self, *args, **options):
@@ -119,7 +126,8 @@ class Command(BaseCommand):
 
         cmd = ['eix', '-!']
 
-        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env).communicate()[0]
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env).\
+            communicate()[0]
         output = output.strip().strip('\n').split('\n')
 
         overlay_re = re.compile(r'^\[(?P<key>\d+)] "(?P<name>.*?)"')
@@ -139,9 +147,10 @@ class Command(BaseCommand):
         env = os.environ
         env['MY'] = "<category>/<name>-<version>:<slot> [<overlaynum>]\n"
 
-	cmd = ['eix', '--format', '<availableversions:MY>', '--pure-packages', '-x']
-	if query:
-		cmd.extend(['--exact', query])
+        cmd = ['eix', '--format', '<availableversions:MY>', '--pure-packages',
+               '-x']
+        if query:
+            cmd.extend(['--exact', query])
 
         if self.options['all']:
             if not self.options['quiet']:
@@ -151,7 +160,8 @@ class Command(BaseCommand):
             if not self.options['quiet']:
                 self.stdout.write('done\n')
 
-        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env).communicate()[0]
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env).\
+            communicate()[0]
         output = output.strip().strip('\n')
 
         if len(output) == 0:
@@ -166,17 +176,23 @@ class Command(BaseCommand):
                 else:
                     Package.objects.filter(name=query).delete()
             else:
-                sys.stderr.write(self.style.ERROR("Unknown package '%s'\n" % query))
+                sys.stderr.write(
+                    self.style.ERROR(
+                        "Unknown package '%s'\n" % query
+                    )
+                )
             return
 
-	output = output.split('\n')
+        output = output.split('\n')
         packages = {}
 
-        line_re = re.compile(r'^(?P<cpv>.*?):(?P<slot>.*?) \[(?P<overlay>.*?)\]$')
+        line_re = re.compile(
+            r'^(?P<cpv>.*?):(?P<slot>.*?) \[(?P<overlay>.*?)\]$'
+        )
 
         package = None
 
-	for line in output:
+        for line in output:
             match = line_re.match(line)
 
             if not match:
@@ -190,7 +206,8 @@ class Command(BaseCommand):
 
             packages['%s/%s' % (cat, pkg)] = True
 
-            if not package or not (cat == package.category and pkg == package.name):
+            if not package or not \
+               (cat == package.category and pkg == package.name):
                 package = self.store_package(cat, pkg)
 
             self.store_version(package, cpv, slot, overlay)
@@ -208,16 +225,23 @@ class Command(BaseCommand):
         obj = self.cache_get_package(cat, pkg)
 
         if not obj:
-            obj, created = Package.objects.get_or_create(category=cat, name=pkg)
+            obj, created = Package.objects.get_or_create(
+                category=cat,
+                name=pkg
+            )
             self.cache_store_package(obj)
 
         if created:
             if not self.options['quiet']:
                 sys.stdout.write('+ [p] %s/%s\n' % (cat, pkg))
 
-        ' Set all versions dead, then set found versions alive and delete old versions '
+        # Set all versions dead, then set found versions alive and
+        # delete old versions
         if not self.options['all']:
-            Version.objects.filter(package=obj, packaged=True).update(alive=False)
+            Version.objects.filter(
+                package=obj,
+                packaged=True
+            ).update(alive=False)
 
         return obj
 
@@ -232,11 +256,15 @@ class Command(BaseCommand):
             overlay = 'gentoo'
 
         created = False
-        obj = self.cache_get_version(package.category, package.name, ver, rev, slot, overlay)
+        obj = self.cache_get_version(
+            package.category, package.name, ver, rev, slot, overlay
+        )
         if not obj:
-            obj, created = Version.objects.get_or_create(package=package, slot=slot,
-                                                         revision=rev, version=ver,
-                                                         overlay=overlay)
+            obj, created = Version.objects.get_or_create(
+                package=package, slot=slot,
+                revision=rev, version=ver,
+                overlay=overlay
+            )
 
         obj.alive = True
         obj.packaged = True
@@ -245,7 +273,8 @@ class Command(BaseCommand):
         if created:
             self.cache_store_version(obj)
 
-        ''' nothing to do (note: it can't be an upstream version because overlay can't be empty here) '''
+        # nothing to do (note: it can't be an upstream version because
+        # overlay can't be empty here)
         if not created:
             return
 
@@ -287,8 +316,10 @@ class Command(BaseCommand):
             if self.options['no-log']:
                 continue
 
-            entry = VersionLog.objects.create(package=version.package,
-                                              action=VersionLog.VERSION_REMOVED)
+            entry = VersionLog.objects.create(
+                package=version.package,
+                action=VersionLog.VERSION_REMOVED
+            )
             entry.slot = version.slot
             entry.revision = version.revision
             entry.version = version.version
@@ -296,4 +327,3 @@ class Command(BaseCommand):
             entry.save()
 
         Version.objects.filter(packaged=True, alive=False).delete()
-

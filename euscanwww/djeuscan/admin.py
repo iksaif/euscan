@@ -1,11 +1,14 @@
-from models import *
+from models import Package, Version, VersionLog, EuscanResult, Log, WorldLog, \
+    CategoryLog, HerdLog, MaintainerLog, Herd, Maintainer
 from django.contrib import admin
 
 admin.site.register(Herd)
 admin.site.register(Maintainer)
 
+
 class PackageAdmin(admin.ModelAdmin):
     search_fields = ('category', 'name')
+
 admin.site.register(Package, PackageAdmin)
 
 admin.site.register(Version)

@@ -1,15 +1,16 @@
-from piston.emitters import Emitter, XMLEmitter
+from piston.emitters import XMLEmitter
+
 
 class EuscanXMLEmitter(XMLEmitter):
     _parent = []
     _known_parents = {
-        'vlog' : 'version',
-        'herds' : 'herd',
-        'maintainers' : 'maintainer',
-        'packaged' : 'version',
-        'upstream' : 'version',
-        'packages' : 'package',
-        'categories' : 'category'
+        'vlog': 'version',
+        'herds': 'herd',
+        'maintainers': 'maintainer',
+        'packaged': 'version',
+        'upstream': 'version',
+        'packages': 'package',
+        'categories': 'category'
         }
 
     def _push_parent(self, parent):

@@ -15,7 +15,7 @@
   <body>
     <div id="header">
       <a href="http://www.gentoo.org">
-	<img id="logo" src="{{ STATIC_URL }}img/gentoo_org.png" />
+        <img id="logo" src="{{ STATIC_URL }}img/gentoo_org.png" />
       </a>
       {% block header %}<h1>Ebuild Upstream Scanner (euscan)</h1>{% endblock %}
     </div>
@@ -24,44 +24,44 @@
     </div>
     <div id="menus">
       {% block menus %}
-      <div class="menu">
-	<ul>
-	  {% block menu %}
-	  <li><a href="{% url djeuscan.views.index %}">Home</a></li>
-	  <li><a href="{% url djeuscan.views.categories %}">Categories</a></li>
-	  <li><a href="{% url djeuscan.views.herds %}">Herds</a></li>
-	  <li><a href="{% url djeuscan.views.maintainers %}">Maintainers</a></li>
-	  <li><a href="{% url djeuscan.views.overlays %}">Overlays</a></li>
-	  <li><a href="{% url djeuscan.views.world %}">Scan World</a></li>
-	  <li><a href="{% url djeuscan.views.statistics %}">Statistics</a></li>
-	  <!--
-	  <li>---</li>
-	  <li><a href="#">Login</a></li>
-	  <li><a href="#">Register</a></li>
-	  -->
-	  <li>---</li>
-	  {% block menu_feed %}
-	  <li>
-	    <img src="{{ STATIC_URL }}img/feed.png" alt="feed" />
-	    <a title="Global Feed" href="{% url global_feed %}">Global Feed</a>
-	  </li>
-	  {% endblock %}
-	  <li>---</li>
-	  <li><a href="{% url djeuscan.views.api %}">API</a></li>
-	  <li><a href="{% url djeuscan.views.about %}">About</a></li>
-	  {% endblock %}
-	</ul>
-      </div>
+        <div class="menu">
+          <ul>
+            {% block menu %}
+              <li><a href="{% url djeuscan.views.index %}">Home</a></li>
+              <li><a href="{% url djeuscan.views.categories %}">Categories</a></li>
+              <li><a href="{% url djeuscan.views.herds %}">Herds</a></li>
+              <li><a href="{% url djeuscan.views.maintainers %}">Maintainers</a></li>
+              <li><a href="{% url djeuscan.views.overlays %}">Overlays</a></li>
+              <li><a href="{% url djeuscan.views.world %}">Scan World</a></li>
+              <li><a href="{% url djeuscan.views.statistics %}">Statistics</a></li>
+              <!--
+              <li>---</li>
+              <li><a href="#">Login</a></li>
+              <li><a href="#">Register</a></li>
+              -->
+              <li>---</li>
+              {% block menu_feed %}
+                <li>
+                  <img src="{{ STATIC_URL }}img/feed.png" alt="feed" />
+                  <a title="Global Feed" href="{% url global_feed %}">Global Feed</a>
+                </li>
+              {% endblock %}
+              <li>---</li>
+              <li><a href="{% url djeuscan.views.api %}">API</a></li>
+              <li><a href="{% url djeuscan.views.about %}">About</a></li>
+            {% endblock %}
+          </ul>
+        </div>
       {% endblock %}
     </div>
     <div id="footer">
       <p>
-	Questions, Comments, Corrections ?
-	Email: corentin.chary at gmail.com<br />
-	Copyright (C) 2011 <strong>Corentin Chary</strong><br />
-	Original Gentoo artwork and logos copyright (C) Gentoo Foundation.<br />
-	Design inspired by (stolen from) gentoo.org and bugs.gentoo.org.<br />
-	<em>This site is not an official Gentoo website.</em>
+        Questions, Comments, Corrections ?
+        Email: corentin.chary at gmail.com<br />
+        Copyright (C) 2011 <strong>Corentin Chary</strong><br />
+        Original Gentoo artwork and logos copyright (C) Gentoo Foundation.<br />
+        Design inspired by (stolen from) gentoo.org and bugs.gentoo.org.<br />
+        <em>This site is not an official Gentoo website.</em>
       </p>
     </div>
   </body>
