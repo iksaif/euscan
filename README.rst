@@ -5,12 +5,12 @@ dev-portage/euscan
 ------------------
 
 euscan is available in portage as a dev package (app-portage/euscan-9999).
-This tool allow to check if a given package/ebuild has new upstream versions
+This tool allows to check if a given package/ebuild has new upstream versions
 or not. It will use different heuristic to scan upstream and grab new versions
 and related urls.
 
 This tool was designed to mimic debian's uscan, but there is a major
-difference between the two: uscan uses a specific "watch" file that describe
+difference between the two: uscan uses a specific "watch" file that describes
 how it should scan packages, while euscan uses only what can already be found
 in ebuilds. Of course, we could later add some informations in metadata.xml
 to help euscan do its job more efficiently.
@@ -242,4 +242,3 @@ This one uses rubygems's json API
 ### Pypy
 
 Uses pypy's XML rpc API.
-

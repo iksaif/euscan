@@ -1,7 +1,7 @@
 include AUTHORS
 include COPYING
 include NEWS
-include README
+include README.rst
 include TODO
 include setup.py
 recursive-include bin *

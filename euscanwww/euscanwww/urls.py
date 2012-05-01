@@ -21,4 +21,4 @@ if settings.DEBUG:
         url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': os.path.join(settings.EUSCAN_ROOT, 'htdocs'),
         }),
-   )
+    )
