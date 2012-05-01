@@ -149,7 +149,7 @@ list-packages
 scan-portage
   Scan the portage tree and store new packages and versions in the database.
 
-scan-metadata.py
+scan-metadata
   Scan metadata and looks for homepage, maintainers and herds.
 
 scan-upstream
