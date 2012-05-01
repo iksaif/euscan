@@ -3,8 +3,8 @@
 from annoying.decorators import render_to
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.db.models import Max
 
+from djeuscan.helpers import version_key, packages_from_names
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog
 from djeuscan.forms import WorldForm, PackagesForm
@@ -24,10 +24,7 @@ def index(request):
         'n_maintainers': Maintainer.objects.count(),
     }
     try:
-        context['last_scan'] = \
-            EuscanResult.objects.get(
-                id=EuscanResult.objects.aggregate(Max('id'))['id__max']
-            ).datetime
+        context['last_scan'] = EuscanResult.objects.latest().datetime
     except EuscanResult.DoesNotExist:
         context['last_scan'] = None
 
@@ -46,10 +43,7 @@ def categories(request):
 
 @render_to('euscan/category.html')
 def category(request, category):
-    packages = Package.objects.filter(category=category)
-    packages = packages.select_related(
-        'last_version_gentoo', 'last_version_overlay', 'last_version_upstream'
-    )
+    packages = Package.objects.for_category(category)
 
     if not packages:
         raise Http404
@@ -65,10 +59,7 @@ def herds(request):
 @render_to('euscan/herd.html')
 def herd(request, herd):
     herd = get_object_or_404(Herd, herd=herd)
-    packages = Package.objects.filter(herds__id=herd.id)
-    packages = packages.select_related(
-        'last_version_gentoo', 'last_version_overlay', 'last_version_upstream'
-    )
+    packages = Package.for_herd(herd)
     return {'herd': herd, 'packages': packages}
 
 
@@ -80,11 +71,8 @@ def maintainers(request):
 
 @render_to('euscan/maintainer.html')
 def maintainer(request, maintainer_id):
-    maintainer = get_object_or_404(Maintainer, id=maintainer_id)
-    packages = Package.objects.filter(maintainers__id=maintainer.id)
-    packages = packages.select_related(
-        'last_version_gentoo', 'last_version_overlay', 'last_version_upstream'
-    )
+    maintainer = get_object_or_404(Maintainer, pk=maintainer_id)
+    packages = Package.objects.for_maintainer(maintainer)
     return {'maintainer': maintainer, 'packages': packages}
 
 
@@ -104,19 +92,7 @@ def overlay(request, overlay):
 
 @render_to('euscan/package.html')
 def package(request, category, package):
-
-    def version_key(version):
-        from distutils.version import StrictVersion, LooseVersion
-
-        version = version.version
-        try:
-            return StrictVersion(version)
-        # in case of abnormal version number, fall back to LooseVersion
-        except ValueError:
-            return LooseVersion(version)
-
     package = get_object_or_404(Package, category=category, name=package)
-    package.homepages = package.homepage.split(' ')
     packaged = Version.objects.filter(package=package, packaged=True)
     upstream = Version.objects.filter(package=package, packaged=False)
 
@@ -143,7 +119,6 @@ def world(request):
 
 @render_to('euscan/world_scan.html')
 def world_scan(request):
-    packages = []
 
     if 'world' in request.FILES:
         data = request.FILES['world'].read()
@@ -152,17 +127,7 @@ def world_scan(request):
     else:
         data = ""
 
-    data = data.replace("\r", "")
-
-    for pkg in data.split('\n'):
-        try:
-            if '/' in pkg:
-                cat, pkg = pkg.split('/')
-                packages.extend(Package.objects.filter(category=cat, name=pkg))
-            else:
-                packages.extend(Package.objects.filter(name=pkg))
-        except:
-            pass
+    packages = packages_from_names(data)
 
     return {'packages': packages}
 

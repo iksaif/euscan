@@ -75,3 +75,48 @@ class PackageManager(models.Manager):
             'id', 'name', 'category', 'n_versions', 'n_packaged', 'n_overlay'
         )
         return packages.filter(version__overlay=overlay).distinct()
+
+    def for_maintainer(self, maintainer):
+        """
+        Returns packages that belong to the given maintainer
+        """
+        res = self.filter(maintainers__id=maintainer.id)
+
+        # performance boost
+        res = res.select_related(
+            'last_version_gentoo',
+            'last_version_overlay',
+            'last_version_upstream'
+        )
+
+        return res
+
+    def for_herd(self, herd):
+        """
+        Returns packages that belong to the given herd
+        """
+        res = self.filter(herds__id=herd.id)
+
+        # performance boost
+        res = res.select_related(
+            'last_version_gentoo',
+            'last_version_overlay',
+            'last_version_upstream'
+        )
+
+        return res
+
+    def for_category(self, category):
+        """
+        Returns packages that belong to the given category
+        """
+        res = self.filter(category=category)
+
+        # performance boost
+        res = res.select_related(
+            'last_version_gentoo',
+            'last_version_overlay',
+            'last_version_upstream'
+        )
+
+        return res

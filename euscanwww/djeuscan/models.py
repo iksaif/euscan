@@ -62,6 +62,10 @@ class Package(models.Model):
 
     objects = PackageManager()
 
+    @property
+    def homepages(self):
+        return self.homepage.split(' ')
+
     def __unicode__(self):
         return '%s/%s' % (self.category, self.name)
 
@@ -128,6 +132,9 @@ class EuscanResult(models.Model):
     package = models.ForeignKey(Package)
     datetime = models.DateTimeField()
     result = models.TextField(blank=True)
+
+    class Meta:
+        get_latest_by = "datetime"
 
 
 class Log(models.Model):
