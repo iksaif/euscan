@@ -96,10 +96,7 @@ def overlays(request):
 
 @render_to('euscan/overlay.html')
 def overlay(request, overlay):
-    packages = Package.objects.values('id', 'name', 'category',
-                                      'n_versions', 'n_packaged',
-                                      'n_overlay')
-    packages = packages.filter(version__overlay=overlay).distinct()
+    packages = Package.objects.for_overlay(overlay)
     if not packages:
         raise Http404
     return {'overlay': overlay, 'packages': packages}
