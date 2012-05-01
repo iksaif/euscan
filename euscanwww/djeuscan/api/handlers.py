@@ -8,17 +8,12 @@ from django.forms.models import model_to_dict
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog
 
+from djeuscan.helpers import xint
+
 # replace default XMLEmitter with ours
 from piston.emitters import Emitter
 from emitters import EuscanXMLEmitter
 Emitter.register('xml', EuscanXMLEmitter, 'text/xml; charset=utf-8')
-
-
-def xint(i):
-    try:
-        return int(i)
-    except:
-        return 0
 
 
 def renameFields(vqs, fields):

@@ -132,15 +132,15 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-CACHE_MIDDLEWARE_SECONDS=3600
-CACHE_MIDDLEWARE_ANONYMOUS_ONLY=True
+CACHE_MIDDLEWARE_SECONDS = 3600
+CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 
 ROOT_URLCONF = 'euscanwww.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'euscanwww.wsgi.application'
 
-FORCE_SCRIPT_NAME=""
+FORCE_SCRIPT_NAME = ""
 
 TEMPLATE_DIRS = (
     os.path.join(SITE_ROOT, 'templates'),
@@ -166,6 +166,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'south',
+    'euscanwww',
     'djeuscan',
 )
 

@@ -1,14 +1,15 @@
 import os.path
 import time
 
-from euscanwww import settings
+import rrdtool
+import pylab
 
 from django.db.models import F, Sum
+
+from euscanwww import settings
 from djeuscan.models import Package
+from djeuscan.helpers import xint
 
-import rrdtool
-
-import pylab
 
 CHARTS_ROOT = os.path.join(settings.EUSCAN_ROOT, 'var', 'charts')
 CHARTS_URL = os.path.join(settings.EUSCAN_ROOT, 'var', 'charts')
@@ -18,13 +19,6 @@ pylab.rcParams['font.size'] = 10.0
 pylab.rcParams['axes.titlesize'] = 10.0
 pylab.rcParams['xtick.labelsize'] = 8.0
 pylab.rcParams['legend.fontsize'] = 8.0
-
-
-def xint(i):
-    try:
-        return int(i)
-    except:
-        return 0
 
 
 def chart_alive(name):

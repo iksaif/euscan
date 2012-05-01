@@ -1,42 +1,37 @@
+""" Views """
+
 from annoying.decorators import render_to
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.db.models import Sum, Max
+from django.db.models import Max
 
-from models import Version, Package, Herd, Maintainer, EuscanResult, VersionLog
-from forms import WorldForm, PackagesForm
+from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
+    VersionLog
+from djeuscan.forms import WorldForm, PackagesForm
 
 import charts
-
-""" Views """
 
 
 @render_to('euscan/index.html')
 def index(request):
-    ctx = {}
-    ctx['n_packaged'] = charts.xint(
-        Package.objects.aggregate(Sum('n_packaged'))['n_packaged__sum']
-    )
-    ctx['n_overlay'] = charts.xint(
-        Package.objects.aggregate(Sum('n_overlay'))['n_overlay__sum']
-    )
-    ctx['n_versions'] = charts.xint(
-        Package.objects.aggregate(Sum('n_versions'))['n_versions__sum']
-    )
-    ctx['n_upstream'] = ctx['n_versions'] - ctx['n_packaged'] - \
-                        ctx['n_overlay']
-    ctx['n_packages'] = Package.objects.count()
-    ctx['n_herds'] = Herd.objects.count()
-    ctx['n_maintainers'] = Maintainer.objects.count()
-
+    context = {
+        'n_packaged': Package.objects.n_packaged(),
+        'n_overlay': Package.objects.n_overlay(),
+        'n_versions': Package.objects.n_versions(),
+        'n_upstream': Package.objects.n_upstream(),
+        'n_packages': Package.objects.count(),
+        'n_herds': Herd.objects.count(),
+        'n_maintainers': Maintainer.objects.count(),
+    }
     try:
-        ctx['last_scan'] = EuscanResult.objects.get(
+        context['last_scan'] = \
+            EuscanResult.objects.get(
                 id=EuscanResult.objects.aggregate(Max('id'))['id__max']
             ).datetime
     except EuscanResult.DoesNotExist:
-        ctx['last_scan'] = None
+        context['last_scan'] = None
 
-    return ctx
+    return context
 
 
 @render_to('euscan/logs.html')
@@ -46,13 +41,7 @@ def logs(request):
 
 @render_to('euscan/categories.html')
 def categories(request):
-    categories = Package.objects.values('category').annotate(
-        n_packaged=Sum('n_packaged'),
-        n_overlay=Sum('n_overlay'),
-        n_versions=Sum('n_versions')
-    )
-
-    return {'categories': categories}
+    return {'categories': Package.objects.categories()}
 
 
 @render_to('euscan/category.html')
@@ -61,7 +50,7 @@ def category(request, category):
     packages = packages.select_related(
         'last_version_gentoo', 'last_version_overlay', 'last_version_upstream'
     )
-    print dir(packages[0])
+
     if not packages:
         raise Http404
     return {'category': category, 'packages': packages}
@@ -69,13 +58,7 @@ def category(request, category):
 
 @render_to('euscan/herds.html')
 def herds(request):
-    # FIXME: optimize the query, it uses 'LEFT OUTER JOIN' instead of
-    # 'INNER JOIN'
-    herds = Package.objects.filter(herds__isnull=False)
-    herds = herds.values('herds__herd').annotate(
-        n_packaged=Sum('n_packaged'),
-        n_overlay=Sum('n_overlay'),
-        n_versions=Sum('n_versions'))
+    herds = Package.objects.herds()
     return {'herds': herds}
 
 
@@ -91,16 +74,7 @@ def herd(request, herd):
 
 @render_to('euscan/maintainers.html')
 def maintainers(request):
-    maintainers = Package.objects.filter(maintainers__isnull=False)
-    maintainers = maintainers.values(
-        'maintainers__id', 'maintainers__name', 'maintainers__email'
-    )
-    maintainers = maintainers.annotate(
-        n_packaged=Sum('n_packaged'),
-        n_overlay=Sum('n_overlay'),
-        n_versions=Sum('n_versions')
-    )
-
+    maintainers = Package.objects.maintainers()
     return {'maintainers': maintainers}
 
 
@@ -116,9 +90,7 @@ def maintainer(request, maintainer_id):
 
 @render_to('euscan/overlays.html')
 def overlays(request):
-    overlays = Package.objects.values('version__overlay')
-    overlays = overlays.exclude(version__overlay='')
-    overlays = overlays.distinct()
+    overlays = Package.objects.overlays()
     return {'overlays': overlays}
 
 

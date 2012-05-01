@@ -1,7 +1,13 @@
 from django.db import models
 
+from djeuscan.managers import PackageManager
+
 
 class Herd(models.Model):
+    """
+    A herd is a collection of packages
+    """
+
     herd = models.CharField(max_length=128, unique=True)
     email = models.CharField(max_length=128, blank=True, null=True)
 
@@ -12,6 +18,10 @@ class Herd(models.Model):
 
 
 class Maintainer(models.Model):
+    """
+    The person who maintains a package
+    """
+
     name = models.CharField(max_length=128)
     email = models.CharField(max_length=128, unique=True)
 
@@ -20,6 +30,10 @@ class Maintainer(models.Model):
 
 
 class Package(models.Model):
+    """
+    A portage package
+    """
+
     category = models.CharField(max_length=128)
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
@@ -27,12 +41,12 @@ class Package(models.Model):
     herds = models.ManyToManyField(Herd, blank=True)
     maintainers = models.ManyToManyField(Maintainer, blank=True)
 
-    ' For performance, we keep pre-computed counters '
+    # For performance, we keep pre-computed counters
     n_versions = models.IntegerField(default=0)
     n_packaged = models.IntegerField(default=0)
     n_overlay = models.IntegerField(default=0)
 
-    ' And we also pre-compute last versions '
+    # And we also pre-compute last versions
     last_version_gentoo = models.ForeignKey(
         'Version', blank=True, null=True, related_name="last_version_gentoo",
         on_delete=models.SET_NULL
@@ -46,6 +60,8 @@ class Package(models.Model):
         on_delete=models.SET_NULL
     )
 
+    objects = PackageManager()
+
     def __unicode__(self):
         return '%s/%s' % (self.category, self.name)
 
@@ -54,6 +70,10 @@ class Package(models.Model):
 
 
 class Version(models.Model):
+    """
+    Version associated to a package
+    """
+
     package = models.ForeignKey(Package)
     slot = models.CharField(max_length=128)
     revision = models.CharField(max_length=128)
@@ -110,22 +130,29 @@ class EuscanResult(models.Model):
     result = models.TextField(blank=True)
 
 
-# Keep data for charts
 class Log(models.Model):
+    """
+    Model used for keeping data for charts
+    """
+
     datetime = models.DateTimeField()
 
-    ' Packages up to date in the main portage tree '
+    # Packages up to date in the main portage tree
     n_packages_gentoo = models.IntegerField(default=0)
-    ' Packages up to date in an overlay '
+
+    # Packages up to date in an overlay
     n_packages_overlay = models.IntegerField(default=0)
-    ' Packages outdated '
+
+    # Packages outdated
     n_packages_outdated = models.IntegerField(default=0)
 
-    ' Versions in the main portage tree '
+    # Versions in the main portage tree
     n_versions_gentoo = models.IntegerField(default=0)
-    ' Versions in overlays '
+
+    # Versions in overlays
     n_versions_overlay = models.IntegerField(default=0)
-    ' Upstream versions, not in the main tree or overlays '
+
+    # Upstream versions, not in the main tree or overlays
     n_versions_upstream = models.IntegerField(default=0)
 
     def __unicode__(self):

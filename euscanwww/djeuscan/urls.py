@@ -43,7 +43,7 @@ urlpatterns = patterns('djeuscan.views',
     # Global stuff
     (r'^api/', include('djeuscan.api.urls')),
 
-    (r'^$', 'index'),
+    url(r'^$', 'index', name="index"),
     url(r'^feed/$', GlobalFeed(), name='global_feed'),
     (r'^about/$', 'about'),
     (r'^about/api$', 'api'),

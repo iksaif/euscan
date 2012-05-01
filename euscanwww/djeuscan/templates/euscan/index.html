@@ -18,6 +18,8 @@ This web interface allow you to browse the portage tree, and find outdated ebuil
   <li>Versions not-packaged: {{ n_upstream }}</li>
   <li>Herds: {{ n_herds }}</li>
   <li>Maintainers: {{ n_maintainers }}</li>
-  <li>Last scan: {{ last_scan }} ({{ last_scan|timedelta }})</li>
+  {% if last_scan %}
+    <li>Last scan: {{ last_scan }} ({{ last_scan|timedelta }})</li>
+  {% endif %}
 </ul>
 {% endblock %}
