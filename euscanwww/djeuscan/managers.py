@@ -5,21 +5,20 @@ djeuscan.managers
 from django.db import models
 from djeuscan.helpers import xint, rename_fields, select_related_last_versions
 
+def gen_n_function(field_name):
+    def n_method(self):
+        res = self.aggregate(models.Sum(field_name))[field_name + '__sum']
+        return xint(res)
+    n_method.func_name = field_name
+    return n_method
+
 
 class PackageMixin(object):
-
-    def n_packaged(self):
-        res = self.aggregate(models.Sum('n_packaged'))['n_packaged__sum']
-        return xint(res)
-
-    def n_overlay(self):
-        res = self.aggregate(models.Sum('n_overlay'))['n_overlay__sum']
-        return xint(res)
-
-    def n_versions(self):
-        res = self.aggregate(models.Sum('n_versions'))['n_versions__sum']
-        return xint(res)
-
+    
+    n_packaged = gen_n_function('n_packaged')
+    n_overlay = gen_n_function('n_overlay')
+    n_versions = gen_n_function('n_versions')
+    
     def n_upstream(self):
         return self.n_versions() - self.n_packaged() - self.n_overlay()
 
