@@ -6,7 +6,8 @@ from django.db import models
 from djeuscan.helpers import xint
 
 
-class PackageManager(models.Manager):
+class PackageMixin(object):
+
     def n_packaged(self):
         res = self.aggregate(models.Sum('n_packaged'))['n_packaged__sum']
         return xint(res)
@@ -120,3 +121,12 @@ class PackageManager(models.Manager):
         )
 
         return res
+
+
+class PackageQuerySet(models.query.QuerySet, PackageMixin):
+    pass
+
+
+class PackageManager(models.Manager, PackageMixin):
+    def get_query_set(self):
+        return PackageQuerySet(self.model, using=self._db)
