@@ -5,21 +5,39 @@ djeuscan.managers
 from django.db import models
 from djeuscan.helpers import xint, rename_fields, select_related_last_versions
 
+def gen_n_function(field_name):
+    def n_method(self):
+        res = self.aggregate(models.Sum(field_name))[field_name + '__sum']
+        return xint(res)
+    n_method.func_name = field_name
+    return n_method
+
+
+def gen_for_function(field):
+    def for_method(self, val, last_versions=False):
+        """
+        Returns packages that belong to the given parametrs
+        """
+        res = self.filter(**{field : val})
+
+        if last_versions:
+            select_related_last_versions(res)
+
+        return res
+    
+    for_method.func_name = 'for_' + field
+    return for_method
+
+
+N_LIST = ['n_packaged','n_overlay','n_versions']
+
+ANNOTATE_DICT = { name: models.Sum(name) for name in N_LIST }
 
 class PackageMixin(object):
-
-    def n_packaged(self):
-        res = self.aggregate(models.Sum('n_packaged'))['n_packaged__sum']
-        return xint(res)
-
-    def n_overlay(self):
-        res = self.aggregate(models.Sum('n_overlay'))['n_overlay__sum']
-        return xint(res)
-
-    def n_versions(self):
-        res = self.aggregate(models.Sum('n_versions'))['n_versions__sum']
-        return xint(res)
-
+     
+    for name in N_LIST:
+        locals()[name] = gen_n_function(name)
+     
     def n_upstream(self):
         return self.n_versions() - self.n_packaged() - self.n_overlay()
 
@@ -27,11 +45,7 @@ class PackageMixin(object):
         """
         Returns all the available categories
         """
-        return self.values('category').annotate(
-            n_packaged=models.Sum('n_packaged'),
-            n_overlay=models.Sum('n_overlay'),
-            n_versions=models.Sum('n_versions')
-        )
+        return self.values('category').annotate(**ANNOTATE_DICT)
 
     def herds(self, rename=False):
         """
@@ -40,11 +54,7 @@ class PackageMixin(object):
         # FIXME: optimize the query, it uses 'LEFT OUTER JOIN' instead of
         # 'INNER JOIN'
         res = self.filter(herds__isnull=False)
-        res = res.values('herds__herd').annotate(
-            n_packaged=models.Sum('n_packaged'),
-            n_overlay=models.Sum('n_overlay'),
-            n_versions=models.Sum('n_versions')
-        )
+        res = res.values('herds__herd').annotate(**ANNOTATE_DICT)
 
         if rename:
             res = rename_fields(res, [('herds__herd', 'herd')])
@@ -58,11 +68,7 @@ class PackageMixin(object):
         res = self.filter(maintainers__isnull=False).values(
             'maintainers__id', 'maintainers__name', 'maintainers__email'
         )
-        res = res.annotate(
-            n_packaged=models.Sum('n_packaged'),
-            n_overlay=models.Sum('n_overlay'),
-            n_versions=models.Sum('n_versions')
-        )
+        res = res.annotate(**ANNOTATE_DICT)
 
         if rename:
             res = rename_fields(
@@ -90,38 +96,9 @@ class PackageMixin(object):
         )
         return packages.filter(version__overlay=overlay).distinct()
 
-    def for_maintainer(self, maintainer, last_versions=False):
-        """
-        Returns packages that belong to the given maintainer
-        """
-        res = self.filter(maintainers__id=maintainer.id)
-
-        if last_versions:
-            select_related_last_versions(res)
-
-        return res
-
-    def for_herd(self, herd, last_versions=False):
-        """
-        Returns packages that belong to the given herd
-        """
-        res = self.filter(herds__id=herd.id)
-
-        if last_versions:
-            select_related_last_versions(res)
-
-        return res
-
-    def for_category(self, category, last_versions=False):
-        """
-        Returns packages that belong to the given category
-        """
-        res = self.filter(category=category)
-
-        if last_versions:
-            select_related_last_versions(res)
-
-        return res
+    for_maintainer = gen_for_function('maintainers')
+    for_herd = gen_for_function('herds')
+    for_category = gen_for_function('category')
 
 
 class PackageQuerySet(models.query.QuerySet, PackageMixin):
