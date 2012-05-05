@@ -4,8 +4,6 @@ djeuscan.helpers
 
 from distutils.version import StrictVersion, LooseVersion
 
-from djeuscan.models import Package
-
 
 def xint(i):
     """
@@ -30,6 +28,9 @@ def packages_from_names(data):
     """
     Returns a list of Package objects from a string of names
     """
+
+    from djeuscan.models import Package
+
     packages = []
     data = data.replace("\r", "")
 
