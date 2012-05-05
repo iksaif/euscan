@@ -43,7 +43,7 @@ def categories(request):
 
 @render_to('euscan/category.html')
 def category(request, category):
-    packages = Package.objects.for_category(category)
+    packages = Package.objects.for_category(category, last_versions=True)
 
     if not packages:
         raise Http404
@@ -59,7 +59,7 @@ def herds(request):
 @render_to('euscan/herd.html')
 def herd(request, herd):
     herd = get_object_or_404(Herd, herd=herd)
-    packages = Package.for_herd(herd)
+    packages = Package.for_herd(herd, last_versions=True)
     return {'herd': herd, 'packages': packages}
 
 
@@ -72,7 +72,7 @@ def maintainers(request):
 @render_to('euscan/maintainer.html')
 def maintainer(request, maintainer_id):
     maintainer = get_object_or_404(Maintainer, pk=maintainer_id)
-    packages = Package.objects.for_maintainer(maintainer)
+    packages = Package.objects.for_maintainer(maintainer, last_versions=True)
     return {'maintainer': maintainer, 'packages': packages}
 
 
@@ -84,7 +84,7 @@ def overlays(request):
 
 @render_to('euscan/overlay.html')
 def overlay(request, overlay):
-    packages = Package.objects.for_overlay(overlay)
+    packages = Package.objects.for_overlay(overlay, last_versions=True)
     if not packages:
         raise Http404
     return {'overlay': overlay, 'packages': packages}

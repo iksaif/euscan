@@ -15,6 +15,14 @@ def xint(i):
         return 0
 
 
+def select_related_last_versions(queryset):
+    queryset = queryset.select_related(
+        'last_version_gentoo',
+        'last_version_overlay',
+        'last_version_upstream'
+    )
+
+
 def version_key(version):
     version = version.version
     try:

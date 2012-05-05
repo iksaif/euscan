@@ -88,15 +88,21 @@ class PackagesHandler(AnonymousBaseHandler):
         data = {}
 
         if 'category' in kwargs:
-            packages = Package.objects.for_category(kwargs['category'])
+            packages = Package.objects.for_category(
+                kwargs['category'],
+                last_versions=True
+            )
             data = {'category': kwargs['category']}
         elif 'herd' in kwargs:
             herd = Herd.objects.get(herd=kwargs['herd'])
-            packages = Package.objects.for_herd(herd)
+            packages = Package.objects.for_herd(herd, last_versions=True)
             data = {'herd': herd}
         elif 'maintainer_id' in kwargs:
             maintainer = Maintainer.objects.get(id=kwargs['maintainer_id'])
-            packages = Package.objects.for_maintainer(maintainer)
+            packages = Package.objects.for_maintainer(
+                maintainer,
+                last_versions=True
+            )
             data = {'maintainer': maintainer}
 
         data['packages'] = packages

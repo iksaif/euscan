@@ -3,7 +3,7 @@ djeuscan.managers
 """
 
 from django.db import models
-from djeuscan.helpers import xint, rename_fields
+from djeuscan.helpers import xint, rename_fields, select_related_last_versions
 
 
 class PackageMixin(object):
@@ -90,48 +90,36 @@ class PackageMixin(object):
         )
         return packages.filter(version__overlay=overlay).distinct()
 
-    def for_maintainer(self, maintainer):
+    def for_maintainer(self, maintainer, last_versions=False):
         """
         Returns packages that belong to the given maintainer
         """
         res = self.filter(maintainers__id=maintainer.id)
 
-        # performance boost
-        res = res.select_related(
-            'last_version_gentoo',
-            'last_version_overlay',
-            'last_version_upstream'
-        )
+        if last_versions:
+            select_related_last_versions(res)
 
         return res
 
-    def for_herd(self, herd):
+    def for_herd(self, herd, last_versions=False):
         """
         Returns packages that belong to the given herd
         """
         res = self.filter(herds__id=herd.id)
 
-        # performance boost
-        res = res.select_related(
-            'last_version_gentoo',
-            'last_version_overlay',
-            'last_version_upstream'
-        )
+        if last_versions:
+            select_related_last_versions(res)
 
         return res
 
-    def for_category(self, category):
+    def for_category(self, category, last_versions=False):
         """
         Returns packages that belong to the given category
         """
         res = self.filter(category=category)
 
-        # performance boost
-        res = res.select_related(
-            'last_version_gentoo',
-            'last_version_overlay',
-            'last_version_upstream'
-        )
+        if last_versions:
+            select_related_last_versions(res)
 
         return res
 
