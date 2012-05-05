@@ -13,12 +13,15 @@ def gen_n_function(field_name):
     return n_method
 
 
+N_LIST = ['n_packaged','n_overlay','n_versions']
+
+ANNOTATE_DICT = { name: models.Sum(name) for name in N_LIST }
+
 class PackageMixin(object):
-    
-    n_packaged = gen_n_function('n_packaged')
-    n_overlay = gen_n_function('n_overlay')
-    n_versions = gen_n_function('n_versions')
-    
+     
+    for name in N_LIST:
+        locals()[name] = gen_n_function(name)
+     
     def n_upstream(self):
         return self.n_versions() - self.n_packaged() - self.n_overlay()
 
@@ -26,11 +29,7 @@ class PackageMixin(object):
         """
         Returns all the available categories
         """
-        return self.values('category').annotate(
-            n_packaged=models.Sum('n_packaged'),
-            n_overlay=models.Sum('n_overlay'),
-            n_versions=models.Sum('n_versions')
-        )
+        return self.values('category').annotate(**ANNOTATE_DICT)
 
     def herds(self, rename=False):
         """
@@ -39,11 +38,7 @@ class PackageMixin(object):
         # FIXME: optimize the query, it uses 'LEFT OUTER JOIN' instead of
         # 'INNER JOIN'
         res = self.filter(herds__isnull=False)
-        res = res.values('herds__herd').annotate(
-            n_packaged=models.Sum('n_packaged'),
-            n_overlay=models.Sum('n_overlay'),
-            n_versions=models.Sum('n_versions')
-        )
+        res = res.values('herds__herd').annotate(**ANNOTATE_DICT)
 
         if rename:
             res = rename_fields(res, [('herds__herd', 'herd')])
@@ -57,11 +52,7 @@ class PackageMixin(object):
         res = self.filter(maintainers__isnull=False).values(
             'maintainers__id', 'maintainers__name', 'maintainers__email'
         )
-        res = res.annotate(
-            n_packaged=models.Sum('n_packaged'),
-            n_overlay=models.Sum('n_overlay'),
-            n_versions=models.Sum('n_versions')
-        )
+        res = res.annotate(**ANNOTATE_DICT)
 
         if rename:
             res = rename_fields(
