@@ -53,7 +53,7 @@ class GlobalFeed(BaseFeed):
     description = "Last euscan changes"
 
     def categories(self):
-        categories = Package.objects.values('category').distinct()
+        categories = Package.objects.categories()
         return [category['category'] for category in categories]
 
     def items(self):
@@ -128,7 +128,7 @@ class CategoryFeed(BaseFeed):
     feed_type = Atom1Feed
 
     def get_object(self, request, category):
-        if not Package.objects.filter(category=category).count():
+        if not Package.objects.categories().count():
             raise FeedDoesNotExist
         return category
 
