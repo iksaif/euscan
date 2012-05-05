@@ -13,6 +13,22 @@ def gen_n_function(field_name):
     return n_method
 
 
+def gen_for_function(field):
+    def for_method(self, val, last_versions=False):
+        """
+        Returns packages that belong to the given parametrs
+        """
+        res = self.filter(**{field : val})
+
+        if last_versions:
+            select_related_last_versions(res)
+
+        return res
+    
+    for_method.func_name = 'for_' + field
+    return for_method
+
+
 N_LIST = ['n_packaged','n_overlay','n_versions']
 
 ANNOTATE_DICT = { name: models.Sum(name) for name in N_LIST }
@@ -80,38 +96,9 @@ class PackageMixin(object):
         )
         return packages.filter(version__overlay=overlay).distinct()
 
-    def for_maintainer(self, maintainer, last_versions=False):
-        """
-        Returns packages that belong to the given maintainer
-        """
-        res = self.filter(maintainers__id=maintainer.id)
-
-        if last_versions:
-            select_related_last_versions(res)
-
-        return res
-
-    def for_herd(self, herd, last_versions=False):
-        """
-        Returns packages that belong to the given herd
-        """
-        res = self.filter(herds__id=herd.id)
-
-        if last_versions:
-            select_related_last_versions(res)
-
-        return res
-
-    def for_category(self, category, last_versions=False):
-        """
-        Returns packages that belong to the given category
-        """
-        res = self.filter(category=category)
-
-        if last_versions:
-            select_related_last_versions(res)
-
-        return res
+    for_maintainer = gen_for_function('maintainers')
+    for_herd = gen_for_function('herds')
+    for_category = gen_for_function('category')
 
 
 class PackageQuerySet(models.query.QuerySet, PackageMixin):
