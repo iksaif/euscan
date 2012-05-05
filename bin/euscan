@@ -42,7 +42,7 @@ def setupSignals():
     def exithandler(signum, frame):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
-        print ()
+        print()
         sys.exit(errno.EINTR)
 
     signal.signal(signal.SIGINT, exithandler)
@@ -236,21 +236,21 @@ def main():
             pp.die(1, '%s: %s' % (package, str(err)))
 
         if not CONFIG['quiet']:
-            print ()
+            print()
 
         for cp, url, version in ret:
             if not CONFIG['quiet']:
-                print ("Upstream Version: "
-                       + pp.number("%s" % version)
-                       + pp.path(" %s" % url))
+                print("Upstream Version: "
+                      + pp.number("%s" % version)
+                      + pp.path(" %s" % url))
             else:
-                print (pp.cpv("%s-%s" % (cp, version))
-                       + ": " + pp.path(url))
+                print(pp.cpv("%s-%s" % (cp, version))
+                      + ": " + pp.path(url))
 
         if not len(ret) and not CONFIG['quiet']:
-            print (pp.warn("Didn't find any new version, "
-                           + "check package's homepage for "
-                           + "more informations"))
+            print(pp.warn("Didn't find any new version, "
+                          + "check package's homepage for "
+                          + "more informations"))
 
 
 if __name__ == "__main__":

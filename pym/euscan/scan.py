@@ -66,6 +66,13 @@ def scan_upstream_urls(cpv, urls):
 
 
 def scan_upstream(query):
+
+    # check if the query is an ebuild file.
+    # if it's a valid ebuild convert the filename in an euscan query
+    ebuild_query = helpers.query_from_ebuild(query)
+    if ebuild_query:
+        query = ebuild_query
+
     matches = Query(query).find(
         include_masked=True,
         in_installed=False

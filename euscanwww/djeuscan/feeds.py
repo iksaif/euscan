@@ -77,7 +77,7 @@ class PackageFeed(BaseFeed):
         return package.description
 
     def items(self, package):
-        return VersionLog.objects.filter(package=package).order_by('-id')[:30]
+        return VersionLog.objects.for_package(package, order=True)[:30]
 
     def item_description(self, vlog):
         return ''
@@ -100,8 +100,7 @@ class MaintainerFeed(BaseFeed):
                        kwargs={'maintainer_id': maintainer.id})
 
     def items(self, maintainer):
-        q = VersionLog.objects.filter(package__maintainers__id=maintainer.id)
-        return q.order_by('-id')[:50]
+        return VersionLog.objects.for_maintainer(maintainer, order=True)[:50]
 
 
 class HerdFeed(BaseFeed):
@@ -120,8 +119,7 @@ class HerdFeed(BaseFeed):
         return reverse('djeuscan.views.herd', kwargs={'herd': herd.herd})
 
     def items(self, herd):
-        q = VersionLog.objects.filter(package__herds__id=herd.id)
-        return q.order_by('-id')[:100]
+        return VersionLog.objects.for_herd(herd, order=True)[:100]
 
 
 class CategoryFeed(BaseFeed):
@@ -142,5 +140,4 @@ class CategoryFeed(BaseFeed):
         return reverse('djeuscan.views.category', args=[category])
 
     def items(self, category):
-        q = VersionLog.objects.filter(package__category=category)
-        return q.order_by('-id')[:100]
+        return VersionLog.objects.for_category(category, order=True)[:100]

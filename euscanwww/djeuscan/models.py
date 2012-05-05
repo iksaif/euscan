@@ -1,6 +1,6 @@
 from django.db import models
 
-from djeuscan.managers import PackageManager
+from djeuscan.managers import PackageManager, VersionLogManager
 
 
 class Herd(models.Model):
@@ -113,6 +113,8 @@ class VersionLog(models.Model):
     packaged = models.BooleanField()
     overlay = models.CharField(max_length=128, default='gentoo')
     action = models.IntegerField(choices=VERSION_ACTIONS)
+
+    objects = VersionLogManager()
 
     def tag(self):
         return '%s-%s:%s-[%s]' % (self.version, self.revision, self.slot,

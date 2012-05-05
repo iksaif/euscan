@@ -102,7 +102,7 @@ def package(request, category, package):
     log = EuscanResult.objects.filter(package=package).\
                                order_by('-datetime')[:1]
     log = log[0] if log else None
-    vlog = VersionLog.objects.filter(package=package).order_by('-id')
+    vlog = VersionLog.objects.for_package(package, order=True)
 
     return {'package': package, 'packaged': packaged,
             'upstream': upstream, 'log': log, 'vlog': vlog}

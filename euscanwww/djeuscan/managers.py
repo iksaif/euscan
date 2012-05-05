@@ -108,3 +108,32 @@ class PackageQuerySet(models.query.QuerySet, PackageMixin):
 class PackageManager(models.Manager, PackageMixin):
     def get_query_set(self):
         return PackageQuerySet(self.model, using=self._db)
+
+
+class VersionLogMixin(object):
+    def for_package(self, package, order=False):
+        res = filter(package=package)
+        if order:
+            res = res.order_by('-id')
+        return res
+
+    def for_maintainer(self, maintainer, order=False):
+        res = self.filter(package__maintainers__id=maintainer.id)
+        if order:
+            res = res.order_by('-id')
+        return res
+
+    def for_category(self, category, order=False):
+        res = self.filter(package__category=category)
+        if order:
+            res = res.order_by('-id')
+        return res
+
+
+class VersionLogQuerySet(models.query.QuerySet, VersionLogMixin):
+    pass
+
+
+class VersionLogManager(models.Manager, VersionLogMixin):
+    def get_query_set(self):
+        return VersionLogQuerySet(self.model, using=self._db)
