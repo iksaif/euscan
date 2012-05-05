@@ -6,7 +6,7 @@ import pylab
 
 from django.db.models import F
 
-from euscanwww import settings
+from django.conf import settings
 from djeuscan.models import Package
 
 

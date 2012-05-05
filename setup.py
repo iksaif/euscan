@@ -68,6 +68,10 @@ packages = [
     if '__init__.py' in files
 ]
 
+tests_require = [
+  'factory_boy',
+]
+
 setup(
     name='euscan',
     version=__version__,
@@ -82,7 +86,7 @@ setup(
         ('master' if __version__ == '9999' else ('euscan-%s' % __version__))
     ),
     install_requires=['Django==1.4', 'django-annoying', 'South',
-                      'django-piston', 'matplotlib', 'BeautifulSoup'],
+                      'django-piston', 'BeautifulSoup'],
     package_dir={'': 'pym'},
     packages=packages,
     package_data={},
@@ -94,4 +98,7 @@ setup(
     cmdclass={
         'set_version': set_version,
     },
+    tests_require=tests_require,
+    extras_require={'test': tests_require},
+    test_suite='euscanwww.runtests.runtests',
 )

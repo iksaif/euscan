@@ -207,4 +207,3 @@ except ImportError, ex:
             ("settings.py: error importing local settings file:\n" + \
             "\t%s\n" + \
             "Do you have a local_settings.py module?\n") % str(ex))
-    raise
