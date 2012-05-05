@@ -127,7 +127,7 @@ class PackageHandler(AnonymousBaseHandler):
                 order_by('-datetime')[:1]
         log = log[0] if log else None
 
-        vlog = VersionLog.objects.filter(package=package).order_by('-id')
+        vlog = VersionLog.objects.for_package(package, order=True)
 
         herds = []
         for herd in package.herds.all():
