@@ -4,11 +4,10 @@ import time
 import rrdtool
 import pylab
 
-from django.db.models import F, Sum
+from django.db.models import F
 
 from euscanwww import settings
 from djeuscan.models import Package
-from djeuscan.helpers import xint
 
 
 CHARTS_ROOT = os.path.join(settings.EUSCAN_ROOT, 'var', 'charts')
@@ -65,14 +64,13 @@ def chart_name(name, **kwargs):
 
 
 def getpackages(**kwargs):
-    packages = Package.objects
 
     if 'category' in kwargs and kwargs['category']:
-        packages = packages.filter(category=kwargs['category'])
+        packages = Package.objects.for_category(kwargs['category'])
     if 'herd' in kwargs and kwargs['herd']:
-        packages = packages.filter(herds__id=kwargs['herd'].id)
+        packages = Package.objects.for_herd(kwargs['herd'])
     if 'maintainer' in kwargs and kwargs['maintainer']:
-        packages = packages.filter(maintainers__id=kwargs['maintainer'].id)
+        packages = Package.objects.for_maintainer(kwargs['maintainer'])
 
     return packages
 
@@ -95,10 +93,9 @@ def cached_pylab_chart(f):
 @cached_pylab_chart
 def pie_versions(**kwargs):
     gpk = getpackages(**kwargs)
-    n_packaged = xint(gpk.aggregate(Sum('n_packaged'))['n_packaged__sum'])
-    n_overlay = xint(gpk.aggregate(Sum('n_overlay'))['n_overlay__sum'])
-    n_versions = xint(gpk.aggregate(Sum('n_versions'))['n_versions__sum'])
-    n_upstream = n_versions - n_packaged - n_overlay
+    n_packaged = gpk.n_packaged()
+    n_overlay = gpk.n_overlay()
+    n_upstream = gpk.n_upstream()
 
     pylab.figure(1, figsize=(3.5, 3.5))
 
