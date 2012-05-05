@@ -5,7 +5,8 @@ djeuscan.managers
 from django.db import models
 from djeuscan.helpers import xint, rename_fields, select_related_last_versions
 
-def gen_n_function(field_name):
+
+def _gen_n_function(field_name):
     def n_method(self):
         res = self.aggregate(models.Sum(field_name))[field_name + '__sum']
         return xint(res)
@@ -13,31 +14,36 @@ def gen_n_function(field_name):
     return n_method
 
 
-def gen_for_function(field):
+def _gen_for_function(field):
     def for_method(self, val, last_versions=False):
         """
         Returns packages that belong to the given parametrs
         """
-        res = self.filter(**{field : val})
+        res = self.filter(**{field: val})
 
         if last_versions:
             select_related_last_versions(res)
 
         return res
-    
+
     for_method.func_name = 'for_' + field
     return for_method
 
 
-N_LIST = ['n_packaged','n_overlay','n_versions']
+N_LIST = ['n_packaged', 'n_overlay', 'n_versions']
 
-ANNOTATE_DICT = { name: models.Sum(name) for name in N_LIST }
+ANNOTATE_DICT = {name: models.Sum(name) for name in N_LIST}
+
 
 class PackageMixin(object):
-     
+
+    for_maintainer = _gen_for_function('maintainers')
+    for_herd = _gen_for_function('herds')
+    for_category = _gen_for_function('category')
+
     for name in N_LIST:
-        locals()[name] = gen_n_function(name)
-     
+        locals()[name] = _gen_n_function(name)
+
     def n_upstream(self):
         return self.n_versions() - self.n_packaged() - self.n_overlay()
 
@@ -95,10 +101,6 @@ class PackageMixin(object):
             'id', 'name', 'category', 'n_versions', 'n_packaged', 'n_overlay'
         )
         return packages.filter(version__overlay=overlay).distinct()
-
-    for_maintainer = gen_for_function('maintainers')
-    for_herd = gen_for_function('herds')
-    for_category = gen_for_function('category')
 
 
 class PackageQuerySet(models.query.QuerySet, PackageMixin):
