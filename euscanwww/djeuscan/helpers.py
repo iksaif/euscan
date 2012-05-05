@@ -41,3 +41,28 @@ def packages_from_names(data):
         else:
             packages.extend(Package.objects.filter(name=pkg))
     return packages
+
+
+def rename_fields(vqs, fields):
+    ret = []
+    for n in vqs:
+        for tr in fields:
+            if tr[0] in n:
+                n[tr[1]] = n[tr[0]]
+                del n[tr[0]]
+        ret.append(n)
+    return ret
+
+
+class catch_and_return(object):
+    def __init__(self, err, response):
+        self.err = err
+        self.response = response
+
+    def __call__(self, fn):
+        def wrapper(*args, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except self.err:
+                return self.response
+        return wrapper

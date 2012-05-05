@@ -3,7 +3,7 @@ djeuscan.managers
 """
 
 from django.db import models
-from djeuscan.helpers import xint
+from djeuscan.helpers import xint, rename_fields
 
 
 class PackageMixin(object):
@@ -33,7 +33,7 @@ class PackageMixin(object):
             n_versions=models.Sum('n_versions')
         )
 
-    def herds(self):
+    def herds(self, rename=False):
         """
         Returns all the available herds
         """
@@ -45,9 +45,13 @@ class PackageMixin(object):
             n_overlay=models.Sum('n_overlay'),
             n_versions=models.Sum('n_versions')
         )
+
+        if rename:
+            res = rename_fields(res, [('herds__herd', 'herd')])
+
         return res
 
-    def maintainers(self):
+    def maintainers(self, rename=False):
         """
         Returns all the available maintainers
         """
@@ -59,6 +63,15 @@ class PackageMixin(object):
             n_overlay=models.Sum('n_overlay'),
             n_versions=models.Sum('n_versions')
         )
+
+        if rename:
+            res = rename_fields(
+                res,
+                [('maintainers__id', 'id'),
+                ('maintainers__name', 'name'),
+                ('maintainers__email', 'email')]
+            )
+
         return res
 
     def overlays(self):

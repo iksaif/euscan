@@ -1,44 +1,17 @@
 from piston.handler import AnonymousBaseHandler
 from piston.utils import rc
 
-from django.db.models import Sum, Max
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog
-
-from djeuscan.helpers import xint
+from djeuscan.helpers import catch_and_return
 
 # replace default XMLEmitter with ours
 from piston.emitters import Emitter
-from emitters import EuscanXMLEmitter
+from .emitters import EuscanXMLEmitter
 Emitter.register('xml', EuscanXMLEmitter, 'text/xml; charset=utf-8')
-
-
-def renameFields(vqs, fields):
-    ret = []
-    for n in vqs:
-        for tr in fields:
-            if tr[0] in n:
-                n[tr[1]] = n[tr[0]]
-                del n[tr[0]]
-        ret.append(n)
-    return ret
-
-
-class catch_and_return(object):
-    def __init__(self, err, response):
-        self.err = err
-        self.response = response
-
-    def __call__(self, fn):
-        def wrapper(*args, **kwargs):
-            try:
-                return fn(*args, **kwargs)
-            except self.err:
-                return self.response
-        return wrapper
 
 
 # /api/1.0/
@@ -54,19 +27,15 @@ class StatisticsHandler(AnonymousBaseHandler):
     allowed_methods = ('GET',)
 
     def read(self, request):
-        _aggr = Package.objects.aggregate
         data = {}
-        data['n_packaged'] = xint(_aggr(Sum('n_packaged'))['n_packaged__sum'])
-        data['n_overlay'] = xint(_aggr(Sum('n_overlay'))['n_overlay__sum'])
-        data['n_versions'] = xint(_aggr(Sum('n_versions'))['n_versions__sum'])
-        data['n_upstream'] = data['n_versions'] - data['n_packaged'] - \
-                             data['n_overlay']
+        data['n_packaged'] = Package.objects.n_packaged()
+        data['n_overlay'] = Package.objects.n_overlay()
+        data['n_versions'] = Package.objects.n_versions()
+        data['n_upstream'] = Package.objects.n_upstream()
         data['n_packages'] = Package.objects.count()
         data['n_herds'] = Herd.objects.count()
         data['n_maintainers'] = Maintainer.objects.count()
-        data['last_scan'] = EuscanResult.objects.get(
-            id=EuscanResult.objects.aggregate(Max('id'))['id__max']
-        ).datetime
+        data['last_scan'] = EuscanResult.objects.latest().datetime
 
         return data
 
@@ -76,22 +45,8 @@ class MaintainersHandler(AnonymousBaseHandler):
     allowed_methods = ('GET',)
 
     def read(self, request):
-        maintainers = Package.objects.filter(maintainers__isnull=False)
-        maintainers = maintainers.values(
-            'maintainers__id',
-            'maintainers__name',
-            'maintainers__email'
-        )
-        maintainers = maintainers.annotate(n_packaged=Sum('n_packaged'),
-                                           n_overlay=Sum('n_overlay'),
-                                           n_versions=Sum('n_versions'))
+        maintainers = Package.objects.maintainers(rename=True)
 
-        maintainers = renameFields(
-            maintainers,
-            [('maintainers__id', 'id'),
-             ('maintainers__name', 'name'),
-             ('maintainers__email', 'email')]
-        )
         return {'maintainers': maintainers}
 
 
@@ -102,14 +57,8 @@ class HerdsHandler(AnonymousBaseHandler):
     def read(self, request):
         # FIXME: optimize the query, it uses 'LEFT OUTER JOIN'
         # instead of 'INNER JOIN'
-        herds = Package.objects.filter(herds__isnull=False)
-        herds = herds.values('herds__herd').annotate(
-            n_packaged=Sum('n_packaged'),
-            n_overlay=Sum('n_overlay'),
-            n_versions=Sum('n_versions')
-        )
+        herds = Package.objects.herds(rename=True)
 
-        herds = renameFields(herds, [('herds__herd', 'herd')])
         return {'herds': herds}
 
 
@@ -118,10 +67,7 @@ class CategoriesHandler(AnonymousBaseHandler):
     allowed_methods = ('GET',)
 
     def read(self, request):
-        categories = Package.objects.values('category')
-        categories = categories.annotate(n_packaged=Sum('n_packaged'),
-                                         n_overlay=Sum('n_overlay'),
-                                         n_versions=Sum('n_versions'))
+        categories = Package.objects.categories()
 
         return {'categories': categories}
 
@@ -142,22 +88,17 @@ class PackagesHandler(AnonymousBaseHandler):
         data = {}
 
         if 'category' in kwargs:
-            packages = Package.objects.filter(category=kwargs['category'])
+            packages = Package.objects.for_category(kwargs['category'])
             data = {'category': kwargs['category']}
         elif 'herd' in kwargs:
             herd = Herd.objects.get(herd=kwargs['herd'])
-            packages = Package.objects.filter(herds__id=herd.id)
+            packages = Package.objects.for_herd(herd)
             data = {'herd': herd}
         elif 'maintainer_id' in kwargs:
             maintainer = Maintainer.objects.get(id=kwargs['maintainer_id'])
-            packages = Package.objects.filter(maintainers__id=maintainer.id)
+            packages = Package.objects.for_maintainer(maintainer)
             data = {'maintainer': maintainer}
 
-        packages = packages.select_related(
-            'last_version_gentoo',
-            'last_version_overlay',
-            'last_version_upstream'
-        )
         data['packages'] = packages
 
         if not data:
@@ -173,11 +114,13 @@ class PackageHandler(AnonymousBaseHandler):
     @catch_and_return(ObjectDoesNotExist, rc.NOT_FOUND)
     def read(self, request, category, package):
         package = Package.objects.get(category=category, name=package)
-        package.homepages = package.homepage.split(' ')
+
         versions = Version.objects.filter(package=package)
+
         log = EuscanResult.objects.filter(package=package).\
                 order_by('-datetime')[:1]
         log = log[0] if log else None
+
         vlog = VersionLog.objects.filter(package=package).order_by('-id')
 
         herds = []
