@@ -30,9 +30,8 @@ def _gen_for_function(field):
     return for_method
 
 
-N_LIST = ['n_packaged', 'n_overlay', 'n_versions']
-
-ANNOTATE_DICT = {name: models.Sum(name) for name in N_LIST}
+ANNOTATE_DICT = {name: models.Sum(name)
+                 for name in ['n_packaged', 'n_overlay', 'n_versions']}
 
 
 class PackageMixin(object):
@@ -41,8 +40,9 @@ class PackageMixin(object):
     for_herd = _gen_for_function('herds')
     for_category = _gen_for_function('category')
 
-    for name in N_LIST:
-        locals()[name] = _gen_n_function(name)
+    n_packaged = _gen_n_function("n_packaged")
+    n_overlay = _gen_n_function("n_overlay")
+    n_versions = _gen_n_function("n_versions")
 
     def n_upstream(self):
         return self.n_versions() - self.n_packaged() - self.n_overlay()
