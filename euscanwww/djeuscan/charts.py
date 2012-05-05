@@ -64,6 +64,7 @@ def chart_name(name, **kwargs):
 
 
 def getpackages(**kwargs):
+    packages = Package.objects
 
     if 'category' in kwargs and kwargs['category']:
         packages = Package.objects.for_category(kwargs['category'])
