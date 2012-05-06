@@ -13,7 +13,7 @@ settings.configure(
     },
     INSTALLED_APPS=['euscanwww', 'djeuscan'],
     ROOT_URLCONF='euscanwww.euscanwww.urls',
-    EUSCAN_ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    EUSCAN_ROOT=os.path.join(dirname(dirname(abspath(__file__))), "euscanwww"),
 )
 
 

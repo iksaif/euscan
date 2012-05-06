@@ -30,3 +30,4 @@ class SystemTestCase(unittest.TestCase):
 
 from test_models import *
 from test_views import *
+from test_charts import *
