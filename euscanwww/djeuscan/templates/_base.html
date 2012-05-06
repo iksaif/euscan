@@ -1,10 +1,12 @@
+{% load url from future %}
+
 <?xml version="1.0" encoding="utf8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr">
   <head>
     <title>{% block title %}euscan{% endblock %}</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     {% block meta %}
-    <link rel="alternate" type="application/atom+xml" title="Global log" href="{% url global_feed %}" />
+    <link rel="alternate" type="application/atom+xml" title="Global log" href="{% url "global_feed" %}" />
     {% endblock %}
     {% block css %}
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/style.css" media="screen" title="Normal" />
@@ -27,13 +29,13 @@
         <div class="menu">
           <ul>
             {% block menu %}
-              <li><a href="{% url djeuscan.views.index %}">Home</a></li>
-              <li><a href="{% url djeuscan.views.categories %}">Categories</a></li>
-              <li><a href="{% url djeuscan.views.herds %}">Herds</a></li>
-              <li><a href="{% url djeuscan.views.maintainers %}">Maintainers</a></li>
-              <li><a href="{% url djeuscan.views.overlays %}">Overlays</a></li>
-              <li><a href="{% url djeuscan.views.world %}">Scan World</a></li>
-              <li><a href="{% url djeuscan.views.statistics %}">Statistics</a></li>
+              <li><a href="{% url "index" %}">Home</a></li>
+              <li><a href="{% url "categories" %}">Categories</a></li>
+              <li><a href="{% url "herds" %}">Herds</a></li>
+              <li><a href="{% url "maintainers" %}">Maintainers</a></li>
+              <li><a href="{% url "overlays" %}">Overlays</a></li>
+              <li><a href="{% url "world" %}">Scan World</a></li>
+              <li><a href="{% url "statistics" %}">Statistics</a></li>
               <!--
               <li>---</li>
               <li><a href="#">Login</a></li>
@@ -43,12 +45,12 @@
               {% block menu_feed %}
                 <li>
                   <img src="{{ STATIC_URL }}img/feed.png" alt="feed" />
-                  <a title="Global Feed" href="{% url global_feed %}">Global Feed</a>
+                  <a title="Global Feed" href="{% url "global_feed" %}">Global Feed</a>
                 </li>
               {% endblock %}
               <li>---</li>
-              <li><a href="{% url djeuscan.views.api %}">API</a></li>
-              <li><a href="{% url djeuscan.views.about %}">About</a></li>
+              <li><a href="{% url "api" %}">API</a></li>
+              <li><a href="{% url "about" %}">About</a></li>
             {% endblock %}
           </ul>
         </div>

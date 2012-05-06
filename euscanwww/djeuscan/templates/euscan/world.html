@@ -1,5 +1,7 @@
 {% extends "_base.html" %}
 
+{% load url from future %}
+
 {% block title %}
 {{ block.super }} - World scan
 {% endblock %}
@@ -11,7 +13,7 @@
 
 <p>Import your /var/lib/portage/world file</p>
 
-<form action="{% url djeuscan.views.world_scan %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form action="{% url "world_scan" %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 {{ world_form.as_p }}
 <input type="submit" value="Submit" />
 </form>
@@ -20,7 +22,7 @@
 
 <p>Or just list some packages</p>
 
-<form action="{% url djeuscan.views.world_scan %}" method="post">{% csrf_token %}
+<form action="{% url "world_scan" %}" method="post">{% csrf_token %}
 {{ packages_form.as_p }}
 <input type="submit" value="Submit" />
 </form>

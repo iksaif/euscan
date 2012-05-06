@@ -1,19 +1,21 @@
 {% extends "_base.html" %}
 
+{% load url from future %}
+
 {% block content %}
 <h2>What's euscan ?</h2>
 <h2>Statistics</h2>
 
 <h3>Current statistics</h3>
-<img src="{% url djeuscan.views.chart 'pie-versions' %}" />
-<img src="{% url djeuscan.views.chart 'pie-packages' %}" />
+<img src="{% url "chart" 'pie-versions' %}" />
+<img src="{% url "chart" 'pie-packages' %}" />
 
 <h3>All time statistics</h3>
 
-<img src="{% url djeuscan.views.chart 'packages-weekly' %}" />
-<img src="{% url djeuscan.views.chart 'packages-monthly' %}" />
+<img src="{% url "chart" 'packages-weekly' %}" />
+<img src="{% url "chart" 'packages-monthly' %}" />
 
-<img src="{% url djeuscan.views.chart 'versions-weekly' %}" />
-<img src="{% url djeuscan.views.chart 'versions-monthly' %}" />
+<img src="{% url "chart" 'versions-weekly' %}" />
+<img src="{% url "chart" 'versions-monthly' %}" />
 
 {% endblock %}

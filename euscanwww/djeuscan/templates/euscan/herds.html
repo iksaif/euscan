@@ -1,6 +1,7 @@
 {% extends "euscan/_datatable.html" %}
 
 {% load packages %}
+{% load url from future %}
 
 {% block title %}
 {{ block.super }} - herds
@@ -21,21 +22,21 @@
   </thead>
   <tbody>
   {% for herd in herds %}
-  <tr>
-    <td>
-      <a href="{% url djeuscan.views.herd herd.herds__herd %}">
-	{{ herd.herds__herd }}
-      </a>
-      {% package_bar herd %}
-    </td>
-    {% package_cols herd %}
-    {% if request.GET.extras %}
-    <td>
-      <img src="{% url djeuscan.views.chart_herd herd.herds__herd 'packages-monthly-small' %}" />
-      <img src="{% url djeuscan.views.chart_herd herd.herds__herd 'versions-monthly-small' %}" />
-    </td>
-    {% endif %}
-  </tr>
+    <tr>
+      <td>
+        <a href="{% url "herd" herd.herds__herd %}">
+          {{ herd.herds__herd }}
+        </a>
+        {% package_bar herd %}
+      </td>
+      {% package_cols herd %}
+      {% if request.GET.extras %}
+        <td>
+          <img src="{% url "chart_herd" herd.herds__herd 'packages-monthly-small' %}" />
+          <img src="{% url "chart_herd" herd.herds__herd 'versions-monthly-small' %}" />
+        </td>
+      {% endif %}
+    </tr>
   {% endfor %}
   </tbody>
 </table>

@@ -7,21 +7,21 @@
 
 {% if infos.n_overlay == 0 or infos.n_overlay <= infos.n_packaged %}
 <td>
-{% else %}{% if infos.n_overlay < infos.n_packaged %}
+{% elif infos.n_overlay < infos.n_packaged %}
 <td class="bad">
 {% else %}
 <td class="ugly">
-{% endif %}{% endif %}
-  {{ infos.n_overlay }}
+{% endif %}
+    {{ infos.n_overlay }}
 </td>
 
 {% if infos.n_versions == infos.n_packaged|add:infos.n_overlay %}
 <td>
-{% else %}{% if infos.n_versions < infos.n_packaged|add:infos.n_overlay|mul:2 %}
+{% elif infos.n_versions < infos.n_packaged|add:infos.n_overlay|mul:2 %}
 <td class="bad">
 {% else %}
 <td class="ugly">
-{% endif %}{% endif %}
+{% endif %}
 {{ infos.n_versions|sub:infos.n_packaged|sub:infos.n_overlay }}
 </td>
 

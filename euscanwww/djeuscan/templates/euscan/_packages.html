@@ -3,6 +3,8 @@
 {% load div %}
 {% load mul %}
 
+{% load url from future %}
+
 <table id="table" class="display">
   <thead>
     <th>Package</th>
@@ -18,7 +20,7 @@
   {% for package in packages %}
   <tr>
     <td>
-      <a href="{% url djeuscan.views.package package.category package.name %}">
+      <a href="{% url "package" package.category package.name %}">
         {{ package.category }}/{{ package.name }}
       </a>
       {% package_bar package %}

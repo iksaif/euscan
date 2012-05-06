@@ -1,6 +1,7 @@
 {% extends "euscan/_datatable.html" %}
 
 {% load packages %}
+{% load url from future %}
 
 {% block title %}
 {{ block.super }} - Maintainer: {{ maintainer.name }}
@@ -10,7 +11,9 @@
 {{ block.super }}
 <li>
   <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
-  <a title="{{ maintainer.name }} Feed" href="{% url maintainer_feed maintainer.id %}">{{ maintainer.name }}</a>
+  <a title="{{ maintainer.name }} Feed" href="{% url "maintainer_feed" maintainer.id %}">
+    {{ maintainer.name }}
+  </a>
 </li>
 {% endblock %}
 
@@ -21,19 +24,19 @@
 <h3>Statistics</h2>
 <h4>Current statistics</h4>
 <p>
-  <img src="{% url djeuscan.views.chart_maintainer maintainer.id 'pie-versions' %}" />
-  <img src="{% url djeuscan.views.chart_maintainer maintainer.id 'pie-packages' %}" />
+  <img src="{% url "chart_maintainer" maintainer.id 'pie-versions' %}" />
+  <img src="{% url "chart_maintainer" maintainer.id 'pie-packages' %}" />
 </p>
 
 <h4>All Time</h4>
 <p>
-  <img src="{% url djeuscan.views.chart_maintainer maintainer.id 'versions-weekly' %}" />
-  <img src="{% url djeuscan.views.chart_maintainer maintainer.id 'versions-monthly' %}" />
+  <img src="{% url "chart_maintainer" maintainer.id 'versions-weekly' %}" />
+  <img src="{% url "chart_maintainer" maintainer.id 'versions-monthly' %}" />
 </p>
 
 <p>
-  <img src="{% url djeuscan.views.chart_maintainer maintainer.id 'packages-weekly' %}" />
-  <img src="{% url djeuscan.views.chart_maintainer maintainer.id 'packages-monthly' %}" />
+  <img src="{% url "chart_maintainer" maintainer.id 'packages-weekly' %}" />
+  <img src="{% url "chart_maintainer" maintainer.id 'packages-monthly' %}" />
 </p>
 {% endblock %}
 
@@ -42,9 +45,9 @@
 <div class="menu">
   <dl>
     <dt>Versions</dt>
-    <dd><img src="{% url djeuscan.views.chart_maintainer maintainer.id 'versions-monthly-small' %}" /></dd>
+    <dd><img src="{% url "chart_maintainer" maintainer.id 'versions-monthly-small' %}" /></dd>
     <dt>Packages</dt>
-    <dd><img src="{% url djeuscan.views.chart_maintainer maintainer.id 'packages-monthly-small' %}" /></dd>
+    <dd><img src="{% url "chart_maintainer" maintainer.id 'packages-monthly-small' %}" /></dd>
   </dl>
 </div>
 

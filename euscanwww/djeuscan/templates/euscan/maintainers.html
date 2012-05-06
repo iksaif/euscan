@@ -1,6 +1,7 @@
 {% extends "euscan/_datatable.html" %}
 
 {% load packages %}
+{% load url from future %}
 
 {% block title %}
 {{ block.super }} - maintainers
@@ -16,30 +17,32 @@
     <th><img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Versions only upstream" /></th>
     <th><img src="{{ STATIC_URL }}img/freshness-icon.png" title="Freshness" /></th>
     {% if request.GET.extras %}
-    <th>Graphs</th>
+      <th>Graphs</th>
     {% endif %}
   </thead>
   <tbody>
   {% for maintainer in maintainers %}
-  <tr>
-    <td>
-      <a href="{% url djeuscan.views.maintainer maintainer.maintainers__id %}">
-        {% if maintainer.maintainers__name != maintainer.maintainers__email %}
-          {{ maintainer.maintainers__name }} &lt;{{ maintainer.maintainers__email }}&gt;
-        {% else %}
-          {{ maintainer.maintainers__name }}
-        {% endif %}
-      </a>
-      {% package_bar maintainer %}
-    </td>
-    {% package_cols maintainer %}
-    {% if request.GET.extras %}
-    <td>
-      <img src="{% url djeuscan.views.chart_maintainer maintainer.maintainers__id 'packages-monthly-small' %}" />
-      <img src="{% url djeuscan.views.chart_maintainer maintainer.maintainers__id 'versions-monthly-small' %}" />
-    </td>
-    {% endif %}
-  </tr>
+    <tr>
+      <td>
+        <a href="{% url "maintainer" maintainer.maintainers__id %}">
+          {% if maintainer.maintainers__name != maintainer.maintainers__email %}
+            {{ maintainer.maintainers__name }} &lt;{{ maintainer.maintainers__email }}&gt;
+          {% else %}
+            {{ maintainer.maintainers__name }}
+          {% endif %}
+        </a>
+        {% package_bar maintainer %}
+      </td>
+      {% package_cols maintainer %}
+
+      {% if request.GET.extras %}
+        <td>
+          <img src="{% url "chart_maintainer" maintainer.maintainers__id 'packages-monthly-small' %}" />
+          <img src="{% url "chart_maintainer" maintainer.maintainers__id 'versions-monthly-small' %}" />
+        </td>
+      {% endif %}
+
+    </tr>
   {% endfor %}
   </tbody>
 </table>

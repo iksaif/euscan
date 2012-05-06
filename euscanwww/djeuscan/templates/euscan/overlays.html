@@ -1,6 +1,7 @@
 {% extends "euscan/_datatable.html" %}
 
 {% load packages %}
+{% load url from future %}
 
 {% block title %}
 {{ block.super }} - overlays
@@ -17,7 +18,9 @@
   {% for overlay in overlays %}
   <tr>
     <td>
-      <a href="{% url djeuscan.views.overlay overlay.version__overlay %}">{{ overlay.version__overlay }}</a>
+      <a href="{% url "overlay" overlay.version__overlay %}">
+        {{ overlay.version__overlay }}
+      </a>
     </td>
   </tr>
   {% endfor %}

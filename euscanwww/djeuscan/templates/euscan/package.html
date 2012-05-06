@@ -1,17 +1,21 @@
 {% extends "euscan/_datatable.html" %}
 
 {% load sub %}
+{% load url from future %}
 
 {% block meta %}
 {{ block.super }}
-<link rel="alternate" type="application/atom+xml" title="{{ package }} Feed" href="{% url package_feed package.category package.name %}" />
+<link rel="alternate" type="application/atom+xml" title="{{ package }} Feed"
+      href="{% url "package_feed" package.category package.name %}" />
 {% endblock %}
 
 {% block menu_feed %}
 {{ block.super }}
 <li>
   <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
-  <a title="{{ package }} Feed" href="{% url package_feed package.category package.name %}">{{ package }}</a>
+  <a title="{{ package }} Feed" href="{% url "package_feed" package.category package.name %}">
+    {{ package }}
+  </a>
 </li>
 {% endblock %}
 
@@ -38,7 +42,7 @@
   <dt>Herds</dt>
   <dd>
     {% for herd in package.herds.all %}
-    <a href="{% url djeuscan.views.herd herd.herd %}">
+    <a href="{% url "herd" herd.herd %}">
       {{ herd.herd }}
     </a>
     &lt;{{ herd.email }}&gt;
@@ -50,12 +54,12 @@
   <dd>
     {% for maintainer in package.maintainers.all %}
       {% if maintainer.name != maintainer.email %}
-       <a href="{% url djeuscan.views.maintainer maintainer.id %}">
+       <a href="{% url "maintainer" maintainer.id %}">
          {{ maintainer.name }}
        </a>
        &lt;{{ maintainer.email }}&gt;
       {% else %}
-       <a href="{% url djeuscan.views.maintainer maintainer.id %}">
+       <a href="{% url "maintainer" maintainer.id %}">
        {{ maintainer.email }}
        </a>
       {% endif %}

@@ -1,6 +1,7 @@
 {% extends "euscan/_datatable.html" %}
 
 {% load packages %}
+{% load url from future %}
 
 {% block title %}
 {{ block.super }} - Category: {{ category }}
@@ -10,7 +11,7 @@
 {{ block.super }}
 <li>
   <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
-  <a title="{{ category }} Feed" href="{% url category_feed category %}">{{ category }}</a>
+  <a title="{{ category }} Feed" href="{% url "category_feed" category %}">{{ category }}</a>
 </li>
 {% endblock %}
 
@@ -22,19 +23,19 @@
 <h3>Statistics</h2>
 <h4>Current statistics</h4>
 <p>
-  <img src="{% url djeuscan.views.chart_category category 'pie-versions' %}" />
-  <img src="{% url djeuscan.views.chart_category category 'pie-packages' %}" />
+  <img src="{% url "chart_category" category 'pie-versions' %}" />
+  <img src="{% url "chart_category" category 'pie-packages' %}" />
 </p>
 
 <h4>All Time</h4>
 <p>
-  <img src="{% url djeuscan.views.chart_category category 'versions-weekly' %}" />
-  <img src="{% url djeuscan.views.chart_category category 'versions-monthly' %}" />
+  <img src="{% url "chart_category" category 'versions-weekly' %}" />
+  <img src="{% url "chart_category" category 'versions-monthly' %}" />
 </p>
 
 <p>
-  <img src="{% url djeuscan.views.chart_category category 'packages-weekly' %}" />
-  <img src="{% url djeuscan.views.chart_category category 'packages-monthly' %}" />
+  <img src="{% url "chart_category" category 'packages-weekly' %}" />
+  <img src="{% url "chart_category" category 'packages-monthly' %}" />
 </p>
 
 {% endblock %}
@@ -44,9 +45,9 @@
 <div class="menu">
   <dl>
     <dt>Versions</dt>
-    <dd><img src="{% url djeuscan.views.chart_category category 'versions-monthly-small' %}" /></dd>
+    <dd><img src="{% url "chart_category" category 'versions-monthly-small' %}" /></dd>
     <dt>Packages</dt>
-    <dd><img src="{% url djeuscan.views.chart_category category 'packages-monthly-small' %}" /></dd>
+    <dd><img src="{% url "chart_category" category 'packages-monthly-small' %}" /></dd>
   </dl>
 </div>
 

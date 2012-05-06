@@ -1,6 +1,7 @@
 {% extends "euscan/_datatable.html" %}
 
 {% load packages %}
+{% load url from future %}
 
 {% block title %}
 {{ block.super }} - categories
@@ -24,14 +25,14 @@
   {% for category in categories %}
   <tr>
     <td>
-      <a href="{% url djeuscan.views.category category.category %}">{{ category.category }}</a>
+      <a href="{% url "category" category.category %}">{{ category.category }}</a>
       {% package_bar category %}
     </td>
     {% package_cols category %}
     {% if request.GET.extras %}
     <td>
-      <img src="{% url djeuscan.views.chart_category category.category 'packages-monthly-small' %}" />
-      <img src="{% url djeuscan.views.chart_category category.category 'versions-monthly-small' %}" />
+      <img src="{% url "chart_category" category.category 'packages-monthly-small' %}" />
+      <img src="{% url "chart_category" category.category 'versions-monthly-small' %}" />
     </td>
     {% endif %}
   </tr>
