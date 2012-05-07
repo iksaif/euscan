@@ -13,15 +13,15 @@ def random_string(length=10):
 class HerdFactory(factory.Factory):
     FACTORY_FOR = Herd
 
-    herd = 'Test Herd'
-    email = 'herd@testherd.com'
+    herd = factory.LazyAttribute(lambda a: random_string())
+    email = factory.LazyAttribute(lambda a: "%s@example.com" % a.herd)
 
 
 class MaintainerFactory(factory.Factory):
     FACTORY_FOR = Maintainer
 
-    herd = 'Test Maintainer'
-    email = 'maintainer@testmaintainer.com'
+    name = factory.LazyAttribute(lambda a: random_string())
+    email = factory.LazyAttribute(lambda a: "%s@example.com" % a.name)
 
 
 class PackageFactory(factory.Factory):

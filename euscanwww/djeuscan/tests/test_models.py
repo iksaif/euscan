@@ -39,3 +39,4 @@ class EuscanResultModelTests(unittest.TestCase):
         result1 = EuscanResultFactory.create(datetime=datetime(2012, 04, 01))
         result2 = EuscanResultFactory.create(datetime=datetime(2012, 01, 01))
         self.assertEqual(result1, EuscanResult.objects.latest())
+        self.assertNotEqual(result2, EuscanResult.objects.latest())

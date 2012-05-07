@@ -1,10 +1,18 @@
-from euscanwww.djeuscan.tests import SystemTestCase
+from djeuscan.tests import SystemTestCase
+from djeuscan.tests.euscan_factory import MaintainerFactory, HerdFactory, \
+    PackageFactory
 
 
 class ChartTests(SystemTestCase):
     """
     Test charts
     """
+
+    def setUp(self):
+        super(ChartTests, self).setUp()
+        self.a_herd = HerdFactory.create()
+        self.a_maintainer = MaintainerFactory.create()
+        self.a_category = PackageFactory.create().category
 
     def test_statistics(self):
         response = self.get("statistics")
@@ -59,3 +67,18 @@ class ChartTests(SystemTestCase):
     def test_versions_option_incorrect(self):
         response = self.get("chart", chart="versions-trololol")
         self.assertEqual(response.status_code, 404)
+
+    def test_herd(self):
+        response = self.get("chart_herd", chart="pie-packages",
+                            herd=self.a_herd.herd)
+        self.assertEqual(response.status_code, 200)
+
+    def test_maintainer(self):
+        response = self.get("chart_maintainer", chart="pie-packages",
+                            maintainer_id=self.a_maintainer.pk)
+        self.assertEqual(response.status_code, 200)
+
+    def test_category(self):
+        response = self.get("chart_category", chart="pie-packages",
+                            category=self.a_category)
+        self.assertEqual(response.status_code, 200)
