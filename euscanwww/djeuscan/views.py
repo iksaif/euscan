@@ -59,7 +59,7 @@ def herds(request):
 @render_to('euscan/herd.html')
 def herd(request, herd):
     herd = get_object_or_404(Herd, herd=herd)
-    packages = Package.for_herd(herd, last_versions=True)
+    packages = Package.objects.for_herd(herd, last_versions=True)
     return {'herd': herd, 'packages': packages}
 
 

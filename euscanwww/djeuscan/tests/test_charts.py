@@ -8,74 +8,95 @@ class ChartTests(SystemTestCase):
     Test charts
     """
 
+    url = "chart"
+    args = []
+    kwargs = {}
+
     def test_statistics(self):
         response = self.get("statistics")
         self.assertEqual(response.status_code, 200)
 
     def test_pie_versions(self):
-        response = self.get("chart", chart="pie-versions")
+        response = self.get(self.url, chart="pie-versions",
+                            *self.args, **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
     def test_pie_packages(self):
-        response = self.get("chart", chart="pie-packages")
+        response = self.get(self.url, chart="pie-packages", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
     def test_packages(self):
-        response = self.get("chart", chart="packages")
+        response = self.get(self.url, chart="packages", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
     def test_packages_options(self):
-        response = self.get("chart", chart="packages-small")
+        response = self.get(self.url, chart="packages-small", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
-        response = self.get("chart", chart="packages-weekly")
+        response = self.get(self.url, chart="packages-weekly", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
-        response = self.get("chart", chart="packages-monthly")
+        response = self.get(self.url, chart="packages-monthly", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
-        response = self.get("chart", chart="packages-yearly")
+        response = self.get(self.url, chart="packages-yearly", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
     def test_packages_option_incorrect(self):
-        response = self.get("chart", chart="packages-trololol")
+        response = self.get(self.url, chart="packages-trololol", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 404)
 
     def test_versions(self):
-        response = self.get("chart", chart="versions")
+        response = self.get(self.url, chart="versions", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
     def test_versions_options(self):
-        response = self.get("chart", chart="versions-small")
+        response = self.get(self.url, chart="versions-small", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
-        response = self.get("chart", chart="versions-weekly")
+        response = self.get(self.url, chart="versions-weekly", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
-        response = self.get("chart", chart="versions-monthly")
+        response = self.get(self.url, chart="versions-monthly", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
-        response = self.get("chart", chart="versions-yearly")
+        response = self.get(self.url, chart="versions-yearly", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 200)
 
     def test_versions_option_incorrect(self):
-        response = self.get("chart", chart="versions-trololol")
+        response = self.get(self.url, chart="versions-trololol", *self.args,
+                            **self.kwargs)
         self.assertEqual(response.status_code, 404)
 
-    def test_herd(self):
-        a_herd = HerdFactory.create()
-        response = self.get("chart_herd", chart="pie-packages",
-                            herd=a_herd.herd)
-        self.assertEqual(response.status_code, 200)
 
-    def test_maintainer(self):
-        a_maintainer = MaintainerFactory.create()
-        response = self.get("chart_maintainer", chart="pie-packages",
-                            maintainer_id=a_maintainer.pk)
-        self.assertEqual(response.status_code, 200)
+class CategoryChartTests(ChartTests):
+    def setUp(self):
+        super(CategoryChartTests, self).setUp()
+        self.url = "chart_category"
+        self.kwargs = {"category": PackageFactory.create().category}
 
-    def test_category(self):
-        a_category = PackageFactory.create().category
-        response = self.get("chart_category", chart="pie-packages",
-                            category=a_category)
-        self.assertEqual(response.status_code, 200)
+
+class HerdChartTests(ChartTests):
+    def setUp(self):
+        super(HerdChartTests, self).setUp()
+        self.url = "chart_herd"
+        self.kwargs = {"herd": HerdFactory.create().herd}
+
+
+class MaintainerChartTests(ChartTests):
+    def setUp(self):
+        super(MaintainerChartTests, self).setUp()
+        self.url = "chart_maintainer"
+        self.kwargs = {"maintainer_id": MaintainerFactory.create().id}

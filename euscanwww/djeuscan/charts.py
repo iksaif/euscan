@@ -143,24 +143,30 @@ def pie_packages(**kwargs):
 
 
 def rrd_path(name):
-    return str(os.path.join(settings.RRD_ROOT, name + '.rrd'))
+    res = str(os.path.join(settings.RRD_ROOT, name))
+    if res.endswith(".rrd"):
+        return res
+    else:
+        return res + ".rrd"
 
 
-def rrd_create(name, start):
+def rrd_create(name, start=None):
+    if start is None:
+        start = int(time.time())
+
     path = rrd_path(name)
-    if os.path.exists(path):
-        return
-    rrdtool.create(path, '--step', '86400',
-                   '--start', '%s' % int(start - 10),
-                   'DS:n_packages_gentoo:GAUGE:4294967295:0:U',
-                   'DS:n_packages_overlay:GAUGE:4294967295:0:U',
-                   'DS:n_packages_outdated:GAUGE:4294967295:0:U',
-                   'DS:n_versions_gentoo:GAUGE:4294967295:0:U',
-                   'DS:n_versions_overlay:GAUGE:4294967295:0:U',
-                   'DS:n_versions_upstream:GAUGE:4294967295:0:U',
-                   'RRA:AVERAGE:0.5:1:100',
-                   'RRA:AVERAGE:0.5:5:200',
-                   'RRA:AVERAGE:0.5:10:200')
+    if not os.path.exists(path):
+        rrdtool.create(path, '--step', '86400',
+                       '--start', '%s' % int(start - 10),
+                       'DS:n_packages_gentoo:GAUGE:4294967295:0:U',
+                       'DS:n_packages_overlay:GAUGE:4294967295:0:U',
+                       'DS:n_packages_outdated:GAUGE:4294967295:0:U',
+                       'DS:n_versions_gentoo:GAUGE:4294967295:0:U',
+                       'DS:n_versions_overlay:GAUGE:4294967295:0:U',
+                       'DS:n_versions_upstream:GAUGE:4294967295:0:U',
+                       'RRA:AVERAGE:0.5:1:100',
+                       'RRA:AVERAGE:0.5:5:200',
+                       'RRA:AVERAGE:0.5:10:200')
 
 
 def rrd_update(name, datetime, values):
@@ -178,7 +184,8 @@ def rrd_update(name, datetime, values):
 """
 [-s|--start time] [-e|--end time] [-S|--step seconds]
 [-t|--title string] [-v|--vertical-label string]
-[-w|--width pixels] [-h|--height pixels] [-j|--only-graph] [-D|--full-size-mode][-u|--upper-limit value] [-l|--lower-limit value]
+[-w|--width pixels] [-h|--height pixels] [-j|--only-graph]
+[-D|--full-size-mode][-u|--upper-limit value] [-l|--lower-limit value]
 [-u|--upper-limit value] [-l|--lower-limit value] [-r|--rigid]
 [-A|--alt-autoscale]
 [-M|--alt-autoscale-max]
@@ -198,7 +205,10 @@ def cached_rrd_chart(f):
             kwds['title'] = '%s (%s)' % (f.func_name, kwds['period'])
             kwds['steps'] = kwds['period']
             kwds['vertical-label'] = f.func_name
+
             kwds['rrd'] = rrd_path(rrd_name(**kwds))
+            rrd_create(kwds['rrd'])  # create the rrd file if it's not present
+
             kwds['path'] = path
 
             kwds['end'] = 'now'
@@ -229,8 +239,11 @@ def cached_rrd_chart(f):
 
 @cached_rrd_chart
 def packages(**kwargs):
+    path = str(kwargs['path'])
+    rrd = kwargs['rrd']
+
     rrdtool.graph(
-        str(kwargs['path']),
+        path,
         '--imgformat', 'PNG',
         '--width', kwargs['width'],
         '--height', kwargs['height'],
@@ -243,11 +256,9 @@ def packages(**kwargs):
         '--vertical-label', kwargs['vertical-label'],
         '--title', kwargs['title'],
         '--lower-limit', '0',
-        'DEF:n_packages_gentoo=%s:n_packages_gentoo:AVERAGE' % (kwargs['rrd']),
-        'DEF:n_packages_overlay=%s:n_packages_overlay:AVERAGE' % \
-            (kwargs['rrd']),
-        'DEF:n_packages_outdated=%s:n_packages_outdated:AVERAGE' % \
-            (kwargs['rrd']),
+        'DEF:n_packages_gentoo=%s:n_packages_gentoo:AVERAGE' % rrd,
+        'DEF:n_packages_overlay=%s:n_packages_overlay:AVERAGE' % rrd,
+        'DEF:n_packages_outdated=%s:n_packages_outdated:AVERAGE' % rrd,
         'LINE1.25:n_packages_gentoo#008000:Gentoo',
         'LINE1.25:n_packages_overlay#0B17FD:Overlay',
         'LINE1.25:n_packages_outdated#FF0000:Outdated'
@@ -256,8 +267,11 @@ def packages(**kwargs):
 
 @cached_rrd_chart
 def versions(**kwargs):
+    path = str(kwargs['path'])
+    rrd = kwargs['rrd']
+
     rrdtool.graph(
-        str(kwargs['path']),
+        path,
         '--imgformat', 'PNG',
         '--width', kwargs['width'],
         '--height', kwargs['height'],
@@ -269,11 +283,9 @@ def versions(**kwargs):
         '--vertical-label', kwargs['vertical-label'],
         '--title', kwargs['title'],
         '--lower-limit', '0',
-        'DEF:n_versions_gentoo=%s:n_versions_gentoo:AVERAGE' % (kwargs['rrd']),
-        'DEF:n_versions_overlay=%s:n_versions_overlay:AVERAGE' % \
-            (kwargs['rrd']),
-        'DEF:n_versions_outdated=%s:n_versions_upstream:AVERAGE' % \
-            (kwargs['rrd']),
+        'DEF:n_versions_gentoo=%s:n_versions_gentoo:AVERAGE' % rrd,
+        'DEF:n_versions_overlay=%s:n_versions_overlay:AVERAGE' % rrd,
+        'DEF:n_versions_outdated=%s:n_versions_upstream:AVERAGE' % rrd,
         'LINE1.25:n_versions_gentoo#008000:Gentoo',
         'LINE1.25:n_versions_overlay#0B17FD:Overlay',
         'LINE1.25:n_versions_outdated#FF0000:Outdated'

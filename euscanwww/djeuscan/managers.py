@@ -114,7 +114,7 @@ class PackageManager(models.Manager, PackageMixin):
 
 class VersionLogMixin(object):
     def for_package(self, package, order=False):
-        res = filter(package=package)
+        res = self.filter(package=package)
         if order:
             res = res.order_by('-id')
         return res

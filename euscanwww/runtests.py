@@ -11,7 +11,7 @@ EUSCAN_ROOT = os.path.join(dirname(dirname(abspath(__file__))), "euscanwww")
 
 settings.configure(
     DATABASES={
-        'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory;'}
+        'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}
     },
     INSTALLED_APPS=['euscanwww.euscanwww', 'djeuscan'],
     ROOT_URLCONF='euscanwww.euscanwww.urls',
