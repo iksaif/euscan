@@ -1,5 +1,13 @@
+import random
+from string import letters
 import factory
-from djeuscan.models import Herd, Maintainer, Package, Version
+from datetime import datetime
+
+from djeuscan.models import Herd, Maintainer, Package, Version, EuscanResult
+
+
+def random_string(length=10):
+    return "".join([random.choice(letters) for _ in range(length)])
 
 
 class HerdFactory(factory.Factory):
@@ -19,8 +27,8 @@ class MaintainerFactory(factory.Factory):
 class PackageFactory(factory.Factory):
     FACTORY_FOR = Package
 
-    category = "Test Category"
-    name = "Test Package"
+    category = factory.LazyAttribute(lambda a: random_string())
+    name = factory.LazyAttribute(lambda a: random_string())
     description = "This is a test package"
     homepage = "http://testpackage.com"
 
@@ -36,3 +44,11 @@ class VersionFactory(factory.Factory):
     overlay = "gentoo"
     urls = "http://packageurl.com"
     alive = True
+
+
+class EuscanResultFactory(factory.Factory):
+    FACTORY_FOR = EuscanResult
+
+    package = factory.LazyAttribute(lambda a: PackageFactory())
+    datetime = datetime.now()
+    result = "this is the result"

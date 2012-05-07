@@ -7,13 +7,16 @@ import os
 from os.path import dirname, abspath
 from django.conf import settings
 
+EUSCAN_ROOT = os.path.join(dirname(dirname(abspath(__file__))), "euscanwww")
+
 settings.configure(
     DATABASES={
         'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory;'}
     },
-    INSTALLED_APPS=['euscanwww', 'djeuscan'],
+    INSTALLED_APPS=['euscanwww.euscanwww', 'djeuscan'],
     ROOT_URLCONF='euscanwww.euscanwww.urls',
-    EUSCAN_ROOT=os.path.join(dirname(dirname(abspath(__file__))), "euscanwww"),
+    EUSCAN_ROOT=EUSCAN_ROOT,
+    RRD_ROOT=os.path.join(EUSCAN_ROOT, 'var', 'rrd')
 )
 
 
