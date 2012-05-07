@@ -4,6 +4,9 @@ register = template.Library()
 
 
 def div(value, arg=None):
-    return float(value) / float(arg)
+    try:
+        return float(value) / float(arg)
+    except ZeroDivisionError:
+        return 0
 
 register.filter('div', div)

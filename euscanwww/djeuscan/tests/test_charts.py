@@ -8,12 +8,6 @@ class ChartTests(SystemTestCase):
     Test charts
     """
 
-    def setUp(self):
-        super(ChartTests, self).setUp()
-        self.a_herd = HerdFactory.create()
-        self.a_maintainer = MaintainerFactory.create()
-        self.a_category = PackageFactory.create().category
-
     def test_statistics(self):
         response = self.get("statistics")
         self.assertEqual(response.status_code, 200)
@@ -69,16 +63,19 @@ class ChartTests(SystemTestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_herd(self):
+        a_herd = HerdFactory.create()
         response = self.get("chart_herd", chart="pie-packages",
-                            herd=self.a_herd.herd)
+                            herd=a_herd.herd)
         self.assertEqual(response.status_code, 200)
 
     def test_maintainer(self):
+        a_maintainer = MaintainerFactory.create()
         response = self.get("chart_maintainer", chart="pie-packages",
-                            maintainer_id=self.a_maintainer.pk)
+                            maintainer_id=a_maintainer.pk)
         self.assertEqual(response.status_code, 200)
 
     def test_category(self):
+        a_category = PackageFactory.create().category
         response = self.get("chart_category", chart="pie-packages",
-                            category=self.a_category)
+                            category=a_category)
         self.assertEqual(response.status_code, 200)

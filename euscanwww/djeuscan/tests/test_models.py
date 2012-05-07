@@ -4,7 +4,7 @@ tests for models
 
 from datetime import datetime
 
-from django.utils import unittest
+from django.test import TestCase
 from django.db import IntegrityError
 
 from djeuscan.models import EuscanResult
@@ -12,7 +12,7 @@ from djeuscan.tests.euscan_factory import VersionFactory, PackageFactory, \
     EuscanResultFactory
 
 
-class VersionModelTests(unittest.TestCase):
+class VersionModelTests(TestCase):
     def test_creation(self):
         package = PackageFactory.build()
         version = VersionFactory.build(package=package)
@@ -26,7 +26,7 @@ class VersionModelTests(unittest.TestCase):
             VersionFactory.create(package=package)
 
 
-class PackageModelTests(unittest.TestCase):
+class PackageModelTests(TestCase):
     def test_homepages(self):
         homepage = "http://gentoo.org http://mypackage.com"
         package = PackageFactory.build(homepage=homepage)
@@ -34,7 +34,7 @@ class PackageModelTests(unittest.TestCase):
                          ["http://gentoo.org", "http://mypackage.com"])
 
 
-class EuscanResultModelTests(unittest.TestCase):
+class EuscanResultModelTests(TestCase):
     def test_lastest(self):
         result1 = EuscanResultFactory.create(datetime=datetime(2012, 04, 01))
         result2 = EuscanResultFactory.create(datetime=datetime(2012, 01, 01))

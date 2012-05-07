@@ -1,11 +1,11 @@
 from urllib import urlencode
 
-from django.utils import unittest
+from django.test import TestCase
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 
 
-class SystemTestCase(unittest.TestCase):
+class SystemTestCase(TestCase):
     """
     Base class for system tests
     """
