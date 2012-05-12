@@ -84,7 +84,7 @@ def overlays(request):
 
 @render_to('euscan/overlay.html')
 def overlay(request, overlay):
-    packages = Package.objects.for_overlay(overlay, last_versions=True)
+    packages = Package.objects.for_overlay(overlay)
     if not packages:
         raise Http404
     return {'overlay': overlay, 'packages': packages}

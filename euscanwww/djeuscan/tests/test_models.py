@@ -6,6 +6,7 @@ from datetime import datetime
 
 from django.test import TestCase
 from django.db import IntegrityError
+from django.utils.timezone import utc
 
 from djeuscan.models import EuscanResult
 from djeuscan.tests.euscan_factory import VersionFactory, PackageFactory, \
@@ -36,7 +37,11 @@ class PackageModelTests(TestCase):
 
 class EuscanResultModelTests(TestCase):
     def test_lastest(self):
-        result1 = EuscanResultFactory.create(datetime=datetime(2012, 04, 01))
-        result2 = EuscanResultFactory.create(datetime=datetime(2012, 01, 01))
+        result1 = EuscanResultFactory.create(
+            datetime=datetime(2012, 04, 01, 12, 0, 0, 0, utc)
+        )
+        result2 = EuscanResultFactory.create(
+            datetime=datetime(2012, 01, 01, 12, 0, 0, 0, utc)
+        )
         self.assertEqual(result1, EuscanResult.objects.latest())
         self.assertNotEqual(result2, EuscanResult.objects.latest())

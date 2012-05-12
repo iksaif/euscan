@@ -131,6 +131,12 @@ class VersionLogMixin(object):
             res = res.order_by('-id')
         return res
 
+    def for_herd(self, herd, order=False):
+        res = self.filter(package__herds__id=herd.id)
+        if order:
+            res = res.order_by('-id')
+        return res
+
 
 class VersionLogQuerySet(models.query.QuerySet, VersionLogMixin):
     pass

@@ -1,4 +1,6 @@
 import StringIO
+from collections import defaultdict
+
 from BeautifulSoup import BeautifulSoup
 
 from djeuscan.tests import SystemTestCase
@@ -12,9 +14,6 @@ class PagesTest(SystemTestCase):
     """
 
     def test_index(self):
-        """
-        Test index
-        """
         response = self.get("index")
         self.assertEqual(response.status_code, 200)
 
@@ -24,6 +23,17 @@ class PagesTest(SystemTestCase):
 
     def test_about(self):
         response = self.get("about")
+        self.assertEqual(response.status_code, 200)
+
+
+class PackageTests(SystemTestCase):
+    def setUp(self):
+        super(PackageTests, self).setUp()
+        self.package = PackageFactory.create()
+
+    def test_package(self):
+        response = self.get("package", category=self.package.category,
+                            package=self.package.name)
         self.assertEqual(response.status_code, 200)
 
 
@@ -45,14 +55,21 @@ class SectionTests(SystemTestCase):
 class CategoriesTests(SectionTests):
     def setUp(self):
         super(CategoriesTests, self).setUp()
-        self.categories = [PackageFactory.create().category
-                           for _ in range(10)]
+        self.packages = [PackageFactory.create() for _ in range(10)]
+        self.categories = [p.category for p in self.packages]
 
     def test_categories(self):
         response = self.get("categories")
         self.assertEqual(response.status_code, 200)
 
         self._check_table(response, self.categories)
+
+    def test_category(self):
+        category = self.categories[0]
+        response = self.get("category", category=category)
+        self.assertEqual(response.status_code, 200)
+
+        self._check_table(response, self.packages[:1], attr="name")
 
 
 class HerdsTests(SectionTests):
@@ -72,6 +89,13 @@ class HerdsTests(SectionTests):
 
         self._check_table(response, self.herds, attr="herd")
 
+    def test_herd(self):
+        herd = self.herds[0]
+        response = self.get("herd", herd=herd.herd)
+        self.assertEqual(response.status_code, 200)
+
+        self._check_table(response, self.packages[:1], attr="name")
+
 
 class MaintainersTests(SectionTests):
     def setUp(self):
@@ -90,23 +114,39 @@ class MaintainersTests(SectionTests):
 
         self._check_table(response, self.maintainers, attr="name")
 
+    def test_maintainer(self):
+        maintainer = self.maintainers[0]
+        response = self.get("maintainer", maintainer_id=maintainer.pk)
+        self.assertEqual(response.status_code, 200)
+
+        self._check_table(response, self.packages[:1], attr="name")
+
 
 class OverlayTests(SectionTests):
     def setUp(self):
         super(OverlayTests, self).setUp()
         self.overlays = [random_string() for _ in range(3)]
+        self.packages = defaultdict(list)
 
         for _ in range(3):
-            self.package = PackageFactory.create()
+            package = PackageFactory.create()
             for overlay in self.overlays:
-                VersionFactory.create(package=self.package,
+                VersionFactory.create(package=package,
                                       overlay=overlay)
+                self.packages[overlay].append(package)
 
     def test_overlays(self):
         response = self.get("overlays")
         self.assertEqual(response.status_code, 200)
 
         self._check_table(response, self.overlays)
+
+    def test_overlay(self):
+        overlay = self.overlays[0]
+        response = self.get("overlay", overlay=overlay)
+        self.assertEqual(response.status_code, 200)
+
+        self._check_table(response, self.packages[overlay], attr="name")
 
 
 class WorldScanTests(SectionTests):
