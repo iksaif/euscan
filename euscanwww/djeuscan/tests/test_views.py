@@ -25,6 +25,10 @@ class PagesTest(SystemTestCase):
         response = self.get("about")
         self.assertEqual(response.status_code, 200)
 
+    def test_global_feed(self):
+        response = self.get("global_feed")
+        self.assertEqual(response.status_code, 200)
+
 
 class PackageTests(SystemTestCase):
     def setUp(self):
@@ -71,6 +75,11 @@ class CategoriesTests(SectionTests):
 
         self._check_table(response, self.packages[:1], attr="name")
 
+    def test_category_feed(self):
+        category = self.categories[0]
+        response = self.get("category_feed", category=category)
+        self.assertEqual(response.status_code, 200)
+
 
 class HerdsTests(SectionTests):
     def setUp(self):
@@ -96,6 +105,11 @@ class HerdsTests(SectionTests):
 
         self._check_table(response, self.packages[:1], attr="name")
 
+    def test_herd_feed(self):
+        herd = self.herds[0]
+        response = self.get("herd_feed", herd=herd.herd)
+        self.assertEqual(response.status_code, 200)
+
 
 class MaintainersTests(SectionTests):
     def setUp(self):
@@ -120,6 +134,11 @@ class MaintainersTests(SectionTests):
         self.assertEqual(response.status_code, 200)
 
         self._check_table(response, self.packages[:1], attr="name")
+
+    def test_maintainer_feed(self):
+        maintainer = self.maintainers[0]
+        response = self.get("maintainer_feed", maintainer_id=maintainer.pk)
+        self.assertEqual(response.status_code, 200)
 
 
 class OverlayTests(SectionTests):
