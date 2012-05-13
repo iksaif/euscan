@@ -37,7 +37,12 @@ def logs(request):
 
 @render_to('euscan/categories.html')
 def categories(request):
-    return {'categories': Package.objects.categories()}
+    try:
+        last_scan = EuscanResult.objects.latest().datetime
+    except EuscanResult.DoesNotExist:
+        last_scan = None
+
+    return {'categories': Package.objects.categories(), 'last_scan': last_scan}
 
 
 @render_to('euscan/category.html')
@@ -46,39 +51,81 @@ def category(request, category):
 
     if not packages:
         raise Http404
-    return {'category': category, 'packages': packages}
+
+    try:
+        last_scan = \
+            EuscanResult.objects.for_category(category).latest().datetime
+    except EuscanResult.DoesNotExist:
+        last_scan = None
+
+    return {'category': category, 'packages': packages, 'last_scan': last_scan}
 
 
 @render_to('euscan/herds.html')
 def herds(request):
     herds = Package.objects.herds()
-    return {'herds': herds}
+
+    try:
+        last_scan = EuscanResult.objects.latest().datetime
+    except EuscanResult.DoesNotExist:
+        last_scan = None
+
+    return {'herds': herds, 'last_scan': last_scan}
 
 
 @render_to('euscan/herd.html')
 def herd(request, herd):
     herd = get_object_or_404(Herd, herd=herd)
     packages = Package.objects.for_herd(herd, last_versions=True)
-    return {'herd': herd, 'packages': packages}
+
+    try:
+        last_scan = EuscanResult.objects.for_herd(herd).latest().datetime
+    except EuscanResult.DoesNotExist:
+        last_scan = None
+
+    return {'herd': herd, 'packages': packages, "last_scan": last_scan}
 
 
 @render_to('euscan/maintainers.html')
 def maintainers(request):
     maintainers = Package.objects.maintainers()
-    return {'maintainers': maintainers}
+
+    try:
+        last_scan = EuscanResult.objects.latest().datetime
+    except EuscanResult.DoesNotExist:
+        last_scan = None
+
+    return {'maintainers': maintainers, 'last_scan': last_scan}
 
 
 @render_to('euscan/maintainer.html')
 def maintainer(request, maintainer_id):
     maintainer = get_object_or_404(Maintainer, pk=maintainer_id)
     packages = Package.objects.for_maintainer(maintainer, last_versions=True)
-    return {'maintainer': maintainer, 'packages': packages}
+
+    try:
+        last_scan = \
+            EuscanResult.objects.for_maintainer(maintainer).latest().datetime
+    except EuscanResult.DoesNotExist:
+        last_scan = None
+
+    return {
+        'maintainer': maintainer,
+        'packages': packages,
+        'last_scan': last_scan
+    }
 
 
 @render_to('euscan/overlays.html')
 def overlays(request):
     overlays = Package.objects.overlays()
-    return {'overlays': overlays}
+
+    try:
+        last_scan = EuscanResult.objects.latest().datetime
+    except EuscanResult.DoesNotExist:
+        last_scan = None
+
+    return {'overlays': overlays, 'last_scan': last_scan}
 
 
 @render_to('euscan/overlay.html')
@@ -86,7 +133,13 @@ def overlay(request, overlay):
     packages = Package.objects.for_overlay(overlay)
     if not packages:
         raise Http404
-    return {'overlay': overlay, 'packages': packages}
+
+    try:
+        last_scan = EuscanResult.objects.latest().datetime
+    except EuscanResult.DoesNotExist:
+        last_scan = None
+
+    return {'overlay': overlay, 'packages': packages, 'last_scan': last_scan}
 
 
 @render_to('euscan/package.html')
@@ -103,8 +156,19 @@ def package(request, category, package):
     log = log[0] if log else None
     vlog = VersionLog.objects.for_package(package, order=True)
 
-    return {'package': package, 'packaged': packaged,
-            'upstream': upstream, 'log': log, 'vlog': vlog}
+    try:
+        last_scan = EuscanResult.objects.for_package(package).latest().datetime
+    except EuscanResult.DoesNotExist:
+        last_scan = None
+
+    return {
+        'package': package,
+        'packaged': packaged,
+        'upstream': upstream,
+        'log': log,
+        'vlog': vlog,
+        'last_scan': last_scan
+    }
 
 
 @render_to('euscan/world.html')

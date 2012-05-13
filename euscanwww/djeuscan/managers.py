@@ -145,3 +145,26 @@ class VersionLogQuerySet(models.query.QuerySet, VersionLogMixin):
 class VersionLogManager(models.Manager, VersionLogMixin):
     def get_query_set(self):
         return VersionLogQuerySet(self.model, using=self._db)
+
+
+class EuscanResultMixin(object):
+    def for_package(self, package):
+        return self.filter(package=package)
+
+    def for_maintainer(self, maintainer):
+        return self.filter(package__maintainers__id=maintainer.id)
+
+    def for_category(self, category):
+        return self.filter(package__category=category)
+
+    def for_herd(self, herd):
+        return self.filter(package__herds__id=herd.id)
+
+
+class EuscanResultQuerySet(models.query.QuerySet, EuscanResultMixin):
+    pass
+
+
+class EuscanResultManager(models.Manager, EuscanResultMixin):
+    def get_query_set(self):
+        return EuscanResultQuerySet(self.model, using=self._db)

@@ -1,6 +1,7 @@
 from django.db import models
 
-from djeuscan.managers import PackageManager, VersionLogManager
+from djeuscan.managers import PackageManager, VersionLogManager, \
+    EuscanResultManager
 
 
 class Herd(models.Model):
@@ -134,6 +135,8 @@ class EuscanResult(models.Model):
     package = models.ForeignKey(Package)
     datetime = models.DateTimeField()
     result = models.TextField(blank=True)
+
+    objects = EuscanResultManager()
 
     class Meta:
         get_latest_by = "datetime"
