@@ -1,5 +1,5 @@
-from models import Package, Version, VersionLog, EuscanResult, Log, WorldLog, \
-    CategoryLog, HerdLog, MaintainerLog, Herd, Maintainer
+from djeuscan.models import Package, Version, VersionLog, EuscanResult, \
+    Log, WorldLog, CategoryLog, HerdLog, MaintainerLog, Herd, Maintainer
 from django.contrib import admin
 
 admin.site.register(Herd)

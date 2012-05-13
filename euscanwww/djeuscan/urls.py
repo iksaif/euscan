@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import url, patterns, include
-from feeds import PackageFeed, CategoryFeed, HerdFeed, MaintainerFeed, \
-    GlobalFeed
+from djeuscan.feeds import PackageFeed, CategoryFeed, HerdFeed, \
+    MaintainerFeed, GlobalFeed
 
 package_patterns = patterns('djeuscan.views',
     url(r'^(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/feed/$',

@@ -8,8 +8,7 @@ from djeuscan.helpers import version_key, packages_from_names
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog
 from djeuscan.forms import WorldForm, PackagesForm
-
-import charts
+from djeuscan import charts
 
 
 @render_to('euscan/index.html')

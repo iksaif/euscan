@@ -4,8 +4,8 @@ register = template.Library()
 
 
 @register.inclusion_tag('euscan/_packages.html', takes_context=True)
-def packages(context, packages):
-    context['packages'] = packages
+def packages(context, pkgs):
+    context['packages'] = pkgs
     return context
 
 

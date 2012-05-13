@@ -64,16 +64,16 @@ def chart_name(name, **kwargs):
 
 
 def getpackages(**kwargs):
-    packages = Package.objects
+    pkgs = Package.objects
 
     if 'category' in kwargs and kwargs['category']:
-        packages = Package.objects.for_category(kwargs['category'])
+        pkgs = Package.objects.for_category(kwargs['category'])
     if 'herd' in kwargs and kwargs['herd']:
-        packages = Package.objects.for_herd(kwargs['herd'])
+        pkgs = Package.objects.for_herd(kwargs['herd'])
     if 'maintainer' in kwargs and kwargs['maintainer']:
-        packages = Package.objects.for_maintainer(kwargs['maintainer'])
+        pkgs = Package.objects.for_maintainer(kwargs['maintainer'])
 
-    return packages
+    return pkgs
 
 
 def cached_pylab_chart(f):

@@ -62,15 +62,15 @@ class Package(models.Model):
 
     objects = PackageManager()
 
-    @property
-    def homepages(self):
-        return self.homepage.split(' ')
+    class Meta:
+        unique_together = ['category', 'name']
 
     def __unicode__(self):
         return '%s/%s' % (self.category, self.name)
 
-    class Meta:
-        unique_together = ['category', 'name']
+    @property
+    def homepages(self):
+        return self.homepage.split(' ')
 
 
 class Version(models.Model):
@@ -87,14 +87,14 @@ class Version(models.Model):
     urls = models.TextField(blank=True)
     alive = models.BooleanField(default=True, db_index=True)
 
+    class Meta:
+        unique_together = ['package', 'slot', 'revision', 'version', 'overlay']
+
     def __unicode__(self):
         return '%s/%s-%s-%s:%s [%s]' % (
             self.package.category, self.package.name, self.version,
             self.revision, self.slot, self.overlay
         )
-
-    class Meta:
-        unique_together = ['package', 'slot', 'revision', 'version', 'overlay']
 
 
 class VersionLog(models.Model):
@@ -116,10 +116,6 @@ class VersionLog(models.Model):
 
     objects = VersionLogManager()
 
-    def tag(self):
-        return '%s-%s:%s-[%s]' % (self.version, self.revision, self.slot,
-                                  self.overlay)
-
     def __unicode__(self):
         txt = '+ ' if self.action == self.VERSION_ADDED else '- '
         txt += '%s/%s-%s-%s:%s [%s]' % (
@@ -128,6 +124,10 @@ class VersionLog(models.Model):
             self.overlay if self.overlay else '<upstream>'
         )
         return txt
+
+    def tag(self):
+        return '%s-%s:%s-[%s]' % (self.version, self.revision, self.slot,
+                                  self.overlay)
 
 
 class EuscanResult(models.Model):
