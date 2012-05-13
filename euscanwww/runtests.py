@@ -16,7 +16,8 @@ settings.configure(
     INSTALLED_APPS=['euscanwww.euscanwww', 'djeuscan'],
     ROOT_URLCONF='euscanwww.euscanwww.urls',
     EUSCAN_ROOT=EUSCAN_ROOT,
-    RRD_ROOT=os.path.join(EUSCAN_ROOT, 'var', 'rrd')
+    RRD_ROOT=os.path.join(EUSCAN_ROOT, 'var', 'rrd'),
+    USE_TZ=True
 )
 
 
