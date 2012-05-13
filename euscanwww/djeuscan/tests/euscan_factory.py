@@ -1,7 +1,9 @@
 import random
 from string import letters
-import factory
 from datetime import datetime
+from collections import defaultdict
+
+import factory
 
 from djeuscan.models import Herd, Maintainer, Package, Version, EuscanResult
 
@@ -52,3 +54,46 @@ class EuscanResultFactory(factory.Factory):
     package = factory.LazyAttribute(lambda a: PackageFactory())
     datetime = datetime.now()
     result = "this is the result"
+
+
+def setup_maintainers():
+    maintainers = [MaintainerFactory.create() for _ in range(10)]
+    packages = []
+    for i in range(0, 10, 2):
+        p = PackageFactory.create()
+        p.maintainers.add(maintainers[i])
+        p.maintainers.add(maintainers[i + 1])
+        packages.append(p)
+    return maintainers, packages
+
+
+def setup_categories():
+    packages = [PackageFactory.create() for _ in range(10)]
+    categories = [p.category for p in packages]
+    return categories, packages
+
+
+def setup_herds():
+    herds = [HerdFactory.create() for _ in range(10)]
+    packages = []
+
+    for i in range(0, 10, 2):
+        p = PackageFactory.create()
+        p.herds.add(herds[i])
+        p.herds.add(herds[i + 1])
+        packages.append(p)
+    return herds, packages
+
+
+def setup_overlays():
+    overlays = [random_string() for _ in range(3)]
+    packages = defaultdict(list)
+
+    for _ in range(3):
+        package = PackageFactory.create()
+        for overlay in overlays:
+            VersionFactory.create(package=package,
+                                  overlay=overlay)
+            packages[overlay].append(package)
+
+    return overlays, packages

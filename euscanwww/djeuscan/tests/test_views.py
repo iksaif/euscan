@@ -1,11 +1,10 @@
 import StringIO
-from collections import defaultdict
 
 from BeautifulSoup import BeautifulSoup
 
 from djeuscan.tests import SystemTestCase
-from djeuscan.tests.euscan_factory import PackageFactory, HerdFactory, \
-    MaintainerFactory, VersionFactory, random_string
+from djeuscan.tests.euscan_factory import PackageFactory, setup_maintainers, \
+    setup_herds, setup_categories, setup_overlays
 
 
 class PagesTest(SystemTestCase):
@@ -59,8 +58,7 @@ class SectionTests(SystemTestCase):
 class CategoriesTests(SectionTests):
     def setUp(self):
         super(CategoriesTests, self).setUp()
-        self.packages = [PackageFactory.create() for _ in range(10)]
-        self.categories = [p.category for p in self.packages]
+        self.categories, self.packages = setup_categories()
 
     def test_categories(self):
         response = self.get("categories")
@@ -84,13 +82,7 @@ class CategoriesTests(SectionTests):
 class HerdsTests(SectionTests):
     def setUp(self):
         super(HerdsTests, self).setUp()
-        self.herds = [HerdFactory.create() for _ in range(10)]
-        self.packages = []
-        for i in range(0, 10, 2):
-            p = PackageFactory.create()
-            p.herds.add(self.herds[i])
-            p.herds.add(self.herds[i + 1])
-            self.packages.append(p)
+        self.herds, self.packages = setup_herds()
 
     def test_herds(self):
         response = self.get("herds")
@@ -114,13 +106,7 @@ class HerdsTests(SectionTests):
 class MaintainersTests(SectionTests):
     def setUp(self):
         super(MaintainersTests, self).setUp()
-        self.maintainers = [MaintainerFactory.create() for _ in range(10)]
-        self.packages = []
-        for i in range(0, 10, 2):
-            p = PackageFactory.create()
-            p.maintainers.add(self.maintainers[i])
-            p.maintainers.add(self.maintainers[i + 1])
-            self.packages.append(p)
+        self.maintainers, self.packages = setup_maintainers()
 
     def test_maintainers(self):
         response = self.get("maintainers")
@@ -144,15 +130,7 @@ class MaintainersTests(SectionTests):
 class OverlayTests(SectionTests):
     def setUp(self):
         super(OverlayTests, self).setUp()
-        self.overlays = [random_string() for _ in range(3)]
-        self.packages = defaultdict(list)
-
-        for _ in range(3):
-            package = PackageFactory.create()
-            for overlay in self.overlays:
-                VersionFactory.create(package=package,
-                                      overlay=overlay)
-                self.packages[overlay].append(package)
+        self.overlays, self.packages = setup_overlays()
 
     def test_overlays(self):
         response = self.get("overlays")
