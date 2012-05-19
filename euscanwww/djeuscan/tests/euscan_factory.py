@@ -8,7 +8,9 @@ import factory
 from djeuscan.models import Herd, Maintainer, Package, Version, EuscanResult
 
 
-def random_string(length=10):
+def random_string(length=None):
+    if length is None:
+        length = random.randint(1, 30)
     return "".join([random.choice(letters) for _ in range(length)])
 
 
@@ -29,7 +31,9 @@ class MaintainerFactory(factory.Factory):
 class PackageFactory(factory.Factory):
     FACTORY_FOR = Package
 
-    category = factory.LazyAttribute(lambda a: random_string())
+    category = factory.LazyAttribute(
+        lambda a: "%s-%s" % (random_string(), random_string())
+    )
     name = factory.LazyAttribute(lambda a: random_string())
     description = "This is a test package"
     homepage = "http://testpackage.com"

@@ -6,6 +6,7 @@ from datetime import datetime
 
 from django.test import TestCase
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 from django.utils.timezone import utc
 
 from djeuscan.models import Package, EuscanResult
@@ -24,7 +25,7 @@ class VersionModelTests(TestCase):
         package = PackageFactory.create()
         VersionFactory.create(package=package)
 
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises((IntegrityError, ValidationError)):
             VersionFactory.create(package=package)
 
 

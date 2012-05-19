@@ -1,7 +1,14 @@
 from django.db import models
+from django.core.validators import RegexValidator, validate_email, URLValidator
 
 from djeuscan.managers import PackageManager, VersionLogManager, \
     EuscanResultManager
+
+
+validate_category = RegexValidator("^\w+?-\w+?$")
+validate_name = RegexValidator("^\S+?$")
+validate_revision = RegexValidator("^r\d+?$")
+validate_url = URLValidator()
 
 
 class Herd(models.Model):
@@ -9,13 +16,19 @@ class Herd(models.Model):
     A herd is a collection of packages
     """
 
-    herd = models.CharField(max_length=128, unique=True)
-    email = models.CharField(max_length=128, blank=True, null=True)
+    herd = models.CharField(max_length=128, unique=True,
+                            validators=[validate_name])
+    email = models.CharField(max_length=128, blank=True, null=True,
+                             validators=[validate_email])
 
     def __unicode__(self):
         if self.email:
             return '%s <%s>' % (self.herd, self.email)
         return self.herd
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Herd, self).save(*args, **kwargs)
 
 
 class Maintainer(models.Model):
@@ -24,10 +37,15 @@ class Maintainer(models.Model):
     """
 
     name = models.CharField(max_length=128)
-    email = models.CharField(max_length=128, unique=True)
+    email = models.CharField(max_length=128, unique=True,
+                             validators=[validate_email])
 
     def __unicode__(self):
         return '%s <%s>' % (self.name, self.email)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Maintainer, self).save(*args, **kwargs)
 
 
 class Package(models.Model):
@@ -35,10 +53,10 @@ class Package(models.Model):
     A portage package
     """
 
-    category = models.CharField(max_length=128)
-    name = models.CharField(max_length=128)
+    category = models.CharField(max_length=128, validators=[validate_category])
+    name = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(blank=True)
-    homepage = models.TextField(blank=True)
+    homepage = models.TextField(blank=True, validators=[validate_url])
     herds = models.ManyToManyField(Herd, blank=True)
     maintainers = models.ManyToManyField(Maintainer, blank=True)
 
@@ -69,6 +87,10 @@ class Package(models.Model):
     def __unicode__(self):
         return '%s/%s' % (self.category, self.name)
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Package, self).save(*args, **kwargs)
+
     @property
     def homepages(self):
         return self.homepage.split(' ')
@@ -84,7 +106,8 @@ class Version(models.Model):
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
-    overlay = models.CharField(max_length=128, default='gentoo', db_index=True)
+    overlay = models.CharField(max_length=128, default='gentoo', db_index=True,
+                               validators=[validate_name])
     urls = models.TextField(blank=True)
     alive = models.BooleanField(default=True, db_index=True)
 
@@ -96,6 +119,10 @@ class Version(models.Model):
             self.package.category, self.package.name, self.version,
             self.revision, self.slot, self.overlay
         )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Version, self).save(*args, **kwargs)
 
 
 class VersionLog(models.Model):
@@ -112,7 +139,8 @@ class VersionLog(models.Model):
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
-    overlay = models.CharField(max_length=128, default='gentoo')
+    overlay = models.CharField(max_length=128, default='gentoo',
+                               validators=[validate_name])
     action = models.IntegerField(choices=VERSION_ACTIONS)
 
     objects = VersionLogManager()
@@ -125,6 +153,10 @@ class VersionLog(models.Model):
             self.overlay if self.overlay else '<upstream>'
         )
         return txt
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(VersionLog, self).save(*args, **kwargs)
 
     def tag(self):
         return '%s-%s:%s-[%s]' % (self.version, self.revision, self.slot,
@@ -140,6 +172,10 @@ class EuscanResult(models.Model):
 
     class Meta:
         get_latest_by = "datetime"
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(EuscanResult, self).save(*args, **kwargs)
 
 
 class Log(models.Model):
@@ -174,6 +210,10 @@ class Log(models.Model):
             self.n_versions_overlay, self.n_versions_upstream
         )
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Log, self).save(*args, **kwargs)
+
 
 class WorldLog(Log):
     def __unicode__(self):
@@ -181,7 +221,7 @@ class WorldLog(Log):
 
 
 class CategoryLog(Log):
-    category = models.CharField(max_length=128)
+    category = models.CharField(max_length=128, validators=[validate_category])
 
     def __unicode__(self):
         return u'%s %s' % (self.category, Log.__unicode__(self))
