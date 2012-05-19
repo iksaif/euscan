@@ -12,6 +12,7 @@ except ImportError:
 from glob import glob
 
 import os
+from os.path import join, dirname
 import io
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pym'))
@@ -76,6 +77,7 @@ setup(
     name='euscan',
     version=__version__,
     description='Ebuild upstream scan utility.',
+    long_description=open(join(dirname(__file__), 'README.rst')).read(),
     author='Corentin Chary',
     author_email='corentin.chary@gmail.com',
     maintainer='Corentin Chary',
