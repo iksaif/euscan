@@ -6,51 +6,58 @@ Distributed under the terms of the GNU General Public License v2
 
 from __future__ import print_function
 
-""" Meta """
+
+# Meta
+
 __author__ = "Corentin Chary (iksaif)"
 __email__ = "corentin.chary@gmail.com"
 __version__ = "git"
 __productname__ = "euscan"
 __description__ = "A tool to detect new upstream releases."
-__version__ = "git"
 
-""" Imports """
+
+# Imports
 
 import sys
 import getopt
 import errno
 import httplib
 
-from portage.output import white, yellow, turquoise, green, EOutput
+from portage.output import white, yellow, turquoise, green
 from portage.exception import AmbiguousPackageName
 
 from gentoolkit import pprinter as pp
 from gentoolkit.eclean.search import (port_settings)
 from gentoolkit.errors import GentoolkitException
 
-import euscan
-from euscan import CONFIG
+from euscan import CONFIG, output
 from euscan.scan import scan_upstream
 
-""" Globals """
+
+# Globals
+
+def exit_helper(status):
+    if CONFIG["format"]:
+        print(output.get_formatted_output())
+    sys.exit(status)
 
 
-def setupSignals():
-    """ This block ensures that ^C interrupts are handled quietly. """
+def setup_signals():
+    """This block ensures that ^C interrupts are handled quietly."""
     import signal
 
     def exithandler(signum, frame):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         print()
-        sys.exit(errno.EINTR)
+        exit_helper(errno.EINTR)
 
     signal.signal(signal.SIGINT, exithandler)
     signal.signal(signal.SIGTERM, exithandler)
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 
-def printVersion():
+def print_version():
     """Output the version info."""
     print("%s (%s) - %s" \
             % (__productname__, __version__, __description__))
@@ -60,23 +67,26 @@ def printVersion():
     print("Distributed under the terms of the GNU General Public License v2")
 
 
-def printUsage(_error=None, help=None):
+def print_usage(_error=None, help=None):
     """Print help message. May also print partial help to stderr if an
     error from {'options'} is specified."""
 
     out = sys.stdout
     if _error:
         out = sys.stderr
+
     if not _error in ('global-options', 'packages',):
         _error = None
+
     if not _error and not help:
         help = 'all'
+
     if _error in ('global-options',):
-        print(pp.error("Wrong option on command line."), file=out)
-        print(file=out)
+        output.eerror("Wrong option on command line.\n")
+
     if _error in ('packages',):
-        print(pp.error("You need to specify exactly one package."), file=out)
-        print(file=out)
+        output.eerror("You need to specify exactly one package.\n")
+
     print(white("Usage:"), file=out)
     if _error in ('global-options', 'packages',) or help == 'all':
         print(" " + turquoise(__productname__),
@@ -106,14 +116,19 @@ def printUsage(_error=None, help=None):
             " (default: 2)\n" +
             " " * 29 + "bigger levels will generate more versions numbers\n" +
             " " * 29 + "0 means disabled", file=out)
+        print(yellow(" -f, --format=<format>") +
+              "     - define the output " + yellow("<format>") +
+              " (available: json)", file=out)
         print(file=out)
+
     if _error in ('packages',) or help:
         print(green(" package") +
             "                   - the packages (or ebuilds) you want to scan",
             file=out)
         print(file=out)
-        '''print( "More detailed instruction can be found in",
-        turquoise("`man %s`" % __productname__), file=out)'''
+
+        #print( "More detailed instruction can be found in",
+        #turquoise("`man %s`" % __productname__), file=out)
 
 
 class ParseArgsException(Exception):
@@ -125,12 +140,12 @@ class ParseArgsException(Exception):
         return repr(self.value)
 
 
-def parseArgs():
+def parse_args():
     """Parse the command line arguments. Raise exceptions on
-    errors. Returns package and affect the CONFIG dict.
+    errors. Returns packages and affects the CONFIG dict.
     """
 
-    def optionSwitch(opts):
+    def option_switch(opts):
         """local function for interpreting command line options
         and setting options accordingly"""
         return_code = True
@@ -150,30 +165,36 @@ def parseArgs():
             elif o in ("-b", "--brute-force"):
                 CONFIG['brute-force'] = int(a)
             elif o in ("-v", "--verbose") and not CONFIG['quiet']:
-                    CONFIG['verbose'] += 1
+                CONFIG['verbose'] += 1
+            elif o in ("-f", "--format"):
+                CONFIG['format'] = a
+                CONFIG['nocolor'] = True
+                pp.output.nocolor()
             else:
                 return_code = False
 
         return return_code
 
-    ' here are the different allowed command line options (getopt args) '
+    # here are the different allowed command line options (getopt args)
     getopt_options = {'short': {}, 'long': {}}
-    getopt_options['short']['global'] = "hVCqv1b:"
-    getopt_options['long']['global'] = ["help", "version", "nocolor", "quiet",
-                        "verbose", "oneshot", "brute-force="]
+    getopt_options['short']['global'] = "hVCqv1bf:"
+    getopt_options['long']['global'] = [
+        "help", "version", "nocolor", "quiet", "verbose", "oneshot",
+        "brute-force=", "format="
+    ]
 
     short_opts = getopt_options['short']['global']
     long_opts = getopt_options['long']['global']
     opts_mode = 'global'
 
-    ' apply getopts to command line, show partial help on failure '
+    # apply getopts to command line, show partial help on failure
     try:
         opts, args = getopt.getopt(sys.argv[1:], short_opts, long_opts)
     except:
         raise ParseArgsException(opts_mode + '-options')
 
-    ' set options accordingly '
-    optionSwitch(opts)
+    # set options accordingly
+    option_switch(opts)
 
     if len(args) < 1:
         raise ParseArgsException('packages')
@@ -183,29 +204,32 @@ def parseArgs():
 
 def main():
     """Parse command line and execute all actions."""
-    CONFIG['nocolor'] = (port_settings["NOCOLOR"] in ('yes', 'true')
-        or not sys.stdout.isatty())
+    CONFIG['nocolor'] = (
+        port_settings["NOCOLOR"] in ('yes', 'true') or not sys.stdout.isatty()
+    )
     if CONFIG['nocolor']:
         pp.output.nocolor()
-    ' parse command line options and actions '
+
+    # parse command line options and actions
     try:
-        packages = parseArgs()
+        packages = parse_args()
     except ParseArgsException as e:
         if e.value == 'help':
-            printUsage(help='all')
-            sys.exit(0)
-        elif e.value[:5] == 'help-':
-            printUsage(help=e.value[5:])
-            sys.exit(0)
-        elif e.value == 'version':
-            printVersion()
-            sys.exit(0)
-        else:
-            printUsage(e.value)
-            sys.exit(errno.EINVAL)
+            print_usage(help='all')
+            exit_helper(0)
 
-    """ Change euscan's output """
-    euscan.output = EOutput(CONFIG['quiet'])
+        elif e.value[:5] == 'help-':
+            print_usage(help=e.value[5:])
+            exit_helper(0)
+
+        elif e.value == 'version':
+            print_version()
+            exit_helper(0)
+
+        else:
+            print_usage(e.value)
+            exit_helper(errno.EINVAL)
+
     if CONFIG['verbose'] > 2:
         httplib.HTTPConnection.debuglevel = 1
 
@@ -216,48 +240,39 @@ def main():
             ret = scan_upstream(package)
         except AmbiguousPackageName as e:
             pkgs = e.args[0]
-            for candidate in pkgs:
-                print(candidate)
+            output.eerror("\n".join(pkgs))
 
             from os.path import basename  # To get the short name
 
-            print(file=sys.stderr)
-            print(
-                pp.error(
-                    "The short ebuild name '%s' is ambiguous. Please specify" \
-                    % basename(pkgs[0])
-                ),
-                file=sys.stderr, end=""
+            output.error(
+                "The short ebuild name '%s' is ambiguous. Please specify" %
+                    basename(pkgs[0]),
+                "one of the above fully-qualified ebuild names instead."
             )
-            pp.die(1, "one of the above fully-qualified ebuild names instead.")
-        except GentoolkitException as err:
-            pp.die(1, '%s: %s' % (package, str(err)))
-        except Exception as err:
-            pp.die(1, '%s: %s' % (package, str(err)))
+            exit_helper(1)
 
-        if not CONFIG['quiet']:
+        except GentoolkitException as err:
+            output.eerror('%s: %s' % (package, str(err)))
+            exit_helper(1)
+
+        except Exception as err:
+            output.eerror('%s: %s' % (package, str(err)))
+            exit_helper(1)
+
+        if not CONFIG['quiet'] and not CONFIG['format']:
             print()
 
         for cp, url, version in ret:
-            if not CONFIG['quiet']:
-                print("Upstream Version: "
-                      + pp.number("%s" % version)
-                      + pp.path(" %s" % url))
-            else:
-                print(pp.cpv("%s-%s" % (cp, version))
-                      + ": " + pp.path(url))
+            output.result(cp, version, url)
 
         if not len(ret) and not CONFIG['quiet']:
-            print(pp.warn("Didn't find any new version, "
-                          + "check package's homepage for "
-                          + "more informations"))
+            output.ewarn(
+                "Didn't find any new version, check package's homepage for " +
+                "more informations"
+            )
 
 
 if __name__ == "__main__":
-    try:
-        setupSignals()
-        main()
-    except KeyboardInterrupt:
-        print("Aborted.")
-        sys.exit(errno.EINTR)
-    sys.exit(0)
+    setup_signals()
+    main()
+    exit_helper(0)

@@ -3,10 +3,16 @@
 # Copyright 2011 Corentin Chary <corentin.chary@gmail.com>
 # Distributed under the terms of the GNU General Public License v2
 
+from io import StringIO
+from collections import defaultdict
+import json
+
+from gentoolkit import pprinter as pp
+from portage.output import EOutput
+
+
 __version__ = "git"
 
-
-from portage.output import EOutput
 
 CONFIG = {
     'nocolor': False,
@@ -20,10 +26,10 @@ CONFIG = {
     'oneshot': True,
     'user-agent': 'escan (http://euscan.iksaif.net)',
     'skip-robots-txt': False,
-    'cache': False
+    'cache': False,
+    'format': None,
+    'indent': 2
 }
-
-output = EOutput(CONFIG['quiet'])
 
 BLACKLIST_VERSIONS = [
     # Compatibility package for running binaries linked against a
@@ -67,3 +73,67 @@ ROBOTS_TXT_BLACKLIST_DOMAINS = [
     '(.*)chromium.org(.*)',
     '(.*)nodejs.org(.*)',
 ]
+
+
+class EOutputFile(EOutput):
+    """
+    Override of EOutput, allows to specify an output file for writes
+    """
+    def __init__(self, out_file=None, *args, **kwargs):
+        super(EOutputFile, self).__init__(*args, **kwargs)
+        self.out_file = out_file
+
+    def _write(self, f, msg):
+        if self.out_file is None:
+            super(EOutputFile, self)._write(f, msg)
+        else:
+            super(EOutputFile, self)._write(self.out_file, msg)
+
+
+class EuscanOutput(object):
+    """
+    Class that handles output for euscan
+    """
+    def __init__(self, config):
+        self.config = config
+        self.data = defaultdict(StringIO)
+        self.packages = defaultdict(list)
+
+    def get_formatted_output(self):
+        data = {}
+        for key in self.data:
+            if key not in ("ebegin", "eend"):
+                val = [x for x in self.data[key].getvalue().split("\n") if x]
+                data[key] = val
+
+        data["result"] = self.packages
+
+        if self.config["format"].lower() == "json":
+            return json.dumps(data, indent=self.config["indent"])
+        else:
+            raise TypeError("Invalid output format")
+
+    def result(self, cp, version, url):
+        if self.config['format']:
+            self.packages[cp].append({"version": version, "url": url})
+        else:
+            if not self.config['quiet']:
+                print "Upstream Version:", pp.number("%s" % version),
+                print pp.path(" %s" % url)
+            else:
+                print pp.cpv("%s-%s" % (cp, version)) + ":", pp.path(url)
+
+    def __getattr__(self, key):
+        output_file = self.data[key] if self.config["format"] else None
+
+        if output_file:
+            _output = EOutputFile(out_file=self.data[key],
+                                  quiet=self.config['quiet'])
+            ret = getattr(_output, key)
+        else:
+            ret = getattr(EOutputFile(quiet=self.config['quiet']), key)
+
+        return ret
+
+
+output = EuscanOutput(CONFIG)

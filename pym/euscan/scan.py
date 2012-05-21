@@ -39,7 +39,7 @@ def scan_upstream_urls(cpv, urls):
 
     for filename in urls:
         for url in urls[filename]:
-            if not CONFIG['quiet']:
+            if not CONFIG['quiet'] and not CONFIG['format']:
                 pp.uprint()
             euscan.output.einfo("SRC_URI is '%s'" % url)
 
@@ -101,7 +101,7 @@ def scan_upstream(query):
         )
         return []
 
-    if not CONFIG['quiet']:
+    if not CONFIG['quiet'] and not CONFIG['format']:
         pp.uprint(
             " * %s [%s]" % (pp.cpv(pkg.cpv), pp.section(pkg.repo_name()))
         )
