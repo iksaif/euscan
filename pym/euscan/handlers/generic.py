@@ -153,7 +153,7 @@ def brute_force(cpv, url):
     components = helpers.split_version(ver)
     versions = helpers.gen_versions(components, CONFIG["brute-force"])
 
-    """ Remove unwanted versions """
+    # Remove unwanted versions
     for v in versions:
         if helpers.vercmp(cp, ver, helpers.join_version(v)) >= 0:
             versions.remove(v)
