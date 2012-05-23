@@ -10,7 +10,10 @@ from euscan import CONFIG, SCANDIR_BLACKLIST_URLS, \
     BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS, output, helpers
 
 HANDLER_NAME = "generic"
+CONFIDENCE = 50.0
+
 BRUTEFORCE_HANDLER_NAME = "brute_force"
+BRUTEFORCE_CONFIDENCE = 30.0
 
 
 def scan_html(data, url, pattern):
@@ -88,7 +91,7 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
             path = url + path
 
         if not steps and path not in orig_url:
-            versions.append((path, pv, HANDLER_NAME))
+            versions.append((path, pv, HANDLER_NAME, CONFIDENCE))
 
         if steps:
             ret = scan_directory_recursive(cp, ver, rev, path, steps, orig_url)
@@ -198,7 +201,8 @@ def brute_force(cpv, url):
         if not infos:
             continue
 
-        result.append([url, version, BRUTEFORCE_HANDLER_NAME])
+        result.append([url, version, BRUTEFORCE_HANDLER_NAME,
+                       BRUTEFORCE_CONFIDENCE])
 
         if len(result) > CONFIG['brute-force-false-watermark']:
             output.einfo(

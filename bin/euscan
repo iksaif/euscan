@@ -266,8 +266,8 @@ def main():
 
         if ret is not None:
             if len(ret) > 0:
-                for cp, url, version, handler in ret:
-                    output.result(cp, version, url, handler)
+                for cp, url, version, handler, confidence in ret:
+                    output.result(cp, version, url, handler, confidence)
             elif not CONFIG['quiet']:
                 output.ewarn(
                     "Didn't find any new version, check package's homepage " +

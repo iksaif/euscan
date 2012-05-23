@@ -130,11 +130,12 @@ class EuscanOutput(object):
         else:
             raise TypeError("Invalid output format")
 
-    def result(self, cp, version, url, handler):
+    def result(self, cp, version, url, handler, confidence):
         if self.config['format']:
             _curr = self.queries[self.current_query]
             _curr["result"].append(
-                {"version": version, "urls": [url], "handler": handler}
+                {"version": version, "urls": [url], "handler": handler,
+                 "confidence": confidence}
             )
         else:
             if not self.config['quiet']:

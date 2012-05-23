@@ -6,6 +6,7 @@ import xml.dom.minidom
 from euscan import helpers, output
 
 HANDLER_NAME = "php"
+CONFIDENCE = 100.0
 
 
 def can_handle(cpv, url):
@@ -65,7 +66,7 @@ def scan(cpv, url):
         if url == orig_url:
             continue
 
-        ret.append((url, pv, HANDLER_NAME))
+        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
 
     return ret
 

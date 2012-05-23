@@ -15,7 +15,7 @@ from euscan import handlers, helpers, output
 def filter_versions(cp, versions):
     filtered = {}
 
-    for url, version, handler in versions:
+    for url, version, handler, confidence in versions:
 
         # Try to keep the most specific urls (determinted by the length)
         if version in filtered and len(url) < len(filtered[version]):
@@ -25,10 +25,15 @@ def filter_versions(cp, versions):
         if helpers.version_blacklisted(cp, version):
             continue
 
-        filtered[version] = {"url": url, "handler": handler}
+        filtered[version] = {
+            "url": url,
+            "handler": handler,
+            "confidence": confidence
+        }
 
     return [
-        (cp, filtered[version]["url"], version, filtered[version]["handler"])
+        (cp, filtered[version]["url"], version, filtered[version]["handler"],
+         filtered[version]["confidence"])
         for version in filtered
     ]
 

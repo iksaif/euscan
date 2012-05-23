@@ -12,10 +12,10 @@ def can_handle(cpv, url):
 def clean_results(results):
     ret = []
 
-    for path, version in results:
+    for path, version, confidence in results:
         if version == '5SUMS':
             continue
-        ret.append((path, version, HANDLER_NAME))
+        ret.append((path, version, HANDLER_NAME, confidence))
 
     return ret
 

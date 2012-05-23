@@ -6,6 +6,7 @@ import json
 from euscan import helpers, output
 
 HANDLER_NAME = "cpan"
+CONFIDENCE = 100.0
 
 _cpan_package_name_re = re.compile("mirror://cpan/authors/.*/([^/.]*).*")
 
@@ -126,7 +127,7 @@ def scan(cpv, url):
         if url == orig_url:
             continue
 
-        ret.append((url, pv, HANDLER_NAME))
+        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
 
     return ret
 
