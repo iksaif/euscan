@@ -1,8 +1,7 @@
 import os
-import sys
+from datetime import datetime
 
 import portage
-
 from portage.dbapi import porttree
 
 import gentoolkit.pprinter as pp
@@ -10,28 +9,28 @@ from gentoolkit.query import Query
 from gentoolkit.eclean.search import (port_settings)
 
 from euscan import CONFIG, BLACKLIST_PACKAGES
-from euscan import handlers
-from euscan import helpers
-
-import euscan
+from euscan import handlers, helpers, output
 
 
 def filter_versions(cp, versions):
     filtered = {}
 
-    for url, version in versions:
+    for url, version, handler in versions:
 
-        ''' Try to keep the most specific urls (determinted by the length) '''
+        # Try to keep the most specific urls (determinted by the length)
         if version in filtered and len(url) < len(filtered[version]):
             continue
 
-        ''' Remove blacklisted versions '''
+        # Remove blacklisted versions
         if helpers.version_blacklisted(cp, version):
             continue
 
-        filtered[version] = url
+        filtered[version] = {"url": url, "handler": handler}
 
-    return [(cp, filtered[version], version) for version in filtered]
+    return [
+        (cp, filtered[version]["url"], version, filtered[version]["handler"])
+        for version in filtered
+    ]
 
 
 def scan_upstream_urls(cpv, urls):
@@ -41,20 +40,20 @@ def scan_upstream_urls(cpv, urls):
         for url in urls[filename]:
             if not CONFIG['quiet'] and not CONFIG['format']:
                 pp.uprint()
-            euscan.output.einfo("SRC_URI is '%s'" % url)
+            output.einfo("SRC_URI is '%s'" % url)
 
             if '://' not in url:
-                euscan.output.einfo("Invalid url '%s'" % url)
+                output.einfo("Invalid url '%s'" % url)
                 continue
 
-            ''' Try normal scan '''
+            # Try normal scan
             if CONFIG["scan-dir"]:
                 versions.extend(handlers.scan(cpv, url))
 
             if versions and CONFIG['oneshot']:
                 break
 
-            ''' Brute Force '''
+            # Brute Force
             if CONFIG["brute-force"] > 0:
                 versions.extend(handlers.brute_force(cpv, url))
 
@@ -79,10 +78,10 @@ def scan_upstream(query):
     )
 
     if not matches:
-        sys.stderr.write(
+        output.ewarn(
             pp.warn("No package matching '%s'" % pp.pkgquery(query))
         )
-        return []
+        return None
 
     matches = sorted(matches)
     pkg = matches.pop()
@@ -91,29 +90,41 @@ def scan_upstream(query):
         pkg = matches.pop()
 
     if not pkg:
-        sys.stderr.write(pp.warn("Package '%s' only have a dev version (9999)"
-                                 % pp.pkgquery(pkg.cp)))
-        return []
+        output.ewarn(
+            pp.warn("Package '%s' only have a dev version (9999)"
+                    % pp.pkgquery(pkg.cp))
+        )
+        return None
+
+    # useful data only for formatted output
+    output.metadata("datetime", datetime.now().isoformat(), show=False)
+    output.metadata("cp", pkg.cp, show=False)
+    output.metadata("cpv", pkg.cpv, show=False)
 
     if pkg.cp in BLACKLIST_PACKAGES:
-        sys.stderr.write(
+        output.ewarn(
             pp.warn("Package '%s' is blacklisted" % pp.pkgquery(pkg.cp))
         )
-        return []
+        return None
 
-    if not CONFIG['quiet'] and not CONFIG['format']:
-        pp.uprint(
-            " * %s [%s]" % (pp.cpv(pkg.cpv), pp.section(pkg.repo_name()))
-        )
-        pp.uprint()
+    if not CONFIG['quiet']:
+        if not CONFIG['format']:
+            pp.uprint(
+                " * %s [%s]" % (pp.cpv(pkg.cpv), pp.section(pkg.repo_name()))
+            )
+            pp.uprint()
+        else:
+            output.metadata("overlay", pp.section(pkg.repo_name()))
 
         ebuild_path = pkg.ebuild_path()
         if ebuild_path:
-            pp.uprint('Ebuild: ' + pp.path(os.path.normpath(ebuild_path)))
+            output.metadata(
+                "ebuild", pp.path(os.path.normpath(ebuild_path))
+            )
 
-        pp.uprint('Repository: ' + pkg.repo_name())
-        pp.uprint('Homepage: ' + pkg.environment("HOMEPAGE"))
-        pp.uprint('Description: ' + pkg.environment("DESCRIPTION"))
+        output.metadata("repository", pkg.repo_name())
+        output.metadata("homepage", pkg.environment("HOMEPAGE"))
+        output.metadata("description", pkg.environment("DESCRIPTION"))
 
     cpv = pkg.cpv
     metadata = {
@@ -125,11 +136,11 @@ def scan_upstream(query):
         alist = porttree._parse_uri_map(cpv, metadata, use=use)
         aalist = porttree._parse_uri_map(cpv, metadata)
     except Exception as e:
-        sys.stderr.write(pp.warn("%s\n" % str(e)))
-        sys.stderr.write(
+        output.ewarn(pp.warn("%s\n" % str(e)))
+        output.ewarn(
             pp.warn("Invalid SRC_URI for '%s'" % pp.pkgquery(cpv))
         )
-        return []
+        return None
 
     if "mirror" in portage.settings.features:
         urls = aalist

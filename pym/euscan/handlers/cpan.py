@@ -3,8 +3,9 @@ import portage
 import urllib2
 import json
 
-from euscan import helpers
-import euscan
+from euscan import helpers, output
+
+HANDLER_NAME = "cpan"
 
 _cpan_package_name_re = re.compile("mirror://cpan/authors/.*/([^/.]*).*")
 
@@ -83,7 +84,7 @@ def scan(cpv, url):
     orig_url = url
     url = 'http://search.cpan.org/api/dist/%s' % pkg
 
-    euscan.output.einfo("Using: " + url)
+    output.einfo("Using: " + url)
 
     try:
         fp = helpers.urlopen(url)
@@ -125,7 +126,7 @@ def scan(cpv, url):
         if url == orig_url:
             continue
 
-        ret.append((url, pv))
+        ret.append((url, pv, HANDLER_NAME))
 
     return ret
 

@@ -59,10 +59,11 @@ BRUTEFORCE_BLACKLIST_PACKAGES = [
 BRUTEFORCE_BLACKLIST_URLS = [
     'http://(.*)dockapps.org/download.php/id/(.*)',  # infinite loop
     'http://hydra.nixos.org/build/(.*)',  # infinite loop
-    'http://www.rennings.net/gentoo/distfiles/(.*)',  # Doesn't respect 404, infinite loop
-    'http://art.gnome.org/download/(.*)',  # Doesn't respect 404, infinite loop
-    'http://barelysufficient.org/~olemarkus/(.*)',  # Doesn't respect 404, infinite loop
-    'http://olemarkus.org/~olemarkus/(.*)',  # Doesn't respect 404, infinite loop
+    # Doesn't respect 404, infinite loop
+    'http://www.rennings.net/gentoo/distfiles/(.*)',
+    'http://art.gnome.org/download/(.*)',
+    'http://barelysufficient.org/~olemarkus/(.*)',
+    'http://olemarkus.org/~olemarkus/(.*)',
 ]
 
 ROBOTS_TXT_BLACKLIST_DOMAINS = [
@@ -96,26 +97,45 @@ class EuscanOutput(object):
     """
     def __init__(self, config):
         self.config = config
-        self.data = defaultdict(StringIO)
-        self.packages = defaultdict(list)
+        self.queries = defaultdict(dict)
+        self.current_query = None
+
+    def set_query(self, query):
+        self.current_query = query
+        if query is not None:
+            if not query in self.queries:
+                self.queries[query] = {
+                    "messages": defaultdict(StringIO),
+                    "result": [],
+                    "metadata": {},
+                }
 
     def get_formatted_output(self):
         data = {}
-        for key in self.data:
-            if key not in ("ebegin", "eend"):
-                val = [x for x in self.data[key].getvalue().split("\n") if x]
-                data[key] = val
 
-        data["result"] = self.packages
+        for query in self.queries:
+            data[query] = {
+                "result": self.queries[query]["result"],
+                "metadata": self.queries[query]["metadata"],
+                "messages": {}
+            }
+            for key in self.queries[query]["messages"]:
+                if key not in ("ebegin", "eend"):
+                    _msg = self.queries[query]["messages"][key].getvalue()
+                    val = [x for x in _msg.split("\n") if x]
+                    data[query]["messages"][key] = val
 
         if self.config["format"].lower() == "json":
             return json.dumps(data, indent=self.config["indent"])
         else:
             raise TypeError("Invalid output format")
 
-    def result(self, cp, version, url):
+    def result(self, cp, version, url, handler):
         if self.config['format']:
-            self.packages[cp].append({"version": version, "url": url})
+            _curr = self.queries[self.current_query]
+            _curr["result"].append(
+                {"version": version, "urls": [url], "handler": handler}
+            )
         else:
             if not self.config['quiet']:
                 print "Upstream Version:", pp.number("%s" % version),
@@ -123,16 +143,21 @@ class EuscanOutput(object):
             else:
                 print pp.cpv("%s-%s" % (cp, version)) + ":", pp.path(url)
 
-    def __getattr__(self, key):
-        output_file = self.data[key] if self.config["format"] else None
+    def metadata(self, key, value, show=True):
+        if self.config["format"]:
+            self.queries[self.current_query]["metadata"][key] = value
+        elif show:
+            print "%s: %s" % (key.capitalize(), value)
 
-        if output_file:
-            _output = EOutputFile(out_file=self.data[key],
+    def __getattr__(self, key):
+        if self.config["format"]:
+            out_file = self.queries[self.current_query]["messages"][key]
+
+            _output = EOutputFile(out_file=out_file,
                                   quiet=self.config['quiet'])
             ret = getattr(_output, key)
         else:
             ret = getattr(EOutputFile(quiet=self.config['quiet']), key)
-
         return ret
 
 

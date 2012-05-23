@@ -212,7 +212,7 @@ def main():
 
     # parse command line options and actions
     try:
-        packages = parse_args()
+        queries = parse_args()
     except ParseArgsException as e:
         if e.value == 'help':
             print_usage(help='all')
@@ -233,11 +233,13 @@ def main():
     if CONFIG['verbose'] > 2:
         httplib.HTTPConnection.debuglevel = 1
 
-    for package in packages:
+    for query in queries:
         ret = []
 
+        output.set_query(query)
+
         try:
-            ret = scan_upstream(package)
+            ret = scan_upstream(query)
         except AmbiguousPackageName as e:
             pkgs = e.args[0]
             output.eerror("\n".join(pkgs))
@@ -252,24 +254,27 @@ def main():
             exit_helper(1)
 
         except GentoolkitException as err:
-            output.eerror('%s: %s' % (package, str(err)))
+            output.eerror('%s: %s' % (query, str(err)))
             exit_helper(1)
 
         except Exception as err:
-            output.eerror('%s: %s' % (package, str(err)))
+            output.eerror('%s: %s' % (query, str(err)))
             exit_helper(1)
 
         if not CONFIG['quiet'] and not CONFIG['format']:
             print()
 
-        for cp, url, version in ret:
-            output.result(cp, version, url)
+        if ret is not None:
+            if len(ret) > 0:
+                for cp, url, version, handler in ret:
+                    output.result(cp, version, url, handler)
+            elif not CONFIG['quiet']:
+                output.ewarn(
+                    "Didn't find any new version, check package's homepage " +
+                    "for more informations"
+                )
 
-        if not len(ret) and not CONFIG['quiet']:
-            output.ewarn(
-                "Didn't find any new version, check package's homepage for " +
-                "more informations"
-            )
+    output.set_query(None)
 
 
 if __name__ == "__main__":

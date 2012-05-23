@@ -1,5 +1,7 @@
 from euscan.handlers import generic
 
+HANDLER_NAME = "kde"
+
 
 def can_handle(cpv, url):
     if url.startswith('mirror://kde/'):
@@ -13,7 +15,7 @@ def clean_results(results):
     for path, version in results:
         if version == '5SUMS':
             continue
-        ret.append((path, version))
+        ret.append((path, version, HANDLER_NAME))
 
     return ret
 
