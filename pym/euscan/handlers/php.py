@@ -3,8 +3,10 @@ import portage
 import urllib2
 import xml.dom.minidom
 
-from euscan import helpers
-import euscan
+from euscan import helpers, output
+
+HANDLER_NAME = "php"
+CONFIDENCE = 100.0
 
 
 def can_handle(cpv, url):
@@ -34,7 +36,7 @@ def scan(cpv, url):
     orig_url = url
     url = 'http://%s/rest/r/%s/allreleases.xml' % (channel, pkg.lower())
 
-    euscan.output.einfo("Using: " + url)
+    output.einfo("Using: " + url)
 
     try:
         fp = helpers.urlopen(url)
@@ -64,7 +66,7 @@ def scan(cpv, url):
         if url == orig_url:
             continue
 
-        ret.append((url, pv))
+        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
 
     return ret
 

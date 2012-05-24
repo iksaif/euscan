@@ -37,6 +37,18 @@ _v_end = '((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)'
 _v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(' + _v_end + '*))'
 
 
+def get_version_type(version):
+    types = []
+    gentoo_types = ("alpha", "beta", "pre", "rc", "p")
+
+    for token in re.findall("[\._-]([a-zA-Z]+)", version):
+        if token in gentoo_types:
+            types.append(token)
+    if types:
+        return types[0]
+    return "release"
+
+
 # Stolen from g-pypi
 def gentoo_mangle_version(up_pv):
     """Convert PV to MY_PV if needed
@@ -121,7 +133,7 @@ def gentoo_mangle_version(up_pv):
         pv = up_pv = rev_match.group(1)
         replace_me = rev_match.group(2)
         rev = rev_match.group(3)
-        additional_version = '.' + rev
+        additional_version = '_p' + rev
 
     for this_suf in suf_matches.keys():
         if rs_match:

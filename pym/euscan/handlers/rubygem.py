@@ -3,8 +3,10 @@ import portage
 import json
 import urllib2
 
-from euscan import helpers
-import euscan
+from euscan import helpers, output
+
+HANDLER_NAME = "rubygem"
+CONFIDENCE = 100.0
 
 
 def can_handle(cpv, url):
@@ -31,13 +33,13 @@ def scan(cpv, url):
 
     gem = guess_gem(cpv, url)
     if not gem:
-        euscan.output.eerror("Can't guess gem name using %s and %s" % \
+        output.eerror("Can't guess gem name using %s and %s" % \
             (cpv, url))
         return []
 
     url = 'http://rubygems.org/api/v1/versions/%s.json' % gem
 
-    euscan.output.einfo("Using: " + url)
+    output.einfo("Using: " + url)
 
     try:
         fp = helpers.urlopen(url)
@@ -65,7 +67,7 @@ def scan(cpv, url):
         if helpers.version_filtered(cp, ver, pv):
             continue
         url = 'http://rubygems.org/gems/%s-%s.gem' % (gem, up_pv)
-        ret.append((url, pv))
+        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
 
     return ret
 

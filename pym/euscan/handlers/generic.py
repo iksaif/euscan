@@ -7,9 +7,13 @@ from BeautifulSoup import BeautifulSoup
 import portage
 
 from euscan import CONFIG, SCANDIR_BLACKLIST_URLS, \
-    BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS
-from euscan import helpers
-import euscan
+    BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS, output, helpers
+
+HANDLER_NAME = "generic"
+CONFIDENCE = 50.0
+
+BRUTEFORCE_HANDLER_NAME = "brute_force"
+BRUTEFORCE_CONFIDENCE = 30.0
 
 
 def scan_html(data, url, pattern):
@@ -53,7 +57,7 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
 
     steps = steps[1:]
 
-    euscan.output.einfo("Scanning: %s" % url)
+    output.einfo("Scanning: %s" % url)
 
     try:
         fp = helpers.urlopen(url)
@@ -87,7 +91,7 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
             path = url + path
 
         if not steps and path not in orig_url:
-            versions.append((path, pv))
+            versions.append((path, pv, HANDLER_NAME, CONFIDENCE))
 
         if steps:
             ret = scan_directory_recursive(cp, ver, rev, path, steps, orig_url)
@@ -99,7 +103,7 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
 def scan(cpv, url):
     for bu in SCANDIR_BLACKLIST_URLS:
         if re.match(bu, url):
-            euscan.output.einfo("%s is blacklisted by rule %s" % (url, bu))
+            output.einfo("%s is blacklisted by rule %s" % (url, bu))
             return []
 
     resolved_url = helpers.parse_mirror(url)
@@ -112,23 +116,25 @@ def scan(cpv, url):
     if ver not in resolved_url:
         newver = helpers.version_change_end_sep(ver)
         if newver and newver in resolved_url:
-            euscan.output.einfo(
+            output.einfo(
                 "Version: using %s instead of %s" % (newver, ver)
             )
             ver = newver
 
     template = helpers.template_from_url(resolved_url, ver)
     if '${' not in template:
-        euscan.output.einfo(
+        output.einfo(
             "Url doesn't seems to depend on version: %s not found in %s" %
             (ver, resolved_url)
         )
         return []
     else:
-        euscan.output.einfo("Scanning: %s" % template)
+        output.einfo("Scanning: %s" % template)
 
     steps = helpers.generate_scan_paths(template)
-    return scan_directory_recursive(cp, ver, rev, "", steps, url)
+    ret = scan_directory_recursive(cp, ver, rev, "", steps, url)
+
+    return ret
 
 
 def brute_force(cpv, url):
@@ -140,37 +146,37 @@ def brute_force(cpv, url):
 
     for bp in BRUTEFORCE_BLACKLIST_PACKAGES:
         if re.match(bp, cp):
-            euscan.output.einfo("%s is blacklisted by rule %s" % (cp, bp))
+            output.einfo("%s is blacklisted by rule %s" % (cp, bp))
             return []
 
     for bp in BRUTEFORCE_BLACKLIST_URLS:
         if re.match(bp, url):
-            euscan.output.einfo("%s is blacklisted by rule %s" % (cp, bp))
+            output.einfo("%s is blacklisted by rule %s" % (cp, bp))
             return []
 
-    euscan.output.einfo("Generating version from " + ver)
+    output.einfo("Generating version from " + ver)
 
     components = helpers.split_version(ver)
     versions = helpers.gen_versions(components, CONFIG["brute-force"])
 
-    """ Remove unwanted versions """
+    # Remove unwanted versions
     for v in versions:
         if helpers.vercmp(cp, ver, helpers.join_version(v)) >= 0:
             versions.remove(v)
 
     if not versions:
-        euscan.output.einfo("Can't generate new versions from " + ver)
+        output.einfo("Can't generate new versions from " + ver)
         return []
 
     template = helpers.template_from_url(url, ver)
 
     if '${PV}' not in template:
-        euscan.output.einfo(
+        output.einfo(
             "Url doesn't seems to depend on full version: %s not found in %s" %
             (ver, url))
         return []
     else:
-        euscan.output.einfo("Brute forcing: %s" % template)
+        output.einfo("Brute forcing: %s" % template)
 
     result = []
 
@@ -195,10 +201,11 @@ def brute_force(cpv, url):
         if not infos:
             continue
 
-        result.append([url, version])
+        result.append([url, version, BRUTEFORCE_HANDLER_NAME,
+                       BRUTEFORCE_CONFIDENCE])
 
         if len(result) > CONFIG['brute-force-false-watermark']:
-            euscan.output.einfo(
+            output.einfo(
                 "Broken server detected ! Skipping brute force."
             )
             return []

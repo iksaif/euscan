@@ -3,8 +3,10 @@ import re
 
 import portage
 
-from euscan import helpers
-import euscan
+from euscan import helpers, output
+
+HANDLER_NAME = "pypi"
+CONFIDENCE = 100.0
 
 
 def can_handle(cpv, url):
@@ -26,7 +28,7 @@ def scan(cpv, url):
 
     package = guess_package(cpv, url)
 
-    euscan.output.einfo("Using PyPi XMLRPC: " + package)
+    output.einfo("Using PyPi XMLRPC: " + package)
 
     client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
     versions = client.package_releases(package)
@@ -46,7 +48,7 @@ def scan(cpv, url):
             continue
         urls = client.release_urls(package, up_pv)
         urls = " ".join([infos['url'] for infos in urls])
-        ret.append((urls, pv))
+        ret.append((urls, pv, HANDLER_NAME, CONFIDENCE))
 
     return ret
 
