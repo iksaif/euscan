@@ -2,19 +2,19 @@ import os
 import sys
 
 import portage
-
 from portage.dbapi import porttree
 
 import gentoolkit.pprinter as pp
 from gentoolkit.query import Query
+from gentoolkit.package import Package
 from gentoolkit.eclean.search import (port_settings)
 
 from euscan import CONFIG, BLACKLIST_PACKAGES
 from euscan import handlers
 from euscan import helpers
+from euscan.ebuild import package_from_ebuild
 
 import euscan
-
 
 def filter_versions(cp, versions):
     filtered = {}
@@ -64,19 +64,31 @@ def scan_upstream_urls(cpv, urls):
     cp, ver, rev = portage.pkgsplit(cpv)
     return filter_versions(cp, versions)
 
+# gentoolkit stores PORTDB, so even if we modify it to add an overlay
+# it will still use the old dbapi
+def reload_gentoolkit():
+    import gentoolkit.package
+    import gentoolkit.query
+
+    PORTDB = portage.db[portage.root]["porttree"].dbapi
+    if hasattr(gentoolkit.package, 'PORTDB'):
+        gentoolkit.package.PORTDB = PORTDB
+    if hasattr(gentoolkit.query, 'PORTDB'):
+        gentoolkit.query.PORTDB = PORTDB
 
 def scan_upstream(query):
+    matches = []
 
-    # check if the query is an ebuild file.
-    # if it's a valid ebuild convert the filename in an euscan query
-    ebuild_query = helpers.query_from_ebuild(query)
-    if ebuild_query:
-        query = ebuild_query
-
-    matches = Query(query).find(
-        include_masked=True,
-        in_installed=False
-    )
+    if query.endswith(".ebuild"):
+        cpv = package_from_ebuild(query)
+        if cpv:
+            reload_gentoolkit()
+            matches = [Package(cpv)]
+    else:
+        matches = Query(query).find(
+            include_masked=True,
+            in_installed=False
+        )
 
     if not matches:
         sys.stderr.write(
