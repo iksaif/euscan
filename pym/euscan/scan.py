@@ -102,7 +102,8 @@ def scan_upstream(query):
         return None
 
     # useful data only for formatted output
-    output.metadata("datetime", datetime.now().isoformat(), show=False)
+    start_time = datetime.now()
+    output.metadata("datetime", start_time.isoformat(), show=False)
     output.metadata("cp", pkg.cp, show=False)
     output.metadata("cpv", pkg.cpv, show=False)
 
@@ -151,5 +152,9 @@ def scan_upstream(query):
         urls = aalist
     else:
         urls = alist
+
+    # output scan time for formatted output
+    scan_time = (datetime.now() - start_time).total_seconds()
+    output.metadata("scan_time", scan_time, show=False)
 
     return scan_upstream_urls(pkg.cpv, urls)
