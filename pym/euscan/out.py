@@ -5,6 +5,7 @@ import json
 from gentoolkit import pprinter as pp
 from portage.output import EOutput
 
+
 class EOutputMem(EOutput):
     """
     Override of EOutput, allows to specify an output file for writes
@@ -18,6 +19,7 @@ class EOutputMem(EOutput):
 
     def _write(self, f, msg):
         super(EOutputMem, self)._write(self.out, msg)
+
 
 class EuscanOutput(object):
     """

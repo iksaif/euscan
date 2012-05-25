@@ -1,4 +1,6 @@
-import os, sys, imp
+import os
+import sys
+import imp
 
 import portage
 from portage.const import VDB_PATH
@@ -6,6 +8,7 @@ from portage import _encodings
 from portage import _shell_quote
 from portage import _unicode_decode
 from portage import _unicode_encode
+
 
 # Stolen from the ebuild command
 def package_from_ebuild(ebuild):
