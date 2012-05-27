@@ -13,7 +13,6 @@ from euscan import CONFIG, BLACKLIST_PACKAGES
 from euscan import handlers, helpers, output
 from euscan.ebuild import package_from_ebuild
 
-import euscan
 
 def filter_versions(cp, versions):
     filtered = {}
@@ -41,10 +40,17 @@ def filter_versions(cp, versions):
     ]
 
 
-def scan_upstream_urls(cpv, urls):
+def scan_upstream_urls(cpv, urls, on_progress):
     versions = []
 
+    maxval = len(urls) + 5
+    curval = 1
+
     for filename in urls:
+        curval += 1
+        if on_progress:
+            on_progress(maxval, curval)
+
         for url in urls[filename]:
             if not CONFIG['quiet'] and not CONFIG['format']:
                 pp.uprint()
@@ -69,7 +75,19 @@ def scan_upstream_urls(cpv, urls):
                 break
 
     cp, ver, rev = portage.pkgsplit(cpv)
-    return filter_versions(cp, versions)
+
+    curval += 1
+    if on_progress:
+        on_progress(maxval, curval)
+
+    result = filter_versions(cp, versions)
+
+    curval += 1
+    if on_progress:
+        on_progress(maxval, curval)
+
+    return result
+
 
 # gentoolkit stores PORTDB, so even if we modify it to add an overlay
 # it will still use the old dbapi
@@ -83,7 +101,15 @@ def reload_gentoolkit():
     if hasattr(gentoolkit.query, 'PORTDB'):
         gentoolkit.query.PORTDB = PORTDB
 
-def scan_upstream(query):
+
+def scan_upstream(query, on_progress=None):
+    """
+    Scans the upstream searching new versions for the given query
+    """
+
+    maxval = 3
+    curval = 0
+
     matches = []
 
     if query.endswith(".ebuild"):
@@ -121,6 +147,10 @@ def scan_upstream(query):
     output.metadata("datetime", start_time.isoformat(), show=False)
     output.metadata("cp", pkg.cp, show=False)
     output.metadata("cpv", pkg.cpv, show=False)
+
+    curval += 1
+    if on_progress:
+        on_progress(maxval, curval)
 
     if pkg.cp in BLACKLIST_PACKAGES:
         output.ewarn(
@@ -172,4 +202,14 @@ def scan_upstream(query):
     scan_time = (datetime.now() - start_time).total_seconds()
     output.metadata("scan_time", scan_time, show=False)
 
-    return scan_upstream_urls(pkg.cpv, urls)
+    curval += 1
+    if on_progress:
+        on_progress(maxval, curval)
+
+    result = scan_upstream_urls(pkg.cpv, urls, on_progress)
+
+    curval += 1
+    if on_progress:
+        on_progress(maxval, curval)
+
+    return result

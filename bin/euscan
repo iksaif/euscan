@@ -19,6 +19,7 @@ __description__ = "A tool to detect new upstream releases."
 # Imports
 
 import sys
+import os
 import getopt
 import errno
 import httplib
@@ -32,6 +33,7 @@ from gentoolkit.errors import GentoolkitException
 
 from euscan import CONFIG, output
 from euscan.scan import scan_upstream
+from euscan.out import progress_bar
 
 
 # Globals
@@ -233,13 +235,21 @@ def main():
     if CONFIG['verbose'] > 2:
         httplib.HTTPConnection.debuglevel = 1
 
+    isatty = os.environ.get('TERM') != 'dumb' and sys.stdout.isatty()
+
     for query in queries:
+        on_progress = None
+        if (CONFIG['format'] or CONFIG['quiet']) and isatty:
+            print("%s:" % query, file=sys.stderr)
+            on_progress_gen = progress_bar()
+            on_progress = on_progress_gen.next()
+
         ret = []
 
         output.set_query(query)
 
         try:
-            ret = scan_upstream(query)
+            ret = scan_upstream(query, on_progress)
         except AmbiguousPackageName as e:
             pkgs = e.args[0]
             output.eerror("\n".join(pkgs))
@@ -264,10 +274,18 @@ def main():
         if not CONFIG['quiet'] and not CONFIG['format']:
             print()
 
+        if (CONFIG['format'] or CONFIG['quiet']) and isatty:
+            on_progress_gen.next()
+            print("\n", file=sys.stderr)
+
         if ret is not None:
             if len(ret) > 0:
                 for cp, url, version, handler, confidence in ret:
                     output.result(cp, version, url, handler, confidence)
+
+                if (CONFIG['format'] or CONFIG['quiet']) and isatty:
+                    print("\n", file=sys.stderr)
+
             elif not CONFIG['quiet']:
                 output.ewarn(
                     "Didn't find any new version, check package's homepage " +

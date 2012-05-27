@@ -1,9 +1,55 @@
 from io import StringIO
 from collections import defaultdict
 import json
+import signal
+import time
 
 from gentoolkit import pprinter as pp
-from portage.output import EOutput
+import portage
+from portage.output import EOutput, TermProgressBar
+
+
+class ProgressHandler(object):
+    def __init__(self):
+        self.curval = 0
+        self.maxval = 0
+        self.last_update = 0
+        self.min_display_latency = 0.2
+
+    def on_progress(self, maxval, curval):
+        self.maxval = maxval
+        self.curval = curval
+        cur_time = time.time()
+        if cur_time - self.last_update >= self.min_display_latency:
+            self.last_update = cur_time
+            self.display()
+
+    def display(self):
+        raise NotImplementedError(self)
+
+
+def progress_bar():
+    on_progress = None
+    progress_bar = TermProgressBar()
+
+    progress_handler = ProgressHandler()
+    on_progress = progress_handler.on_progress
+
+    def display():
+        progress_bar.set(progress_handler.curval, progress_handler.maxval)
+    progress_handler.display = display
+
+    def sigwinch_handler(signum, frame):
+        lines, progress_bar.term_columns = portage.output.get_term_size()
+    signal.signal(signal.SIGWINCH, sigwinch_handler)
+
+    yield on_progress
+
+    # make sure the final progress is displayed
+    progress_handler.display()
+    signal.signal(signal.SIGWINCH, signal.SIG_DFL)
+
+    yield None
 
 
 class EOutputMem(EOutput):
@@ -87,5 +133,8 @@ class EuscanOutput(object):
             print "%s: %s" % (key.capitalize(), value)
 
     def __getattr__(self, key):
-        output = self.queries[self.current_query]["output"]
-        return getattr(output, key)
+        if not self.config["quiet"]:
+            output = self.queries[self.current_query]["output"]
+            return getattr(output, key)
+        else:
+            return lambda *x: None
