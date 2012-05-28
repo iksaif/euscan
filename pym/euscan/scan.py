@@ -7,7 +7,6 @@ from portage.dbapi import porttree
 import gentoolkit.pprinter as pp
 from gentoolkit.query import Query
 from gentoolkit.package import Package
-from gentoolkit.eclean.search import (port_settings)
 
 from euscan import CONFIG, BLACKLIST_PACKAGES
 from euscan import handlers, helpers, output
@@ -92,10 +91,15 @@ def scan_upstream_urls(cpv, urls, on_progress):
 # gentoolkit stores PORTDB, so even if we modify it to add an overlay
 # it will still use the old dbapi
 def reload_gentoolkit():
+    from gentoolkit import dbapi
     import gentoolkit.package
     import gentoolkit.query
 
     PORTDB = portage.db[portage.root]["porttree"].dbapi
+    dbapi.PORTDB = PORTDB
+
+    if hasattr(dbapi, 'PORTDB'):
+        dbapi.PORTDB = PORTDB
     if hasattr(gentoolkit.package, 'PORTDB'):
         gentoolkit.package.PORTDB = PORTDB
     if hasattr(gentoolkit.query, 'PORTDB'):
@@ -179,10 +183,10 @@ def scan_upstream(query, on_progress=None):
 
     cpv = pkg.cpv
     metadata = {
-        "EAPI": port_settings["EAPI"],
+        "EAPI": portage.settings["EAPI"],
         "SRC_URI": pkg.environment("SRC_URI", False),
     }
-    use = frozenset(port_settings["PORTAGE_USE"].split())
+    use = frozenset(portage.settings["PORTAGE_USE"].split())
     try:
         alist = porttree._parse_uri_map(cpv, metadata, use=use)
         aalist = porttree._parse_uri_map(cpv, metadata)
