@@ -2,47 +2,22 @@ import sys
 
 from optparse import make_option
 
-from django.db.transaction import commit_on_success
-from django.core.management.base import BaseCommand
-from djeuscan.models import Package, Herd, Maintainer
-
 from gentoolkit.query import Query
 from gentoolkit.errors import GentoolkitFatalError
 
+from django.db.transaction import commit_on_success
+from django.core.management.base import BaseCommand
+from django.core.management.color import color_style
 
-class Command(BaseCommand):
-    _overlays = {}
+from djeuscan.models import Package, Herd, Maintainer
 
-    option_list = BaseCommand.option_list + (
-        make_option('--all',
-            action='store_true',
-            dest='all',
-            default=False,
-            help='Scan all packages'),
-        make_option('--quiet',
-            action='store_true',
-            dest='quiet',
-            default=False,
-            help='Be quiet'),
-        )
-    args = '<package package ...>'
-    help = 'Scans metadata and fills database'
+
+class ScanMetadata(object):
+    def __init__(self, quiet):
+        self.quiet = quiet
 
     @commit_on_success
-    def handle(self, *args, **options):
-        self.options = options
-
-        if options['all']:
-            for pkg in Package.objects.all():
-                self.scan('%s/%s' % (pkg.category, pkg.name), pkg)
-        elif len(args):
-            for package in args:
-                self.scan(package)
-        else:
-            for package in sys.stdin.readlines():
-                self.scan(package[:-1])
-
-    def scan(self, query=None, obj=None):
+    def run(self, query=None, obj=None):
         matches = Query(query).find(
             include_masked=True,
             in_installed=False,
@@ -50,7 +25,7 @@ class Command(BaseCommand):
 
         if not matches:
             sys.stderr.write(
-                self.style.ERROR("Unknown package '%s'\n" % query)
+                color_style.ERROR("Unknown package '%s'\n" % query)
             )
             return
 
@@ -71,12 +46,12 @@ class Command(BaseCommand):
             obj.description = pkg.environment("DESCRIPTION")
         except GentoolkitFatalError, err:
             sys.stderr.write(
-                self.style.ERROR(
+                color_style.ERROR(
                     "Gentoolkit fatal error: '%s'\n" % str(err)
                 )
             )
 
-        if created and not self.options['quiet']:
+        if created and not self.quiet:
             sys.stdout.write('+ [p] %s/%s\n' % (pkg.category, pkg.name))
 
         if pkg.metadata:
@@ -127,7 +102,7 @@ class Command(BaseCommand):
 
         herd, created = Herd.objects.get_or_create(herd=name)
 
-        if created and not self.options['quiet']:
+        if created and not self.quiet:
             sys.stdout.write('+ [h] %s <%s>\n' % (name, email))
 
         herd.email = email
@@ -144,7 +119,7 @@ class Command(BaseCommand):
         maintainer, created = Maintainer.objects.get_or_create(email=email)
 
         if created:
-            if not self.options['quiet']:
+            if not self.quiet:
                 sys.stdout.write(
                     '+ [m] %s <%s>\n' % (name.encode('utf-8'), email)
                 )
@@ -155,3 +130,37 @@ class Command(BaseCommand):
             maintainer.save()
 
         return maintainer
+
+
+class Command(BaseCommand):
+    _overlays = {}
+
+    option_list = BaseCommand.option_list + (
+        make_option('--all',
+            action='store_true',
+            dest='all',
+            default=False,
+            help='Scan all packages'),
+        make_option('--quiet',
+            action='store_true',
+            dest='quiet',
+            default=False,
+            help='Be quiet'),
+        )
+    args = '<package package ...>'
+    help = 'Scans metadata and fills database'
+
+    def handle(self, *args, **options):
+        self.options = options
+
+        scan_metadata = ScanMetadata(quiet=options["quiet"])
+
+        if options['all']:
+            for pkg in Package.objects.all():
+                scan_metadata.run('%s/%s' % (pkg.category, pkg.name), pkg)
+        elif len(args) > 0:
+            for package in args:
+                scan_metadata.run(package)
+        else:
+            for package in sys.stdin.readlines():
+                scan_metadata.run(package[:-1])
