@@ -56,13 +56,14 @@ class ScanUpstream(object):
 
     def store_version(self, package, ver, url):
         obj, created = Version.objects.get_or_create(
-            package=package, slot='', revision='r0', version=ver, overlay=''
+            package=package, slot='', revision='r0', version=ver, overlay='',
+            defaults={"alive": True, "urls": url, "packaged": True}
         )
-
-        obj.alive = True
-        obj.urls = url
-        obj.packaged = False
-        obj.save()
+        if not created:
+            obj.alive = True
+            obj.urls = url
+            obj.packaged = False
+            obj.save()
 
         # If it's not a new version, just update the object and continue
         if not created:
@@ -71,15 +72,14 @@ class ScanUpstream(object):
         if not self.options['quiet']:
             sys.stdout.write('+ [u] %s %s\n' % (obj, url))
 
-        entry = VersionLog.objects.create(
+        VersionLog.objects.create(
             package=package,
-            action=VersionLog.VERSION_ADDED
+            action=VersionLog.VERSION_ADDED,
+            slot='',
+            revision='r0',
+            version=ver,
+            overlay=''
         )
-        entry.slot = ''
-        entry.revision = 'r0'
-        entry.version = ver
-        entry.overlay = ''
-        entry.save()
 
         package.n_versions += 1
         package.save()
@@ -128,15 +128,14 @@ class ScanUpstream(object):
 def purge_versions(options):
     # For each dead versions
     for version in Version.objects.filter(packaged=False, alive=False):
-        entry = VersionLog.objects.create(
+        VersionLog.objects.create(
             package=version.package,
-            action=VersionLog.VERSION_REMOVED
+            action=VersionLog.VERSION_REMOVED,
+            slot=version.slot,
+            revision=version.revision,
+            version=version.version,
+            overlay=version.overlay
         )
-        entry.slot = version.slot
-        entry.revision = version.revision
-        entry.version = version.version
-        entry.overlay = version.overlay
-        entry.save()
 
         version.package.n_versions -= 1
         version.package.save()

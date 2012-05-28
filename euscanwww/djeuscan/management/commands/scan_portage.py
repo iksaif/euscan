@@ -203,12 +203,13 @@ class ScanPortage(object):
             obj, created = Version.objects.get_or_create(
                 package=package, slot=slot,
                 revision=rev, version=ver,
-                overlay=overlay
+                overlay=overlay,
+                defaults={"alive": True, "packaged": True}
             )
-
-        obj.alive = True
-        obj.packaged = True
-        obj.save()
+            if not created:
+                obj.alive = True
+                obj.packaged = True
+                obj.save()
 
         if created:
             self.cache_store_version(obj)
@@ -258,15 +259,14 @@ def purge_versions(options):
         if options['no-log']:
             continue
 
-        entry = VersionLog.objects.create(
+        VersionLog.objects.create(
             package=version.package,
-            action=VersionLog.VERSION_REMOVED
+            action=VersionLog.VERSION_REMOVED,
+            slot=version.slot,
+            revision=version.revision,
+            version=version.version,
+            overlay=version.overlay
         )
-        entry.slot = version.slot
-        entry.revision = version.revision
-        entry.version = version.version
-        entry.overlay = version.overlay
-        entry.save()
 
     Version.objects.filter(packaged=True, alive=False).delete()
 

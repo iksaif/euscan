@@ -100,7 +100,10 @@ class ScanMetadata(object):
             name = '{nil}'
         name = name.strip("\r").strip("\n").strip("\t").strip()
 
-        herd, created = Herd.objects.get_or_create(herd=name)
+        herd, created = Herd.objects.get_or_create(
+            herd=name,
+            defaults={"email": email}
+        )
 
         if created and not self.quiet:
             sys.stdout.write('+ [h] %s <%s>\n' % (name, email))
@@ -116,19 +119,16 @@ class ScanMetadata(object):
         if not name:
             name = '{nil}'
 
-        maintainer, created = Maintainer.objects.get_or_create(email=email)
+        maintainer, created = Maintainer.objects.get_or_create(
+            email=email,
+            defaults={"name": name}
+        )
 
         if created:
             if not self.quiet:
                 sys.stdout.write(
                     '+ [m] %s <%s>\n' % (name.encode('utf-8'), email)
                 )
-
-            if not maintainer.name or \
-               name not in [maintainer.name, email, '{nil}']:
-                maintainer.name = name
-            maintainer.save()
-
         return maintainer
 
 
