@@ -15,6 +15,7 @@ from djeuscan.models import Package, Herd, Maintainer
 class ScanMetadata(object):
     def __init__(self, quiet):
         self.quiet = quiet
+        self.style = color_style()
 
     @commit_on_success
     def run(self, query=None, obj=None):
@@ -25,7 +26,7 @@ class ScanMetadata(object):
 
         if not matches:
             sys.stderr.write(
-                color_style.ERROR("Unknown package '%s'\n" % query)
+                self.style.ERROR("Unknown package '%s'\n" % query)
             )
             return
 
@@ -46,7 +47,7 @@ class ScanMetadata(object):
             obj.description = pkg.environment("DESCRIPTION")
         except GentoolkitFatalError, err:
             sys.stderr.write(
-                color_style.ERROR(
+                self.style.ERROR(
                     "Gentoolkit fatal error: '%s'\n" % str(err)
                 )
             )

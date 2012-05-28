@@ -21,6 +21,7 @@ class ScanPortage(object):
             self.stdout = stdout
 
         self.options = options
+        self.style = color_style()
         self._cache = {'packages': {}, 'versions': {}}
         self._overlays = None
 
@@ -117,7 +118,7 @@ class ScanPortage(object):
                     Package.objects.filter(name=query).delete()
             else:
                 sys.stderr.write(
-                    color_style.ERROR(
+                    self.style.ERROR(
                         "Unknown package '%s'\n" % query
                     )
                 )
