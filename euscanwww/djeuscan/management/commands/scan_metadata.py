@@ -8,6 +8,7 @@ from gentoolkit.errors import GentoolkitFatalError
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand
 from django.core.management.color import color_style
+from django.core.exceptions import ValidationError
 
 from djeuscan.models import Package, Herd, Maintainer
 
@@ -89,10 +90,15 @@ class ScanMetadata(object):
 
             for maintainer in new_maintainers:
                 maintainer = maintainers[maintainer]
-                maintainer = self.store_maintainer(
-                    maintainer.name, maintainer.email
-                )
-                obj.maintainers.add(maintainer)
+                try:
+                    maintainer = self.store_maintainer(
+                        maintainer.name, maintainer.email
+                    )
+                    obj.maintainers.add(maintainer)
+                except ValidationError:
+                    sys.stderr.write(
+                        self.style.ERROR("Bad maintainer: '%s' '%s'\n" % (maintainer.name, maintainer.email))
+                    )
 
         obj.save()
 

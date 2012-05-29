@@ -115,11 +115,12 @@ class Version(models.Model):
     """
 
     package = models.ForeignKey(Package)
-    slot = models.CharField(max_length=128)
+    slot = models.CharField(max_length=128, blank=True, default='')
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
-    overlay = models.CharField(max_length=128, default='gentoo', db_index=True,
+    overlay = models.CharField(max_length=128, blank=True,
+                               default='gentoo', db_index=True,
                                validators=[validate_name])
     urls = models.TextField(blank=True)
     alive = models.BooleanField(default=True, db_index=True)
@@ -148,12 +149,12 @@ class VersionLog(models.Model):
 
     package = models.ForeignKey(Package)
     datetime = models.DateTimeField(auto_now_add=True)
-    slot = models.CharField(max_length=128)
+    slot = models.CharField(max_length=128, blank=True, default='')
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
-    overlay = models.CharField(max_length=128, default='gentoo',
-                               validators=[validate_name])
+    overlay = models.CharField(max_length=128, blank=True,
+                               default='gentoo', validators=[validate_name])
     action = models.IntegerField(choices=VERSION_ACTIONS)
 
     objects = VersionLogManager()

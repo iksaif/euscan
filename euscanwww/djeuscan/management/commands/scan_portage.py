@@ -242,7 +242,6 @@ class ScanPortage(object):
             overlay=obj.overlay
         )
 
-
 @commit_on_success
 def purge_versions(options):
     # For each dead versions

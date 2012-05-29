@@ -88,6 +88,9 @@ class ScanUpstream(object):
     def parse_output(self, output):
         from portage.versions import _cp
 
+        if type(_cp) == dict:
+            _cp = _cp["dots_allowed_in_PN"]
+
         package_re = re.compile(
             r'^ \* (?P<cpv>' + _cp + ') \[(?P<overlay>.*?)\]$'
         )
@@ -177,7 +180,7 @@ class Command(BaseCommand):
         scan_upstream = ScanUpstream(options)
 
         if options['feed']:
-            scan_upstream.parse_output(options, sys.stdin)
+            scan_upstream.parse_output(sys.stdin)
             if options['purge-versions']:
                 purge_versions(options)
             return
