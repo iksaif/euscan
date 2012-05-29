@@ -1,11 +1,12 @@
 from django.db import models
 from django.core.validators import RegexValidator, validate_email, URLValidator
+from django.core.exceptions import ValidationError
 
 from djeuscan.managers import PackageManager, VersionLogManager, \
     EuscanResultManager
 
 
-validate_category = RegexValidator("^\w+?-\w+?$")
+validate_category = RegexValidator("^(?:\w+?-\w+?)|virtual$")
 validate_name = RegexValidator("^\S+?$")
 validate_revision = RegexValidator("^r\d+?$")
 validate_url = URLValidator()
@@ -56,7 +57,7 @@ class Package(models.Model):
     category = models.CharField(max_length=128, validators=[validate_category])
     name = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(blank=True)
-    homepage = models.TextField(blank=True, validators=[validate_url])
+    homepage = models.TextField(blank=True)
     herds = models.ManyToManyField(Herd, blank=True)
     maintainers = models.ManyToManyField(Maintainer, blank=True)
 
@@ -89,6 +90,18 @@ class Package(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+
+        # Clean urls, accept only real urls
+        urls = []
+        for url in self.homepages:
+            try:
+                validate_url(url)
+            except ValidationError:
+                pass
+            else:
+                urls.append(url)
+        self.homepage = " ".join(urls)
+
         super(Package, self).save(*args, **kwargs)
 
     @property

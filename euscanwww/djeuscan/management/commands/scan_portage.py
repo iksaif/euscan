@@ -8,49 +8,22 @@ from optparse import make_option
 
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand
+from django.core.management.color import color_style
+
 from djeuscan.models import Package, Version, VersionLog
 
 
-class Command(BaseCommand):
-    _overlays = {}
+class ScanPortage(object):
+    def __init__(self, stdout=None, **options):
+        if stdout is None:
+            self.stdout = sys.stdout
+        else:
+            self.stdout = stdout
 
-    option_list = BaseCommand.option_list + (
-        make_option('--all',
-            action='store_true',
-            dest='all',
-            default=False,
-            help='Scan all packages'),
-        make_option('--purge-packages',
-            action='store_true',
-            dest='purge-packages',
-            default=False,
-            help='Purge old packages'),
-        make_option('--purge-versions',
-            action='store_true',
-            dest='purge-versions',
-            default=False,
-            help='Purge old versions'),
-        make_option('--no-log',
-            action='store_true',
-            dest='no-log',
-            default=False,
-            help='Don\'t store logs'),
-        make_option('--prefetch',
-            action='store_true',
-            dest='prefetch',
-            default=False,
-            help=('Prefetch all versions and packages from DB to '
-                  'speedup full scan process.')),
-        make_option('--quiet',
-            action='store_true',
-            dest='quiet',
-            default=False,
-            help='Be quiet'),
-        )
-    args = '[package package ...]'
-    help = 'Scans portage tree and fills database'
-
-    _cache = {'packages': {}, 'versions': {}}
+        self.options = options
+        self.style = color_style()
+        self._cache = {'packages': {}, 'versions': {}}
+        self._overlays = None
 
     def cache_hash_package(self, category, name):
         return '%s/%s' % (category, name)
@@ -84,38 +57,6 @@ class Command(BaseCommand):
         )
         self._cache['versions'][key] = version
 
-    def handle(self, *args, **options):
-        self.options = options
-
-        if not options['quiet']:
-            self.stdout.write('Scanning portage tree...\n')
-
-        if options['prefetch']:
-            if not options['quiet']:
-                self.stdout.write('Prefetching objects...')
-                self.stdout.flush()
-            for package in Package.objects.all():
-                self.cache_store_package(package)
-            for version in Version.objects.select_related('package').all():
-                self.cache_store_version(version)
-            if not options['quiet']:
-                self.stdout.write('done\n')
-
-        if options['all']:
-            self.scan()
-        elif len(args):
-            for package in args:
-                self.scan(package)
-        else:
-            for package in sys.stdin.readlines():
-                self.scan(package[:-1])
-
-        if options['purge-versions']:
-            self.purge_versions(options)
-
-        if not options['quiet']:
-            self.stdout.write('Done.\n')
-
     def overlays(self):
         if self._overlays:
             return self._overlays
@@ -143,7 +84,7 @@ class Command(BaseCommand):
         return self._overlays
 
     @commit_on_success
-    def scan(self, query=None):
+    def run(self, query=None):
         env = os.environ
         env['MY'] = "<category>/<name>-<version>:<slot> [<overlaynum>]\n"
 
@@ -263,12 +204,13 @@ class Command(BaseCommand):
             obj, created = Version.objects.get_or_create(
                 package=package, slot=slot,
                 revision=rev, version=ver,
-                overlay=overlay
+                overlay=overlay,
+                defaults={"alive": True, "packaged": True}
             )
-
-        obj.alive = True
-        obj.packaged = True
-        obj.save()
+            if not created:
+                obj.alive = True
+                obj.packaged = True
+                obj.save()
 
         if created:
             self.cache_store_version(obj)
@@ -291,39 +233,112 @@ class Command(BaseCommand):
         if self.options['no-log']:
             return
 
-        entry = VersionLog.objects.create(package=obj.package,
-                                          action=VersionLog.VERSION_ADDED)
-        entry.slot = obj.slot
-        entry.revision = obj.revision
-        entry.version = obj.version
-        entry.overlay = obj.overlay
-        entry.save()
+        VersionLog.objects.create(
+            package=obj.package,
+            action=VersionLog.VERSION_ADDED,
+            slot=obj.slot,
+            revision=obj.revision,
+            version=obj.version,
+            overlay=obj.overlay
+        )
 
-    @commit_on_success
-    def purge_versions(self, options):
-        ' For each dead versions '
-        for version in Version.objects.filter(packaged=True, alive=False):
-            if version.overlay == 'gentoo':
-                version.package.n_packaged -= 1
-            else:
-                version.package.n_overlay -= 1
-            version.package.n_versions -= 1
-            version.package.save()
 
-            if not self.options['quiet']:
-                sys.stdout.write('- [v] %s\n' % (version))
+@commit_on_success
+def purge_versions(options):
+    # For each dead versions
+    for version in Version.objects.filter(packaged=True, alive=False):
+        if version.overlay == 'gentoo':
+            version.package.n_packaged -= 1
+        else:
+            version.package.n_overlay -= 1
+        version.package.n_versions -= 1
+        version.package.save()
 
-            if self.options['no-log']:
-                continue
+        if not options['quiet']:
+            sys.stdout.write('- [v] %s\n' % (version))
 
-            entry = VersionLog.objects.create(
-                package=version.package,
-                action=VersionLog.VERSION_REMOVED
-            )
-            entry.slot = version.slot
-            entry.revision = version.revision
-            entry.version = version.version
-            entry.overlay = version.overlay
-            entry.save()
+        if options['no-log']:
+            continue
 
-        Version.objects.filter(packaged=True, alive=False).delete()
+        VersionLog.objects.create(
+            package=version.package,
+            action=VersionLog.VERSION_REMOVED,
+            slot=version.slot,
+            revision=version.revision,
+            version=version.version,
+            overlay=version.overlay
+        )
+
+    Version.objects.filter(packaged=True, alive=False).delete()
+
+
+class Command(BaseCommand):
+    _overlays = {}
+
+    option_list = BaseCommand.option_list + (
+        make_option('--all',
+            action='store_true',
+            dest='all',
+            default=False,
+            help='Scan all packages'),
+        make_option('--purge-packages',
+            action='store_true',
+            dest='purge-packages',
+            default=False,
+            help='Purge old packages'),
+        make_option('--purge-versions',
+            action='store_true',
+            dest='purge-versions',
+            default=False,
+            help='Purge old versions'),
+        make_option('--no-log',
+            action='store_true',
+            dest='no-log',
+            default=False,
+            help='Don\'t store logs'),
+        make_option('--prefetch',
+            action='store_true',
+            dest='prefetch',
+            default=False,
+            help=('Prefetch all versions and packages from DB to '
+                  'speedup full scan process.')),
+        make_option('--quiet',
+            action='store_true',
+            dest='quiet',
+            default=False,
+            help='Be quiet'),
+        )
+    args = '[package package ...]'
+    help = 'Scans portage tree and fills database'
+
+    def handle(self, *args, **options):
+        scan_portage = ScanPortage(stdout=self.stdout, **options)
+
+        if not options['quiet']:
+            self.stdout.write('Scanning portage tree...\n')
+
+        if options['prefetch']:
+            if not options['quiet']:
+                self.stdout.write('Prefetching objects...')
+                self.stdout.flush()
+            for package in Package.objects.all():
+                scan_portage.cache_store_package(package)
+            for version in Version.objects.select_related('package').all():
+                scan_portage.cache_store_version(version)
+            if not options['quiet']:
+                self.stdout.write('done\n')
+
+        if options['all']:
+            scan_portage.run()
+        elif len(args):
+            for package in args:
+                scan_portage.run(package)
+        else:
+            for package in sys.stdin.readlines():
+                scan_portage.run(package[:-1])
+
+        if options['purge-versions']:
+            purge_versions(options)
+
+        if not options['quiet']:
+            self.stdout.write('Done.\n')
