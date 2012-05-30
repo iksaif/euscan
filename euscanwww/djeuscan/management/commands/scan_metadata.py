@@ -18,7 +18,7 @@ class ScanMetadata(object):
         self.style = color_style()
 
     @commit_on_success
-    def run(self, query=None, obj=None):
+    def scan(self, query=None, obj=None):
         matches = Query(query).find(
             include_masked=True,
             in_installed=False,
@@ -158,10 +158,10 @@ class Command(BaseCommand):
 
         if options['all']:
             for pkg in Package.objects.all():
-                scan_metadata.run('%s/%s' % (pkg.category, pkg.name), pkg)
+                scan_metadata.scan('%s/%s' % (pkg.category, pkg.name), pkg)
         elif len(args) > 0:
             for package in args:
-                scan_metadata.run(package)
+                scan_metadata.scan(package)
         else:
             for package in sys.stdin.readlines():
-                scan_metadata.run(package[:-1])
+                scan_metadata.scan(package[:-1])

@@ -4,7 +4,6 @@ import sys
 import re
 from StringIO import StringIO
 from optparse import make_option
-from collections import defaultdict
 
 from django.utils import timezone
 from django.db.transaction import commit_on_success
@@ -14,21 +13,17 @@ from djeuscan.models import Package, Version, EuscanResult, VersionLog
 
 
 class ScanUpstream(object):
-    def __init__(self, options=None):
-        if options is None:
-            self.options = defaultdict(None)
-        else:
-            self.options = options
+    def __init__(self, quiet=False):
+        self.quiet = quiet
 
-    def run(self, packages=None):
-        for package in packages:
-            cmd = ['euscan', package]
+    def scan(self, package):
+        cmd = ['euscan', package]
 
-            fp = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE)
-            output = StringIO(fp.communicate()[0])
+        fp = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        output = StringIO(fp.communicate()[0])
 
-            self.parse_output(output)
+        self.parse_output(output)
 
     def store_result(self, package, log):
         # Remove previous logs
@@ -45,7 +40,7 @@ class ScanUpstream(object):
 
         obj, created = Package.objects.get_or_create(category=cat, name=pkg)
 
-        if created and not self.options['quiet']:
+        if created and not self.quiet:
             sys.stdout.write('+ [p] %s/%s\n' % (cat, pkg))
 
         # Set all versions dead, then set found versions alive and
@@ -69,7 +64,7 @@ class ScanUpstream(object):
         if not created:
             return
 
-        if not self.options['quiet']:
+        if not self.quiet:
             sys.stdout.write('+ [u] %s %s\n' % (obj, url))
 
         VersionLog.objects.create(
@@ -125,7 +120,7 @@ class ScanUpstream(object):
 
 
 @commit_on_success
-def purge_versions(options):
+def purge_versions(quiet=False):
     # For each dead versions
     for version in Version.objects.filter(packaged=False, alive=False):
         VersionLog.objects.create(
@@ -140,7 +135,7 @@ def purge_versions(options):
         version.package.n_versions -= 1
         version.package.save()
 
-        if not options['quiet']:
+        if not quiet:
             sys.stdout.write('- [u] %s %s\n' % (version, version.urls))
     Version.objects.filter(packaged=False, alive=False).delete()
 
@@ -174,31 +169,29 @@ class Command(BaseCommand):
     help = 'Scans metadata and fills database'
 
     def handle(self, *args, **options):
-        scan_upstream = ScanUpstream(options)
+        scan_upstream = ScanUpstream(options["quiet"])
 
         if options['feed']:
-            scan_upstream.parse_output(options, sys.stdin)
+            scan_upstream.parse_output(sys.stdin)
             if options['purge-versions']:
-                purge_versions(options)
+                purge_versions(options["quiet"])
             return
 
         if not options['quiet']:
             self.stdout.write('Scanning upstream...\n')
 
-        packages = []
-
         if options['all']:
             for pkg in Package.objects.all():
-                packages.append('%s/%s' % (pkg.category, pkg.name))
+                scan_upstream.scan('%s/%s' % (pkg.category, pkg.name))
         elif args:
-            packages = list(args)
+            for arg in args:
+                scan_upstream.scan(arg)
         else:
-            packages = [package[:-1] for package in sys.stdin.readlines()]
-
-        scan_upstream.run(packages)
+            for package in sys.stdin.readlines():
+                scan_upstream.scan(package[:-1])
 
         if options['purge-versions']:
-            purge_versions(options)
+            purge_versions(options["quiet"])
 
         if not options['quiet']:
             self.stdout.write('Done.\n')

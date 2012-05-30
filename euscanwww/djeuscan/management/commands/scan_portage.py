@@ -3,8 +3,8 @@ import portage
 import sys
 import os
 import re
-
 from optparse import make_option
+from collections import defaultdict
 
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand
@@ -14,13 +14,10 @@ from djeuscan.models import Package, Version, VersionLog
 
 
 class ScanPortage(object):
-    def __init__(self, stdout=None, **options):
-        if stdout is None:
-            self.stdout = sys.stdout
-        else:
-            self.stdout = stdout
+    def __init__(self, stdout=None, options=None):
+        self.stdout = sys.stdout if stdout is None else stdout
+        self.options = defaultdict(None) if options is None else options
 
-        self.options = options
         self.style = color_style()
         self._cache = {'packages': {}, 'versions': {}}
         self._overlays = None
@@ -84,7 +81,7 @@ class ScanPortage(object):
         return self._overlays
 
     @commit_on_success
-    def run(self, query=None):
+    def scan(self, query=None):
         env = os.environ
         env['MY'] = "<category>/<name>-<version>:<slot> [<overlaynum>]\n"
 
@@ -312,7 +309,7 @@ class Command(BaseCommand):
     help = 'Scans portage tree and fills database'
 
     def handle(self, *args, **options):
-        scan_portage = ScanPortage(stdout=self.stdout, **options)
+        scan_portage = ScanPortage(stdout=self.stdout, options=options)
 
         if not options['quiet']:
             self.stdout.write('Scanning portage tree...\n')
@@ -329,13 +326,13 @@ class Command(BaseCommand):
                 self.stdout.write('done\n')
 
         if options['all']:
-            scan_portage.run()
+            scan_portage.scan()
         elif len(args):
             for package in args:
-                scan_portage.run(package)
+                scan_portage.scan(package)
         else:
             for package in sys.stdin.readlines():
-                scan_portage.run(package[:-1])
+                scan_portage.scan(package[:-1])
 
         if options['purge-versions']:
             purge_versions(options)

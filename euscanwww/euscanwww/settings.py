@@ -166,6 +166,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'south',
+    'djcelery',
     'euscanwww',
     'djeuscan',
 )
@@ -198,6 +199,14 @@ LOGGING = {
         },
     }
 }
+
+
+# Celery config
+import djcelery
+djcelery.setup_loader()
+BROKER_URL = "amqp://guest:guest@localhost:5672//"
+CELERY_RESULT_BACKEND = "amqp"
+
 
 try:
     from local_settings import *
