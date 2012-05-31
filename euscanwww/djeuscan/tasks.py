@@ -24,6 +24,9 @@ def update_counters_task():
 
 @task
 def scan_metadata_task(query, obj=None):
+    logger = scan_metadata_task.get_logger()
+    logger.info("Starting metadata scanning for package %s ...", query)
+
     scan_metadata = ScanMetadata()
     scan_metadata.scan(query)
 
@@ -39,19 +42,27 @@ def scan_metadata_all_task():
 
 @task
 def scan_portage_all_task(purge=False):
+    logger = scan_portage_all_task.get_logger()
+    logger.info("Starting Portage scanning...")
+
     scan_portage = ScanPortage()
     scan_portage.scan()
 
     if purge:
+        logger.info("Purging")
         scan_portage_purge()
 
 
 @task
 def scan_portage_task(query, purge=False):
+    logger = scan_portage_task.get_logger()
+    logger.info("Starting Portage package scanning: %s ...", query)
+
     scan_portage = ScanPortage()
     scan_portage.scan(query)
 
     if purge:
+        logger.info("Purging")
         scan_portage_purge()
 
 
@@ -62,7 +73,7 @@ def scan_portage_purge_task():
 
 @task
 def scan_upstream_all_task(purge=False):
-    tasks = [scan_upstream_task.subtask(('%s/%s' % (pkg.category, pkg.name)))
+    tasks = [scan_upstream_task.subtask(('%s/%s' % (pkg.category, pkg.name), ))
              for pkg in Package.objects.all()]
 
     if purge:
@@ -74,6 +85,9 @@ def scan_upstream_all_task(purge=False):
 
 @task
 def scan_upstream_task(query):
+    logger = scan_upstream_task.get_logger()
+    logger.info("Starting upstream scanning for package %s ...", query)
+
     scan_upstream = ScanUpstream()
     scan_upstream.scan(query)
 
