@@ -67,4 +67,4 @@ ROBOTS_TXT_BLACKLIST_DOMAINS = [
 ]
 
 from out import EuscanOutput
-output = out.EuscanOutput(CONFIG)
+output = EuscanOutput(CONFIG)

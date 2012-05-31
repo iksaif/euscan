@@ -1,13 +1,15 @@
-import subprocess
 import portage
 import sys
 import re
-from StringIO import StringIO
+
 from optparse import make_option
 
 from django.utils import timezone
 from django.db.transaction import commit_on_success
 from django.core.management.base import BaseCommand
+
+from euscan import CONFIG, output
+from euscan.scan import scan_upstream
 
 from djeuscan.models import Package, Version, EuscanResult, VersionLog
 
@@ -17,13 +19,23 @@ class ScanUpstream(object):
         self.quiet = quiet
 
     def scan(self, package):
-        cmd = ['euscan', package]
+        CONFIG["format"] = "dict"
+        output.set_query(package)
+        scan_upstream(package)
+        out = output.get_formatted_output()
+        out_json = output.get_formatted_output("json")
 
-        fp = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-        output = StringIO(fp.communicate()[0])
+        try:
+            cp = out["metadata"]["cp"]
+        except KeyError:
+            return {}
 
-        self.parse_output(output)
+        for out in out["result"]:
+            self.store_version(cp, out["version"], " ".join(out["urls"]))
+
+        self.store_result(cp, out_json)
+
+        return out
 
     def store_result(self, package, log):
         # Remove previous logs

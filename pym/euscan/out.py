@@ -95,7 +95,7 @@ class EuscanOutput(object):
             "metadata": {},
         }
 
-    def get_formatted_output(self):
+    def get_formatted_output(self, format_=None):
         data = {}
 
         for query in self.queries:
@@ -105,8 +105,11 @@ class EuscanOutput(object):
                 "messages": self.queries[query]["output"].getvalue(),
             }
 
-        if self.config["format"].lower() == "json":
+        format_ = format_ or self.config["format"]
+        if format_.lower() == "json":
             return json.dumps(data, indent=self.config["indent"])
+        elif format_.lower() == "dict":
+            return data
         else:
             raise TypeError("Invalid output format")
 
@@ -133,7 +136,7 @@ class EuscanOutput(object):
             print "%s: %s" % (key.capitalize(), value)
 
     def __getattr__(self, key):
-        if not self.config["quiet"]:
+        if not self.config["quiet"] and self.current_query is not None:
             output = self.queries[self.current_query]["output"]
             return getattr(output, key)
         else:
