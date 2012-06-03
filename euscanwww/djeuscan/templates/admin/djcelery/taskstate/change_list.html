@@ -18,21 +18,22 @@
           selector.append(
             $("<option/>").text("-------------").attr("selected", "selected")
           );
-          for (task in data["tasks"]) {
+          $.each(data.tasks, function(task) {
             var t = data["tasks"][task];
             selector.append(
               $("<option/>").val(task).text(task)
             )
-          }
+          });
 
           selector.change(function() {
-            $("#task_data").empty();
             var task = data["tasks"][$(this).val()];
+            $("#task_data").empty();
+
             if (task.args) {
-              for (var i = 0; i < task.args.length; i++) {
-                var arg = task.args[i];
-                var arg_input = $("<input/>").attr("name", arg);
-                var default_arg;
+              $.each(task.args, function(i) {
+                var arg = task.args[i]
+                  , arg_input = $("<input/>").attr("name", arg)
+                  ,  default_arg;
 
                 if (task.defaults) {
                   var default_arg_i = task.args.length - 1 - i;
@@ -42,7 +43,7 @@
                       arg_input.attr("type", "checkbox");
                     }
                     else {
-                      continue
+                      return true;
                     }
                   }
                 }
@@ -54,7 +55,7 @@
                 ).append(
                   arg_input
                 );
-              }
+              });
             }
           })
 
