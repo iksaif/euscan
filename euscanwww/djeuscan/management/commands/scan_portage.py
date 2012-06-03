@@ -241,7 +241,7 @@ class ScanPortage(object):
 
 
 @commit_on_success
-def purge_versions(options):
+def purge_versions(quiet=False, nolog=False):
     # For each dead versions
     for version in Version.objects.filter(packaged=True, alive=False):
         if version.overlay == 'gentoo':
@@ -251,10 +251,10 @@ def purge_versions(options):
         version.package.n_versions -= 1
         version.package.save()
 
-        if not options['quiet']:
+        if not quiet:
             sys.stdout.write('- [v] %s\n' % (version))
 
-        if options['no-log']:
+        if nolog:
             continue
 
         VersionLog.objects.create(
@@ -335,7 +335,7 @@ class Command(BaseCommand):
                 scan_portage.scan(package[:-1])
 
         if options['purge-versions']:
-            purge_versions(options)
+            purge_versions(options["quiet"], options["no-log"])
 
         if not options['quiet']:
             self.stdout.write('Done.\n')

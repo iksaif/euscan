@@ -1,6 +1,15 @@
 from django.conf.urls.defaults import url, patterns, include
+from django.contrib.auth.decorators import user_passes_test
+
+from djcelery.views import apply
+from djeuscan.views import registered_tasks
+
 from djeuscan.feeds import PackageFeed, CategoryFeed, HerdFeed, \
     MaintainerFeed, GlobalFeed
+
+
+admin_required = user_passes_test(lambda u: u.is_superuser)
+
 
 package_patterns = patterns('djeuscan.views',
     url(r'^(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/feed/$',
@@ -41,6 +50,13 @@ overlays_patterns = patterns('djeuscan.views',
     url(r'^$', 'overlays', name="overlays"),
 )
 
+tasks_patterns = patterns('djcelery.views',
+    url(r'^registered_tasks/$', admin_required(registered_tasks),
+        name="registered_tasks"),
+    url(r'^apply/(?P<task_name>.*)/$', admin_required(apply),
+        name="apply_task"),
+)
+
 urlpatterns = patterns('djeuscan.views',
     # Global stuff
     url(r'^api/', include('djeuscan.api.urls')),
@@ -60,4 +76,5 @@ urlpatterns = patterns('djeuscan.views',
     url(r'^maintainers/', include(maintainers_patterns)),
     url(r'^overlays/', include(overlays_patterns)),
     url(r'^package/', include(package_patterns)),
+    url(r'^tasks/', include(tasks_patterns)),
 )

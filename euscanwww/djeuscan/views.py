@@ -1,6 +1,8 @@
 """ Views """
 
-from annoying.decorators import render_to
+import inspect
+from annoying.decorators import render_to, ajax_request
+
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 
@@ -8,6 +10,7 @@ from djeuscan.helpers import version_key, packages_from_names
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog
 from djeuscan.forms import WorldForm, PackagesForm
+from djeuscan.tasks import launchable_tasks
 from djeuscan import charts
 
 
@@ -254,3 +257,20 @@ def chart_herd(request, **kwargs):
 
 def chart_category(request, **kwargs):
     return chart(request, **kwargs)
+
+
+@ajax_request
+def registered_tasks(request):
+    data = {}
+    for task in launchable_tasks:
+        argspec = inspect.getargspec(task.run)
+        data[task.name] = {
+            "args": argspec.args,
+            "defaults": argspec.defaults,
+            "default_types": None
+        }
+        if argspec.defaults is not None:
+            data[task.name].update({
+                "defaults_types": [type(x).__name__ for x in argspec.defaults]
+            })
+    return {"tasks": data}

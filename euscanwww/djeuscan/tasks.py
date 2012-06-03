@@ -28,7 +28,7 @@ def scan_metadata_task(query, obj=None):
     logger.info("Starting metadata scanning for package %s ...", query)
 
     scan_metadata = ScanMetadata()
-    scan_metadata.scan(query)
+    scan_metadata.scan(query, obj)
 
 
 @task
@@ -95,3 +95,17 @@ def scan_upstream_task(query):
 @task
 def scan_upstream_purge_task():
     scan_upstream_purge()
+
+
+launchable_tasks = [
+    regen_rrds_task,
+    update_counters_task,
+    scan_metadata_task,
+    scan_metadata_all_task,
+    scan_portage_all_task,
+    scan_portage_task,
+    scan_portage_purge_task,
+    scan_upstream_all_task,
+    scan_upstream_task,
+    scan_upstream_purge_task,
+]

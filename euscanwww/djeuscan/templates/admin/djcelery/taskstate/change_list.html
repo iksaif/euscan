@@ -1,0 +1,77 @@
+{% extends "admin/change_list.html" %}
+
+{% load url from future %}
+
+{% block object-tools %}
+  <div>
+    <span id="task_selector"></span>
+    <form id="task_data"></form>
+    <a href="#" id="task_launch">Launch task</a>
+  </div>
+
+  <script type="text/javascript">
+    (function($){
+      $(document).ready(function() {
+
+        $.get("{% url "registered_tasks" %}", function (data) {
+          var selector = $("<select/>");
+          selector.append(
+            $("<option/>").text("-------------").attr("selected", "selected")
+          );
+          for (task in data["tasks"]) {
+            var t = data["tasks"][task];
+            selector.append(
+              $("<option/>").val(task).text(task)
+            )
+          }
+
+          selector.change(function() {
+            $("#task_data").empty();
+            var task = data["tasks"][$(this).val()];
+            if (task.args) {
+              for (var i = 0; i < task.args.length; i++) {
+                var arg = task.args[i];
+                var arg_input = $("<input/>").attr("name", arg);
+                var default_arg;
+
+                if (task.defaults) {
+                  var default_arg_i = task.args.length - 1 - i;
+                  if (task.defaults[default_arg_i] !== undefined) {
+                    default_arg = task.defaults[default_arg_i];
+                    if (task.defaults_types && task.defaults_types[default_arg_i] === "bool") {
+                      arg_input.attr("type", "checkbox");
+                    }
+                    else {
+                      continue
+                    }
+                  }
+                }
+
+                arg_input.val(default_arg);
+
+                $("#task_data").append(
+                  $("<label/>").text(arg + ": ").attr("for", arg)
+                ).append(
+                  arg_input
+                );
+              }
+            }
+          })
+
+          $("#task_selector").append(selector);
+        });
+
+        $("#task_launch").click(function() {
+            var task_name = $("#task_selector").find("select").val();
+            var data = $("#task_data").serialize();
+            var url = "{% url "apply_task" "task_name" %}";
+
+            $.post(url.replace("task_name", task_name), data, function() {
+              location.reload();
+            });
+        });
+
+      });
+    })(django.jQuery);
+  </script>
+{% endblock %}

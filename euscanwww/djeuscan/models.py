@@ -190,6 +190,11 @@ class EuscanResult(models.Model):
         self.full_clean()
         super(EuscanResult, self).save(*args, **kwargs)
 
+    def __unicode__(self):
+        return '[%s] %s/%s' % (
+            self.datetime, self.package.category, self.package.name
+        )
+
 
 class Log(models.Model):
     """

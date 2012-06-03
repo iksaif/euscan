@@ -13,7 +13,7 @@ from djeuscan.models import Package, Herd, Maintainer
 
 
 class ScanMetadata(object):
-    def __init__(self, quiet):
+    def __init__(self, quiet=False):
         self.quiet = quiet
         self.style = color_style()
 
