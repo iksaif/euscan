@@ -207,10 +207,10 @@ class ScanPortage(object):
                 overlay=overlay,
                 defaults={"alive": True, "packaged": True}
             )
-            if not created:
-                obj.alive = True
-                obj.packaged = True
-                obj.save()
+        if not created: # Created objects have defaults values
+            obj.alive = True
+            obj.packaged = True
+            obj.save()
 
         if created:
             self.cache_store_version(obj)

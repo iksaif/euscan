@@ -57,7 +57,7 @@ class ScanUpstream(object):
     def store_version(self, package, ver, url):
         obj, created = Version.objects.get_or_create(
             package=package, slot='', revision='r0', version=ver, overlay='',
-            defaults={"alive": True, "urls": url, "packaged": True}
+            defaults={"alive": True, "urls": url, "packaged": False}
         )
         if not created:
             obj.alive = True
