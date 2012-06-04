@@ -202,6 +202,12 @@ LOGGING = {
 }
 
 
+PORTAGE_ROOT = "/usr/portage/"
+PORTAGE_CONFIGROOT = PORTAGE_ROOT
+LAYMAN_CONFIG = "/etc/layman/layman.cfg"
+EMERGE_REGEN_JOBS = 4
+
+
 # Celery config
 import djcelery
 djcelery.setup_loader()
@@ -213,7 +219,7 @@ try:
     from local_settings import *
 except ImportError, ex:
     import sys
-    sys.stderr.write(\
-            ("settings.py: error importing local settings file:\n" + \
-            "\t%s\n" + \
-            "Do you have a local_settings.py module?\n") % str(ex))
+    sys.stderr.write(
+        "settings.py: error importing local settings file:\n"
+        "\t%s\nDo you have a local_settings.py module?\n" % str(ex)
+    )

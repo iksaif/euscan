@@ -1,8 +1,12 @@
+import subprocess
+from StringIO import StringIO
+
 from celery.task import task
 from celery.task.sets import TaskSet
 
-from djeuscan.models import Package
+from django.conf import settings
 
+from djeuscan.models import Package
 from djeuscan.management.commands.regen_rrds import regen_rrds
 from djeuscan.management.commands.update_counters import update_counters
 from djeuscan.management.commands.scan_metadata import ScanMetadata
@@ -97,6 +101,41 @@ def scan_upstream_purge_task():
     scan_upstream_purge()
 
 
+def _launch_command(cmd):
+    fp = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
+    output = StringIO(fp.communicate()[0])
+    return output.getvalue()
+
+
+@task
+def emerge_sync():
+    cmd = ["emerge", "--sync", "--root", settings.PORTAGE_ROOT,
+           "--config-root", settings.PORTAGE_CONFIGROOT]
+    return _launch_command(cmd)
+
+
+@task
+def layman_sync():
+    cmd = ["layman", "-S", "--config", settings.LAYMAN_CONFIG]
+    return _launch_command(cmd)
+
+
+@task
+def emerge_regen():
+    cmd = [
+        "emerge", "--regen", "--jobs", settings.EMERGE_REGEN_JOBS, "--root",
+        settings.PORTAGE_ROOT, "--config-root", settings.PORTAGE_CONFIGROOT
+    ]
+    return _launch_command(cmd)
+
+
+@task
+def eix_update():
+    cmd = ["eix-update"]
+    return _launch_command(cmd)
+
+
 launchable_tasks = [
     regen_rrds_task,
     update_counters_task,
@@ -108,4 +147,8 @@ launchable_tasks = [
     scan_upstream_all_task,
     scan_upstream_task,
     scan_upstream_purge_task,
+    emerge_sync,
+    layman_sync,
+    emerge_regen,
+    eix_update,
 ]
