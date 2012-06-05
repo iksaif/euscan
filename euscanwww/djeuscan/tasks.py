@@ -36,12 +36,36 @@ def scan_metadata_task(query, obj=None):
 
 
 @task
+def scan_metadata_list_task(query):
+    job = TaskSet(tasks=[
+        scan_metadata_task.subtask((pkg, ))
+        for pkg in query.split()
+    ])
+    job.apply_async()
+
+
+@task
 def scan_metadata_all_task():
     job = TaskSet(tasks=[
         scan_metadata_task.subtask(('%s/%s' % (pkg.category, pkg.name), pkg))
         for pkg in Package.objects.all()
     ])
     job.apply_async()
+
+
+@task
+def scan_portage_list_task(query, purge=False):
+    scan_portage = ScanPortage()
+
+    for pkg in query.split():
+        logger = scan_portage_list_task.get_logger()
+        logger.info("Starting Portage package scanning: %s ...", pkg)
+
+        scan_portage.scan(pkg)
+
+    if purge:
+        logger.info("Purging")
+        scan_portage_purge()
 
 
 @task
@@ -58,21 +82,26 @@ def scan_portage_all_task(purge=False):
 
 
 @task
-def scan_portage_task(query, purge=False):
-    logger = scan_portage_task.get_logger()
-    logger.info("Starting Portage package scanning: %s ...", query)
-
-    scan_portage = ScanPortage()
-    scan_portage.scan(query)
-
-    if purge:
-        logger.info("Purging")
-        scan_portage_purge()
+def scan_portage_purge_task():
+    scan_portage_purge()
 
 
 @task
-def scan_portage_purge_task():
-    scan_portage_purge()
+def scan_upstream_task(query):
+    logger = scan_upstream_task.get_logger()
+    logger.info("Starting upstream scanning for package %s ...", query)
+
+    scan_upstream = ScanUpstream()
+    scan_upstream.scan(query)
+
+
+@task
+def scan_upstream_list_task(query):
+    job = TaskSet(tasks=[
+        scan_upstream_task.subtask((pkg, ))
+        for pkg in query.split()
+    ])
+    job.apply_async()
 
 
 @task
@@ -85,15 +114,6 @@ def scan_upstream_all_task(purge=False):
 
     job = TaskSet(tasks=tasks)
     job.apply_async()
-
-
-@task
-def scan_upstream_task(query):
-    logger = scan_upstream_task.get_logger()
-    logger.info("Starting upstream scanning for package %s ...", query)
-
-    scan_upstream = ScanUpstream()
-    scan_upstream.scan(query)
 
 
 @task
@@ -143,13 +163,13 @@ def eix_update():
 launchable_tasks = [
     regen_rrds_task,
     update_counters_task,
-    scan_metadata_task,
+    scan_metadata_list_task,
     scan_metadata_all_task,
     scan_portage_all_task,
-    scan_portage_task,
+    scan_portage_list_task,
     scan_portage_purge_task,
     scan_upstream_all_task,
-    scan_upstream_task,
+    scan_upstream_list_task,
     scan_upstream_purge_task,
     emerge_sync,
     layman_sync,

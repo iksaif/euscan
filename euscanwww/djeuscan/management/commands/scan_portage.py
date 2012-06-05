@@ -16,7 +16,8 @@ from djeuscan.models import Package, Version, VersionLog
 class ScanPortage(object):
     def __init__(self, stdout=None, options=None):
         self.stdout = sys.stdout if stdout is None else stdout
-        self.options = defaultdict(None) if options is None else options
+        self.options = defaultdict(lambda: None) \
+                       if options is None else options
 
         self.style = color_style()
         self._cache = {'packages': {}, 'versions': {}}
