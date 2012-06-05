@@ -117,8 +117,12 @@ def emerge_sync():
 
 @task
 def layman_sync():
-    cmd = ["layman", "-S", "--config", settings.LAYMAN_CONFIG]
-    return _launch_command(cmd)
+    from layman import Layman
+    results = []
+    l = Layman()
+    for overlay in l.get_installed():
+        results.append(l.sync(overlay, output_results=False))
+    return results
 
 
 @task
