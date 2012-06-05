@@ -24,7 +24,15 @@
 {% endblock %}
 
 {% block content %}
-<h2>{{ package.category }}/{{ package.name }}</h2>
+<h2>
+  {{ package.category }}/{{ package.name }}
+
+  {% if user.is_superuser %}
+    <button class="refresh-button" data-package="{{ package.category }}/{{ package.name }}">
+      Refresh
+    </button>
+  {% endif %}
+</h2>
 <dl>
   {% if package.description %}
   <dt>Description</dt>
@@ -129,4 +137,14 @@
   </dd>
   {% endif %}
 </dl>
+
+<script type="text/javascript">
+  $(".refresh-button").click(function() {
+    var url = "{% url "apply_task" "djeuscan.tasks.scan_upstream_task" %}";
+    $.post(url, {query: $(this).data("package")}, function() {
+      alert("Submitted!");
+    });
+  });
+</script>
+
 {% endblock %}
