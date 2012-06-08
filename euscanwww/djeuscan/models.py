@@ -115,7 +115,7 @@ class Version(models.Model):
     """
 
     package = models.ForeignKey(Package)
-    slot = models.CharField(max_length=128, blank=True)
+    slot = models.CharField(max_length=128, blank=True, default="")
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
@@ -148,7 +148,7 @@ class VersionLog(models.Model):
 
     package = models.ForeignKey(Package)
     datetime = models.DateTimeField(auto_now_add=True)
-    slot = models.CharField(max_length=128, blank=True)
+    slot = models.CharField(max_length=128, blank=True, default="")
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()

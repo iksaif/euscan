@@ -68,7 +68,7 @@ class ScanUpstream(object):
     def store_version(self, package, ver, url):
         obj, created = Version.objects.get_or_create(
             package=package, slot='', revision='r0', version=ver, overlay='',
-            defaults={"alive": True, "urls": url, "packaged": True}
+            defaults={"alive": True, "urls": url, "packaged": False}
         )
         if not created:
             obj.alive = True
@@ -98,6 +98,9 @@ class ScanUpstream(object):
     @commit_on_success
     def parse_output(self, output):
         from portage.versions import _cp
+
+        if type(_cp) == dict:
+            _cp = _cp["dots_allowed_in_PN"]
 
         package_re = re.compile(
             r'^ \* (?P<cpv>' + _cp + ') \[(?P<overlay>.*?)\]$'
