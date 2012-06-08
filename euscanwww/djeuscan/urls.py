@@ -50,7 +50,10 @@ overlays_patterns = patterns('djeuscan.views',
     url(r'^$', 'overlays', name="overlays"),
 )
 
-tasks_patterns = patterns('djcelery.views',
+tasks_patterns = patterns('djeuscan.views',
+    url(r'^refresh_package/(?P<query>(?:[\w+][\w+.-]*/[\w+][\w+.-]*))/$',
+        "refresh_package",
+        name="refresh_package"),
     url(r'^registered_tasks/$', admin_required(registered_tasks),
         name="registered_tasks"),
     url(r'^apply/(?P<task_name>.*)/$', admin_required(apply),

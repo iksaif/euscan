@@ -5,12 +5,14 @@ from annoying.decorators import render_to, ajax_request
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 from djeuscan.helpers import version_key, packages_from_names
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
-    VersionLog
+    VersionLog, RefreshPackageQuery
 from djeuscan.forms import WorldForm, PackagesForm
-from djeuscan.tasks import launchable_tasks
+from djeuscan.tasks import admin_tasks
 from djeuscan import charts
 
 
@@ -262,7 +264,7 @@ def chart_category(request, **kwargs):
 @ajax_request
 def registered_tasks(request):
     data = {}
-    for task in launchable_tasks:
+    for task in admin_tasks:
         argspec = inspect.getargspec(task.run)
         data[task.name] = {
             "args": argspec.args,
@@ -274,3 +276,14 @@ def registered_tasks(request):
                 "defaults_types": [type(x).__name__ for x in argspec.defaults]
             })
     return {"tasks": data}
+
+
+@login_required
+@require_POST
+@ajax_request
+def refresh_package(request, query):
+    obj, created = RefreshPackageQuery.objects.get_or_create(query=query)
+    if not created:
+        obj.priority += 1
+        obj.save()
+    return {"result": "success"}

@@ -140,8 +140,8 @@
 
 <script type="text/javascript">
   $(".refresh-button").click(function() {
-    var url = "{% url "apply_task" "djeuscan.tasks.scan_upstream_task" %}";
-    $.post(url, {query: $(this).data("package")}, function() {
+    var url = "{% url "refresh_package" "x/x" %}";
+    $.post(url.replace("x/x", $(this).data("package")), function() {
       alert("Submitted!");
     });
   });

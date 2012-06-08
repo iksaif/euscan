@@ -1,12 +1,14 @@
 import subprocess
 from StringIO import StringIO
+from itertools import islice
 
-from celery.task import task
+from celery.task import task, periodic_task
+from celery.task.schedules import crontab
 from celery.task.sets import TaskSet
 
 from django.conf import settings
 
-from djeuscan.models import Package
+from djeuscan.models import Package, RefreshPackageQuery
 from djeuscan.management.commands.regen_rrds import regen_rrds
 from djeuscan.management.commands.update_counters import update_counters
 from djeuscan.management.commands.scan_metadata import ScanMetadata
@@ -16,14 +18,38 @@ from djeuscan.management.commands.scan_upstream import ScanUpstream, \
     purge_versions as scan_upstream_purge
 
 
+def _launch_command(cmd):
+    fp = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
+    output = StringIO(fp.communicate()[0])
+    return output.getvalue()
+
+
+def _chunks(it, n):
+    for first in it:
+        yield [first] + list(islice(it, n - 1))
+
+
+def _run_in_chunks(task, iterable, n=32):
+    output = []
+    for chunk in _chunks(iter(iterable), n):
+        job = TaskSet(tasks=[
+            task.subtask(args)
+            for args in chunk
+        ])
+        result = job.apply_async()
+        output.extend(list(result.join()))
+    return output
+
+
 @task
 def regen_rrds_task():
-    regen_rrds()
+    return regen_rrds()
 
 
 @task
 def update_counters_task():
-    update_counters()
+    return update_counters()
 
 
 @task
@@ -32,33 +58,29 @@ def scan_metadata_task(query, obj=None):
     logger.info("Starting metadata scanning for package %s ...", query)
 
     scan_metadata = ScanMetadata()
-    scan_metadata.scan(query, obj)
+    return scan_metadata.scan(query, obj)
 
 
 @task
 def scan_metadata_list_task(query):
-    job = TaskSet(tasks=[
-        scan_metadata_task.subtask((pkg, ))
-        for pkg in query.split()
-    ])
-    job.apply_async()
+    return _run_in_chunks(scan_metadata_task, [(p, ) for p in query.split()])
 
 
 @task
 def scan_metadata_all_task():
-    job = TaskSet(tasks=[
-        scan_metadata_task.subtask(('%s/%s' % (pkg.category, pkg.name), pkg))
-        for pkg in Package.objects.all()
-    ])
-    job.apply_async()
+    return _run_in_chunks(
+        scan_metadata_task,
+        [('%s/%s' % (pkg.category, pkg.name), pkg)
+         for pkg in Package.objects.all()]
+    )
 
 
 @task
 def scan_portage_list_task(query, purge=False):
     scan_portage = ScanPortage()
+    logger = scan_portage_list_task.get_logger()
 
     for pkg in query.split():
-        logger = scan_portage_list_task.get_logger()
         logger.info("Starting Portage package scanning: %s ...", pkg)
 
         scan_portage.scan(pkg)
@@ -92,40 +114,31 @@ def scan_upstream_task(query):
     logger.info("Starting upstream scanning for package %s ...", query)
 
     scan_upstream = ScanUpstream()
-    scan_upstream.scan(query)
+    return scan_upstream.scan(query)
 
 
 @task
 def scan_upstream_list_task(query):
-    job = TaskSet(tasks=[
-        scan_upstream_task.subtask((pkg, ))
-        for pkg in query.split()
-    ])
-    job.apply_async()
+    return _run_in_chunks(scan_upstream_task, [(p, ) for p in query.split()])
 
 
 @task
 def scan_upstream_all_task(purge=False):
-    tasks = [scan_upstream_task.subtask(('%s/%s' % (pkg.category, pkg.name), ))
-             for pkg in Package.objects.all()]
+    output = _run_in_chunks(
+        scan_upstream_task,
+        [('%s/%s' % (pkg.category, pkg.name), )
+         for pkg in Package.objects.all()]
+    )
 
     if purge:
-        tasks.append(scan_upstream_purge_task.subtask())
+        output += [scan_upstream_purge_task()]
 
-    job = TaskSet(tasks=tasks)
-    job.apply_async()
+    return output
 
 
 @task
 def scan_upstream_purge_task():
     scan_upstream_purge()
-
-
-def _launch_command(cmd):
-    fp = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE)
-    output = StringIO(fp.communicate()[0])
-    return output.getvalue()
 
 
 @task
@@ -157,7 +170,19 @@ def eix_update():
     return _launch_command(cmd)
 
 
-launchable_tasks = [
+@periodic_task(run_every=crontab(minute="*/1"))
+def refresh_package_consume():
+    try:
+        obj = RefreshPackageQuery.objects.latest()
+    except RefreshPackageQuery.DoesNotExist:
+        return {}
+    else:
+        result = scan_upstream_task(obj.query)
+        obj.delete()
+        return result
+
+
+admin_tasks = [
     regen_rrds_task,
     update_counters_task,
     scan_metadata_list_task,
