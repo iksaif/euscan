@@ -39,16 +39,16 @@
                   var default_arg_i = task.args.length - 1 - i;
                   if (task.defaults[default_arg_i] !== undefined) {
                     default_arg = task.defaults[default_arg_i];
+                    arg_input.val(default_arg);
+
                     if (task.defaults_types && task.defaults_types[default_arg_i] === "bool") {
-                      arg_input.attr("type", "checkbox");
+                      arg_input.attr("type", "checkbox").attr("checked", default_arg).val("true");
                     }
                     else {
                       return true;
                     }
                   }
                 }
-
-                arg_input.val(default_arg);
 
                 $("#task_data").append(
                   $("<label/>").text(arg + ": ").attr("for", arg)
@@ -68,7 +68,7 @@
             var url = "{% url "apply_task" "task_name" %}";
 
             $.post(url.replace("task_name", task_name), data, function() {
-              location.reload();
+              //location.reload();
             });
         });
 
