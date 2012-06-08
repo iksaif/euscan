@@ -21,19 +21,27 @@ class ScanUpstream(object):
     def scan(self, package):
         CONFIG["format"] = "dict"
         output.set_query(package)
-        scan_upstream(package)
+
+        ret = scan_upstream(package)
+        if ret is not None:
+            if len(ret) > 0:
+                for cp, url, version, handler, confidence in ret:
+                    output.result(cp, version, url, handler, confidence)
+
         out = output.get_formatted_output()
         out_json = output.get_formatted_output("json")
 
         try:
-            cp = out["metadata"]["cp"]
+            cpv = out[package]["metadata"]["cpv"]
         except KeyError:
             return {}
 
-        for out in out["result"]:
-            self.store_version(cp, out["version"], " ".join(out["urls"]))
+        obj = self.store_package(cpv)
 
-        self.store_result(cp, out_json)
+        for res in out[package]["result"]:
+            self.store_version(obj, res["version"], " ".join(res["urls"]))
+
+        self.store_result(obj, out_json)
 
         return out
 
