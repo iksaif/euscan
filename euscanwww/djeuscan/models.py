@@ -115,12 +115,12 @@ class Version(models.Model):
     """
 
     package = models.ForeignKey(Package)
-    slot = models.CharField(max_length=128)
+    slot = models.CharField(max_length=128, blank=True)
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
     overlay = models.CharField(max_length=128, default='gentoo', db_index=True,
-                               validators=[validate_name])
+                               validators=[validate_name], blank=True)
     urls = models.TextField(blank=True)
     alive = models.BooleanField(default=True, db_index=True)
 
@@ -148,12 +148,12 @@ class VersionLog(models.Model):
 
     package = models.ForeignKey(Package)
     datetime = models.DateTimeField(auto_now_add=True)
-    slot = models.CharField(max_length=128)
+    slot = models.CharField(max_length=128, blank=True)
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
     overlay = models.CharField(max_length=128, default='gentoo',
-                               validators=[validate_name])
+                               validators=[validate_name], blank=True)
     action = models.IntegerField(choices=VERSION_ACTIONS)
 
     objects = VersionLogManager()
@@ -257,3 +257,14 @@ class MaintainerLog(Log):
 
     def __unicode__(self):
         return u'%s %s' % (self.maintainer, Log.__unicode__(self))
+
+
+class RefreshPackageQuery(models.Model):
+    query = models.CharField(max_length=256, unique=True)
+    priority = models.IntegerField(default=0)
+
+    class Meta:
+        get_latest_by = "priority"
+
+    def __unicode__(self):
+        return u'[%d] %s' % (self.priority, self.query)
