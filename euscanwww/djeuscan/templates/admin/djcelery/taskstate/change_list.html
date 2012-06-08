@@ -68,9 +68,12 @@
             var url = "{% url "apply_task" "task_name" %}";
 
             $.post(url.replace("task_name", task_name), data, function() {
-              //location.reload();
+              alert("Submitted!");
+              location.reload();
             });
         });
+
+        setTimeout(location.reload, 10000);
 
       });
     })(django.jQuery);

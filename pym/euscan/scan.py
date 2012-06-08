@@ -1,4 +1,7 @@
+from __future__ import print_function
+
 import os
+import sys
 from datetime import datetime
 
 import portage
@@ -211,5 +214,12 @@ def scan_upstream(query, on_progress=None):
     curval += 1
     if on_progress:
         on_progress(maxval, curval)
+
+    if len(result) > 0:
+        if not (CONFIG['format'] or CONFIG['quiet']):
+            print("\n", file=sys.stderr)
+
+        for cp, url, version, handler, confidence in result:
+            output.result(cp, version, url, handler, confidence)
 
     return result

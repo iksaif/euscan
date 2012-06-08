@@ -22,11 +22,7 @@ class ScanUpstream(object):
         CONFIG["format"] = "dict"
         output.set_query(package)
 
-        ret = scan_upstream(package)
-        if ret is not None:
-            if len(ret) > 0:
-                for cp, url, version, handler, confidence in ret:
-                    output.result(cp, version, url, handler, confidence)
+        scan_upstream(package)
 
         out = output.get_formatted_output()
         out_json = output.get_formatted_output("json")
