@@ -170,6 +170,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'south',
     'djcelery',
+    'registration',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -201,6 +202,7 @@ LOGGING = {
     }
 }
 
+ACCOUNT_ACTIVATION_DAYS = 7
 
 PORTAGE_ROOT = "/usr/portage/"
 PORTAGE_CONFIGROOT = PORTAGE_ROOT
