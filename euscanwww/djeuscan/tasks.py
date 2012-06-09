@@ -18,6 +18,13 @@ from djeuscan.management.commands.scan_upstream import ScanUpstream, \
     purge_versions as scan_upstream_purge
 
 
+class TaskFailedException(Exception):
+    """
+    Exception for failed tasks
+    """
+    pass
+
+
 def _launch_command(cmd):
     fp = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
@@ -38,7 +45,8 @@ def _run_in_chunks(task, iterable, n=32):
             for args in chunk
         ])
         result = job.apply_async()
-        output.extend(list(result.join()))
+        # TODO: understand why this causes timeout
+        #output.extend(list(result.join(timeout=3600)))
     return output
 
 
@@ -114,7 +122,10 @@ def scan_upstream_task(query):
     logger.info("Starting upstream scanning for package %s ...", query)
 
     scan_upstream = ScanUpstream()
-    return scan_upstream.scan(query)
+    result = scan_upstream.scan(query)
+    if not result:
+        raise TaskFailedException("Couldn't scan upstream for this package")
+    return result
 
 
 @task
@@ -127,7 +138,8 @@ def scan_upstream_all_task(purge=False):
     output = _run_in_chunks(
         scan_upstream_task,
         [('%s/%s' % (pkg.category, pkg.name), )
-         for pkg in Package.objects.all()]
+         for pkg in Package.objects.all()],
+        n=16
     )
 
     if purge:
