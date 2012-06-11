@@ -2,7 +2,10 @@ import urllib2
 import re
 import StringIO
 
-from BeautifulSoup import BeautifulSoup
+try:
+    from BeautifulSoup import BeautifulSoup
+except ImportError:
+    from bs4 import BeautifulSoup
 
 import portage
 
