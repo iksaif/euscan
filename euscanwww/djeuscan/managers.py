@@ -35,7 +35,6 @@ ANNOTATE_DICT = {name: models.Sum(name)
 
 
 class PackageMixin(object):
-
     for_maintainer = _gen_for_function('maintainers')
     for_herd = _gen_for_function('herds')
     for_category = _gen_for_function('category')

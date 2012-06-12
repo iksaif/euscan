@@ -1,0 +1,16 @@
+{% extends "euscan/_datatable.html" %}
+{% load url from future %}
+
+{% load packages %}
+
+{% block title %}
+  {{ block.super }} - My packages
+{% endblock %}
+
+
+{% block content %}
+  <h2>My Packages</h2>
+
+  {% packages packages %}
+
+{% endblock %}

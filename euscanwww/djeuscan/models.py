@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import RegexValidator, validate_email, URLValidator
 from django.core.exceptions import ValidationError
 
+from django.contrib.auth.models import User
+
 from djeuscan.managers import PackageManager, VersionLogManager, \
     EuscanResultManager
 
@@ -268,3 +270,47 @@ class RefreshPackageQuery(models.Model):
 
     def __unicode__(self):
         return u'[%d] %s' % (self.priority, self.query)
+
+
+class HerdAssociation(models.Model):
+    user = models.ForeignKey(User)
+    herd = models.ForeignKey(Herd)
+
+    class Meta:
+        unique_together = ['user', 'herd']
+
+    def __unicode__(self):
+        return u'[%s] %s' % (self.user, self.herd)
+
+
+class MaintainerAssociation(models.Model):
+    user = models.ForeignKey(User)
+    maintainer = models.ForeignKey(Maintainer)
+
+    class Meta:
+        unique_together = ['user', 'maintainer']
+
+    def __unicode__(self):
+        return u'[%s] %s' % (self.user, self.maintainer)
+
+
+class PackageAssociation(models.Model):
+    user = models.ForeignKey(User)
+    package = models.ForeignKey(Package)
+
+    class Meta:
+        unique_together = ['user', 'package']
+
+    def __unicode__(self):
+        return u'[%s] %s' % (self.user, self.package)
+
+
+class CategoryAssociation(models.Model):
+    user = models.ForeignKey(User)
+    category = models.CharField(max_length=128, validators=[validate_category])
+
+    class Meta:
+        unique_together = ['user', 'category']
+
+    def __unicode__(self):
+        return u'[%s] %s' % (self.user, self.category)

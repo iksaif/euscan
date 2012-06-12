@@ -37,12 +37,25 @@
               <li><a href="{% url "overlays" %}">Overlays</a></li>
               <li><a href="{% url "world" %}">Scan World</a></li>
               <li><a href="{% url "statistics" %}">Statistics</a></li>
-              <!--
+
               <li>---</li>
-              <li><a href="#">Login</a></li>
-              <li><a href="#">Register</a></li>
-              -->
+
+              {% if user.is_authenticated %}
+                <li><a href="{% url "accounts_index" %}">{{ user }}'s profile</a></li>
+                <ul class="submenu">
+                  <li><a href="{% url "accounts_categories" %}">Categories</a></li>
+                  <li><a href="{% url "accounts_herds" %}">Herds</a></li>
+                  <li><a href="{% url "accounts_maintainers" %}">Maintainer profiles</a></li>
+                  <li><a href="{% url "accounts_packages" %}">Packages</a></li>
+                </ul>
+                <li><a href="{% url "django.contrib.auth.views.logout" %}">Logout</a></li>
+              {% else %}
+              <li><a href="{% url "django.contrib.auth.views.login" %}?next={% url "accounts_index" %}">Login</a></li>
+                <li><a href="{% url "registration.views.register" %}">Register</a></li>
+              {% endif %}
+
               <li>---</li>
+
               {% block menu_feed %}
                 <li>
                   <img src="{{ STATIC_URL }}img/feed.png" alt="feed" />
@@ -52,15 +65,6 @@
               <li>---</li>
               <li><a href="{% url "api" %}">API</a></li>
               <li><a href="{% url "about" %}">About</a></li>
-              <li>---</li>
-
-              {% if user.is_authenticated %}
-                <li><a href="#"> Welcome {{ user }}</a></li>
-                <li><a href="{% url "django.contrib.auth.views.logout" %}">Logout</a></li>
-              {% else %}
-                <li><a href="{% url "django.contrib.auth.views.login" %}">Login</a></li>
-                <li><a href="{% url "registration.views.register" %}">Register</a></li>
-              {% endif %}
             {% endblock %}
           </ul>
         </div>

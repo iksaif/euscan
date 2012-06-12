@@ -87,10 +87,13 @@ a:hover, a:active
     color: #fff;
 }
 
-.menu li
-{
-  list-style-type: none;
- }
+.menu li {
+    list-style-type: none;
+}
+
+.submenu {
+    padding-left: 15px;
+}
 
 .menu dl {
     margin-left: 15px;

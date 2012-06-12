@@ -10,7 +10,8 @@ from django.views.decorators.http import require_POST
 
 from djeuscan.helpers import version_key, packages_from_names
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
-    VersionLog, RefreshPackageQuery
+    VersionLog, RefreshPackageQuery, HerdAssociation, MaintainerAssociation, \
+    CategoryAssociation, PackageAssociation
 from djeuscan.forms import WorldForm, PackagesForm
 from djeuscan.tasks import admin_tasks
 from djeuscan import charts
@@ -287,3 +288,83 @@ def refresh_package(request, query):
         obj.priority += 1
         obj.save()
     return {"result": "success"}
+
+
+@login_required
+@render_to('euscan/accounts/index.html')
+def accounts_index(request):
+    return {}
+
+
+@login_required
+@render_to('euscan/accounts/categories.html')
+def accounts_categories(request):
+    return {}
+
+
+@login_required
+@render_to('euscan/accounts/herds.html')
+def accounts_herds(request):
+    return {}
+
+
+@login_required
+@render_to('euscan/accounts/maintainers.html')
+def accounts_maintainers(request):
+    return {}
+
+
+@login_required
+@render_to('euscan/accounts/packages.html')
+def accounts_packages(request):
+    packages = [obj.package for obj in
+                PackageAssociation.objects.filter(user=request.user)]
+    return {"packages": packages}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_package(request, category, package):
+    obj = get_object_or_404(Package, category=category, name=package)
+    _, created = PackageAssociation.objects.get_or_create(
+        user=request.user, package=obj
+    )
+    return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_herd(request, herd):
+    obj = get_object_or_404(Herd, herd=herd)
+    _, created = HerdAssociation.objects.get_or_create(
+        user=request.user, herd=obj
+    )
+    return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_maintainer(request, maintainer_id):
+    obj = get_object_or_404(Maintainer, pk=maintainer_id)
+    _, created = MaintainerAssociation.objects.get_or_create(
+        user=request.user, maintainer=obj
+    )
+    return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_category(request, category):
+    packages = Package.objects.for_category(category, last_versions=True)
+
+    if not packages:
+        raise Http404
+
+    _, created = CategoryAssociation.objects.get_or_create(
+        user=request.user, category=category
+    )
+    return {"success": created}

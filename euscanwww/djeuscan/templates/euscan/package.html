@@ -27,9 +27,12 @@
 <h2>
   {{ package.category }}/{{ package.name }}
 
-  {% if user.is_superuser %}
+  {% if user.is_authenticated %}
     <button class="refresh-button" data-package="{{ package.category }}/{{ package.name }}">
       Refresh
+    </button>
+    <button class="favourite-button" data-url="{% url "favourite_package" package.category package.name %}">
+      Add to favourites
     </button>
   {% endif %}
 </h2>
@@ -143,6 +146,12 @@
     var url = "{% url "refresh_package" "x/x" %}";
     $.post(url.replace("x/x", $(this).data("package")), function() {
       alert("Submitted!");
+    });
+  });
+
+  $(".favourite-button").click(function() {
+    $.post($(this).data("url"), function() {
+      alert("Favourited!");
     });
   });
 </script>
