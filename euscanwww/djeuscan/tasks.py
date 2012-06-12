@@ -26,6 +26,9 @@ class TaskFailedException(Exception):
 
 
 def _launch_command(cmd):
+    """
+    Helper for launching shell commands inside tasks
+    """
     fp = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
     output = StringIO(fp.communicate()[0])
@@ -33,11 +36,18 @@ def _launch_command(cmd):
 
 
 def _chunks(it, n):
+    """
+    Chunk generator, takes an iterator and the desired size of the chunk
+    """
     for first in it:
         yield [first] + list(islice(it, n - 1))
 
 
 def _run_in_chunks(task, iterable, n=32):
+    """
+    Runs the given task with the given iterable of args in chunks of
+    n subtasks
+    """
     output = []
     for chunk in _chunks(iter(iterable), n):
         job = TaskSet(tasks=[
@@ -46,7 +56,7 @@ def _run_in_chunks(task, iterable, n=32):
         ])
         result = job.apply_async()
         # TODO: understand why this causes timeout
-        #output.extend(list(result.join(timeout=3600)))
+        output.extend(list(result.join(timeout=3600)))
     return output
 
 
@@ -66,7 +76,10 @@ def scan_metadata_task(query, obj=None):
     logger.info("Starting metadata scanning for package %s ...", query)
 
     scan_metadata = ScanMetadata()
-    return scan_metadata.scan(query, obj)
+    result = scan_metadata.scan(query, obj)
+    if not result:
+        raise TaskFailedException("Couldn't scan metadata")
+    return result
 
 
 @task
@@ -112,19 +125,14 @@ def scan_portage_all_task(purge=False):
 
 
 @task
-def scan_portage_purge_task():
-    scan_portage_purge()
-
-
-@task
 def scan_upstream_task(query):
     logger = scan_upstream_task.get_logger()
     logger.info("Starting upstream scanning for package %s ...", query)
 
     scan_upstream = ScanUpstream()
     result = scan_upstream.scan(query)
-    if not result:
-        raise TaskFailedException("Couldn't scan upstream for this package")
+    if not result or result == {}:
+        raise TaskFailedException("Couldn't scan upstream")
     return result
 
 
@@ -143,14 +151,9 @@ def scan_upstream_all_task(purge=False):
     )
 
     if purge:
-        output += [scan_upstream_purge_task()]
+        output += [scan_upstream_purge()]
 
     return output
-
-
-@task
-def scan_upstream_purge_task():
-    scan_upstream_purge()
 
 
 @task
@@ -201,10 +204,8 @@ admin_tasks = [
     scan_metadata_all_task,
     scan_portage_all_task,
     scan_portage_list_task,
-    scan_portage_purge_task,
     scan_upstream_all_task,
     scan_upstream_list_task,
-    scan_upstream_purge_task,
     emerge_sync,
     layman_sync,
     emerge_regen,

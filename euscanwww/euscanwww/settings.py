@@ -215,7 +215,7 @@ import djcelery
 djcelery.setup_loader()
 BROKER_URL = "amqp://guest:guest@localhost:5672//"
 CELERY_RESULT_BACKEND = "amqp"
-BROKER_CONNECTION_TIMEOUT = 600
+BROKER_CONNECTION_TIMEOUT = 3600
 CELERYD_CONCURRENCY = 4
 
 
