@@ -202,13 +202,15 @@ LOGGING = {
     }
 }
 
+# django-registration
 ACCOUNT_ACTIVATION_DAYS = 7
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# djeuscan tasks
 PORTAGE_ROOT = "/usr/portage/"
 PORTAGE_CONFIGROOT = PORTAGE_ROOT
 LAYMAN_CONFIG = "/etc/layman/layman.cfg"
 EMERGE_REGEN_JOBS = 4
-
 
 # Celery config
 import djcelery
@@ -218,6 +220,14 @@ CELERY_RESULT_BACKEND = "amqp"
 BROKER_CONNECTION_TIMEOUT = 3600
 CELERYD_CONCURRENCY = 4
 
+# LDAP authentication
+# TODO: Test data - change me!
+AUTH_LDAP_SERVER_URI = "ldap://localhost"
+AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=users,dc=my-domain,dc=com"
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 try:
     from local_settings import *
