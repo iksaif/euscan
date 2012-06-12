@@ -8,6 +8,8 @@ from celery.task.sets import TaskSet
 
 from django.conf import settings
 
+from euscan import output as euscan_output
+
 from djeuscan.models import Package, RefreshPackageQuery
 from djeuscan.management.commands.regen_rrds import regen_rrds
 from djeuscan.management.commands.update_counters import update_counters
@@ -129,8 +131,10 @@ def scan_upstream_task(query):
     logger = scan_upstream_task.get_logger()
     logger.info("Starting upstream scanning for package %s ...", query)
 
+    euscan_output.clean()
     scan_upstream = ScanUpstream()
     result = scan_upstream.scan(query)
+    euscan_output.clean()
     if not result or result == {}:
         raise TaskFailedException("Couldn't scan upstream")
     return result

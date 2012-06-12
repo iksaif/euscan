@@ -76,6 +76,10 @@ class EuscanOutput(object):
         self.queries = defaultdict(dict)
         self.current_query = None
 
+    def clean(self):
+        self.queries = defaultdict(dict)
+        self.current_query = None
+
     def set_query(self, query):
         self.current_query = query
         if query is None:
