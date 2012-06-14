@@ -44,8 +44,7 @@ def scan(cpv, url):
             pv = helpers.gentoo_mangle_version(m.group(1))
             if helpers.version_filtered(cp, ver, pv):
                 continue
-            yield ('mirror://github/%s' % dl['name'],
-                    pv, HANDLER_NAME, CONFIDENCE)
+            yield (dl['html_url'], pv, HANDLER_NAME, CONFIDENCE)
 
 def brute_force(cpv, url):
     return []
