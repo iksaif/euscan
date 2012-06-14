@@ -1,6 +1,9 @@
 import StringIO
 
-from BeautifulSoup import BeautifulSoup
+try:
+    from BeautifulSoup import BeautifulSoup
+except ImportError:
+    from bs4 import BeautifulSoup
 
 from djeuscan.tests import SystemTestCase
 from djeuscan.tests.euscan_factory import PackageFactory, setup_maintainers, \
