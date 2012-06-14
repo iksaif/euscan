@@ -1,0 +1,40 @@
+{% load url from future %}
+{% load euscan %}
+
+<table id="table" class="display">
+  <thead>
+    <th>Maintainer</th>
+    <th><img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="Versions in Gentoo" /></th>
+    <th><img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="Versions in Overlays" /></th>
+    <th><img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Versions only upstream" /></th>
+    <th><img src="{{ STATIC_URL }}img/freshness-icon.png" title="Freshness" /></th>
+    {% if extras %}
+      <th>Graphs</th>
+    {% endif %}
+  </thead>
+  <tbody>
+  {% for maintainer in maintainers %}
+    <tr>
+      <td>
+        <a href="{% url "maintainer" maintainer.maintainers__id %}">
+          {% if maintainer.maintainers__name != maintainer.maintainers__email %}
+            {{ maintainer.maintainers__name }} &lt;{{ maintainer.maintainers__email }}&gt;
+          {% else %}
+            {{ maintainer.maintainers__name }}
+          {% endif %}
+        </a>
+        {% package_bar maintainer %}
+      </td>
+      {% package_cols maintainer %}
+
+      {% if extras %}
+        <td>
+          <img src="{% url "chart_maintainer" maintainer.maintainers__id 'packages-monthly-small' %}" />
+          <img src="{% url "chart_maintainer" maintainer.maintainers__id 'versions-monthly-small' %}" />
+        </td>
+      {% endif %}
+
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

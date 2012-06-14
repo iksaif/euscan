@@ -119,68 +119,66 @@ a:hover, a:active
 
 /*
 code, pre{
-	background-color:transparent;
-	font-family:"Courier New",Courier,monospace;
-	font-size:small;
+    background-color:transparent;
+    font-family:"Courier New",Courier,monospace;
+    font-size:small;
 }
 */
 
 a{
-	color: #3F4C66;
+    color: #3F4C66;
 }
 
 a:link, a:visited, a:active {
-	color: #3F4C66;
-	text-decoration: none;
+    color: #3F4C66;
+    text-decoration: none;
 }
 a:hover {
-	color: #4C5C7B;
-	text-decoration: underline;
+    color: #4C5C7B;
+    text-decoration: underline;
 }
 
 abbr:hover {
-	text-decoration: underline;
+    text-decoration: underline;
 }
 
 pre{
-	border-left:5px solid;
-	padding:0.5em 1em;
-	margin-left:2em;
+    border-left:5px solid;
+    padding:0.5em 1em;
+    margin-left:2em;
 }
 
 dt {
-	font-weight: bold;
+    font-weight: bold;
 }
 
 dd {
-	border-left: 1px solid #ccc;
-	margin: 5px;
-	padding: 5px;
+    border-left: 1px solid #ccc;
+    margin: 5px;
+    padding: 5px;
 }
 
 
 h1 {
-        color: #000;
-	width: 20em;
-	margin-left: auto;
-	margin-right: auto;
+    color: #000;
+    width: 20em;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .ok {
-	color:#15B100;
+    color:#15B100;
 }
 
-hr
-{
-  margin: 0.3em 1em 0.3em 1em;
-  height: 1px;
-  border: #bcbcbc dashed;
-  border-width: 0 0 1px 0;
-  }
+hr {
+    margin: 0.3em 1em 0.3em 1em;
+    height: 1px;
+    border: #bcbcbc dashed;
+    border-width: 0 0 1px 0;
+}
 
 
-table
-{
+table {
     max-width: 60em;
     /* width: 50%; */
     border-collapse: collapse;
@@ -191,27 +189,24 @@ table
     text-align: left;
 }
 
-td
-{
-  vertical-align: top;
-  }
+td {
+    vertical-align: top;
+}
 
-th
-{
-  font-size: 0.8em;
-  text-align: center;
-  border-bottom: 3px solid;
- }
+th {
+    font-size: 0.8em;
+    text-align: center;
+    border-bottom: 3px solid;
+}
 
-#footer
-{
+#footer {
     background: #8076A1;
     font-size: 0.8em;
     width: 100%;
     margin: 0;
     margin-top: 10px;
     color: #FFF;
- }
+}
 
 #footer p {
     text-align: right;
@@ -220,33 +215,31 @@ th
 
 .err,.ok,.inf
 {
-  margin: 5px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 70%;
-  font-weight:bold;
-  border: 1px dotted #5682AD;
-  }
+    margin: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 70%;
+    font-weight:bold;
+    border: 1px dotted #5682AD;
+}
 
 .added {
-  color: #262;
+    color: #262;
 }
 
 .removed {
-  color: #F00;
+    color: #F00;
 }
 
-.err
-{
-  border-color: #F00;
-  color: #F00;
- }
+.err {
+    border-color: #F00;
+    color: #F00;
+}
 
-.ok
-{
-  border-color: #262;
-  color: #262;
-  }
+.ok {
+    border-color: #262;
+    color: #262;
+}
 
 .logo {
     float: right;
@@ -283,4 +276,8 @@ th
 .log {
     max-height: 100pt;
     overflow: auto;
+}
+
+.hide {
+    display: none;
 }

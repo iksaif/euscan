@@ -31,8 +31,11 @@
     <button class="refresh-button" data-package="{{ package.category }}/{{ package.name }}">
       Refresh
     </button>
-    <button class="favourite-button" data-url="{% url "favourite_package" package.category package.name %}">
+    <button class="favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_package" package.category package.name %}">
       Add to favourites
+    </button>
+    <button class="unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_package" package.category package.name %}">
+      Remove from favourites
     </button>
   {% endif %}
 </h2>
@@ -151,7 +154,15 @@
 
   $(".favourite-button").click(function() {
     $.post($(this).data("url"), function() {
-      alert("Favourited!");
+      $(".unfavourite-button").removeClass("hide");
+      $(".favourite-button").addClass("hide");
+    });
+  });
+
+  $(".unfavourite-button").click(function() {
+    $.post($(this).data("url"), function() {
+      $(".favourite-button").removeClass("hide");
+      $(".unfavourite-button").addClass("hide");
     });
   });
 </script>

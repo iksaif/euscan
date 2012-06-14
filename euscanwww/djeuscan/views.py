@@ -167,13 +167,23 @@ def package(request, category, package):
     except EuscanResult.DoesNotExist:
         last_scan = None
 
+    favourited = False
+    if request.user.is_authenticated():
+        try:
+            PackageAssociation.objects.get(user=request.user, package=package)
+        except PackageAssociation.DoesNotExist:
+            pass
+        else:
+            favourited = True
+
     return {
         'package': package,
         'packaged': packaged,
         'upstream': upstream,
         'log': log,
         'vlog': vlog,
-        'last_scan': last_scan
+        'last_scan': last_scan,
+        'favourited': favourited,
     }
 
 
@@ -299,19 +309,25 @@ def accounts_index(request):
 @login_required
 @render_to('euscan/accounts/categories.html')
 def accounts_categories(request):
-    return {}
+    categories = [obj.category for obj in
+                  CategoryAssociation.objects.filter(user=request.user)]
+    return {"categories": categories}
 
 
 @login_required
 @render_to('euscan/accounts/herds.html')
 def accounts_herds(request):
-    return {}
+    herds = [obj.herd for obj in
+             HerdAssociation.objects.filter(user=request.user)]
+    return {"herds": herds}
 
 
 @login_required
 @render_to('euscan/accounts/maintainers.html')
 def accounts_maintainers(request):
-    return {}
+    maintainers = [obj.maintainer for obj in
+                   MaintainerAssociation.objects.filter(user=request.user)]
+    return {"maintainers": maintainers}
 
 
 @login_required
@@ -336,12 +352,36 @@ def favourite_package(request, category, package):
 @login_required
 @require_POST
 @ajax_request
+def unfavourite_package(request, category, package):
+    package = get_object_or_404(Package, category=category, name=package)
+    obj = get_object_or_404(
+        PackageAssociation, package=package, user=request.user
+    )
+    obj.delete()
+    return {"success": True}
+
+
+@login_required
+@require_POST
+@ajax_request
 def favourite_herd(request, herd):
     obj = get_object_or_404(Herd, herd=herd)
     _, created = HerdAssociation.objects.get_or_create(
         user=request.user, herd=obj
     )
     return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def unfavourite_herd(request, herd):
+    herd = get_object_or_404(Herd, herd=herd)
+    obj = get_object_or_404(
+        HerdAssociation, herd=herd, user=request.user
+    )
+    obj.delete()
+    return {"success": True}
 
 
 @login_required
@@ -358,6 +398,18 @@ def favourite_maintainer(request, maintainer_id):
 @login_required
 @require_POST
 @ajax_request
+def unfavourite_maintainer(request, maintainer_id):
+    maintainer = get_object_or_404(Maintainer, pk=maintainer_id)
+    obj = get_object_or_404(
+        MaintainerAssociation, maintainer=maintainer, user=request.user
+    )
+    obj.delete()
+    return {"success": True}
+
+
+@login_required
+@require_POST
+@ajax_request
 def favourite_category(request, category):
     packages = Package.objects.for_category(category, last_versions=True)
 
@@ -368,3 +420,14 @@ def favourite_category(request, category):
         user=request.user, category=category
     )
     return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def unfavourite_category(request, category):
+    obj = get_object_or_404(
+        CategoryAssociation, user=request.user, category=category
+    )
+    obj.delete()
+    return {"success": True}

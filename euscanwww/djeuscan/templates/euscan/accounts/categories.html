@@ -1,11 +1,15 @@
-{% extends "_base.html" %}
+{% extends "euscan/_datatable.html" %}
 {% load url from future %}
+{% load euscan %}
 
 {% block title %}
-  {{ block.super }} - My categories
+  {{ block.super }} - Watched categories
 {% endblock %}
 
 
 {% block content %}
-  <h2>Welcome {{ user }}</h2>
+  <h2>Watched categories</h2>
+
+  {% categories_table categories %}
+
 {% endblock %}

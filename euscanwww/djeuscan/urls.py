@@ -18,6 +18,9 @@ package_patterns = patterns('djeuscan.views',
         'package', name="package"),
     url(r'^(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/favourite$',
         'favourite_package', name="favourite_package"),
+    url((r'^(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/'
+         'unfavourite$'),
+        'unfavourite_package', name="unfavourite_package"),
 )
 
 categories_patterns = patterns('djeuscan.views',
@@ -29,6 +32,8 @@ categories_patterns = patterns('djeuscan.views',
         'chart_category', name="chart_category"),
     url(r'^(?P<category>[\w+][\w+.-]*)/favourite$',
         'favourite_category', name="favourite_category"),
+    url(r'^(?P<category>[\w+][\w+.-]*)/unfavourite$',
+        'unfavourite_category', name="unfavourite_category"),
     url(r'^$', 'categories', name="categories"),
 )
 
@@ -39,6 +44,8 @@ herds_patterns = patterns('djeuscan.views',
         'chart_herd', name="chart_herd"),
     url(r'^(?P<herd>[\@\{\}\w+.-]*)/favourite$', 'favourite_herd',
         name="favourite_herd"),
+    url(r'^(?P<herd>[\@\{\}\w+.-]*)/unfavourite$', 'unfavourite_herd',
+        name="unfavourite_herd"),
     url(r'^$', 'herds', name="herds"),
 )
 
@@ -50,6 +57,8 @@ maintainers_patterns = patterns('djeuscan.views',
         'chart_maintainer', name="chart_maintainer"),
     url(r'^(?P<maintainer_id>\d+)/favourite$',
         'favourite_maintainer', name="favourite_maintainer"),
+    url(r'^(?P<maintainer_id>\d+)/unfavourite$',
+        'unfavourite_maintainer', name="unfavourite_maintainer"),
     url(r'^$', 'maintainers', name="maintainers"),
 )
 

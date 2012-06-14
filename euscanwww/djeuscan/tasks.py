@@ -58,7 +58,7 @@ def _run_in_chunks(task, iterable, n=32):
         ])
         result = job.apply_async()
         # TODO: understand why this causes timeout
-        output.extend(list(result.join(timeout=3600)))
+        #output.extend(list(result.join(timeout=3600)))
     return output
 
 

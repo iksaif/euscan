@@ -1,0 +1,32 @@
+{% load url from future %}
+{% load euscan %}
+
+<table id="table" class="display">
+  <thead>
+    <th>Category</th>
+    <th><img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="Versions in Gentoo" /></th>
+    <th><img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="Versions in Overlays" /></th>
+    <th><img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Versions only upstream" /></th>
+    <th><img src="{{ STATIC_URL }}img/freshness-icon.png" title="Freshness" /></th>
+    {% if extras %}
+    <th>Graphs</th>
+    {% endif %}
+  </thead>
+  <tbody>
+  {% for category in categories %}
+  <tr>
+    <td>
+      <a href="{% url "category" category.category %}">{{ category.category }}</a>
+      {% package_bar category %}
+    </td>
+    {% package_cols category %}
+    {% if extras %}
+    <td>
+      <img src="{% url "chart_category" category.category 'packages-monthly-small' %}" />
+      <img src="{% url "chart_category" category.category 'versions-monthly-small' %}" />
+    </td>
+    {% endif %}
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
