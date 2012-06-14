@@ -50,7 +50,7 @@
                 </ul>
                 <li><a href="{% url "django.contrib.auth.views.logout" %}">Logout</a></li>
               {% else %}
-              <li><a href="{% url "django.contrib.auth.views.login" %}?next={% url "accounts_index" %}">Login</a></li>
+                <li><a href="{% url "django.contrib.auth.views.login" %}?next={% url "accounts_index" %}">Login</a></li>
                 <li><a href="{% url "registration.views.register" %}">Register</a></li>
               {% endif %}
 
