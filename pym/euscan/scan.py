@@ -64,7 +64,11 @@ def scan_upstream_urls(cpv, urls, on_progress):
 
             # Try normal scan
             if CONFIG["scan-dir"]:
-                versions.extend(handlers.scan(cpv, url))
+                try:
+                    versions.extend(handlers.scan(cpv, url))
+                except Exception as e:
+                    output.ewarn("Handler failed: [%s] %s"
+                            % (e.__class__.__name__, e.message))
 
             if versions and CONFIG['oneshot']:
                 break
