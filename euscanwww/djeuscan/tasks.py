@@ -1,23 +1,20 @@
-import subprocess
-from StringIO import StringIO
+"""
+Celery tasks for djeuscan
+"""
+
 from itertools import islice
 
 from celery.task import task, periodic_task
 from celery.task.schedules import crontab
 from celery.task.sets import TaskSet
 
-from django.conf import settings
-
-from euscan import output as euscan_output
-
 from djeuscan.models import Package, RefreshPackageQuery
-from djeuscan.management.commands.regen_rrds import regen_rrds
-from djeuscan.management.commands.update_counters import update_counters
-from djeuscan.management.commands.scan_metadata import ScanMetadata
-from djeuscan.management.commands.scan_portage import ScanPortage, \
-    purge_versions as scan_portage_purge
-from djeuscan.management.commands.scan_upstream import ScanUpstream, \
-    purge_versions as scan_upstream_purge
+from djeuscan.processing.regen_rrds import regen_rrds
+from djeuscan.processing.update_counters import update_counters
+from djeuscan.processing.scan_metadata import scan_metadata
+from djeuscan.processing.scan_portage import scan_portage
+from djeuscan.processing.scan_upstream import scan_upstream
+from djeuscan.processing.update_portage_trees import update_portage_trees
 
 
 class TaskFailedException(Exception):
@@ -25,16 +22,6 @@ class TaskFailedException(Exception):
     Exception for failed tasks
     """
     pass
-
-
-def _launch_command(cmd):
-    """
-    Helper for launching shell commands inside tasks
-    """
-    fp = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE)
-    output = StringIO(fp.communicate()[0])
-    return output.getvalue()
 
 
 def _chunks(it, n):
@@ -45,160 +32,229 @@ def _chunks(it, n):
         yield [first] + list(islice(it, n - 1))
 
 
-def _run_in_chunks(task, iterable, n=32):
+def _run_in_chunks(task, packages, kwargs=None, concurrently=8, n=32):
     """
-    Runs the given task with the given iterable of args in chunks of
-    n subtasks
+    Launches a TaskSet at a time with <concurrently> subtasks.
+    Each subtask has <n> packages to handle
     """
     output = []
-    for chunk in _chunks(iter(iterable), n):
-        job = TaskSet(tasks=[
-            task.subtask(args)
-            for args in chunk
-        ])
+
+    chunk_generator = _chunks(iter(packages), n)
+    done = False
+
+    while not done:
+        tasks = []
+        for _ in range(concurrently):
+            try:
+                chunk = chunk_generator.next()
+            except StopIteration:
+                done = True
+            else:
+                tasks.append(task.subtask((chunk, ), kwargs))
+        job = TaskSet(tasks=tasks)
         result = job.apply_async()
         # TODO: understand why this causes timeout
-        #output.extend(list(result.join(timeout=3600)))
+        output.extend(list(result.join(timeout=3600)))
     return output
 
 
 @task
 def regen_rrds_task():
+    """
+    Regenerate RRDs
+    """
     return regen_rrds()
 
 
 @task
-def update_counters_task():
-    return update_counters()
+def update_counters_task(fast=True):
+    """
+    Updates counters
+    """
+    return update_counters(fast=fast)
 
 
 @task
-def scan_metadata_task(query, obj=None):
-    logger = scan_metadata_task.get_logger()
-    logger.info("Starting metadata scanning for package %s ...", query)
+def _scan_metadata_task(packages):
+    """
+    Scans metadata for the given set of packages
+    """
+    logger = _scan_metadata_task.get_logger()
+    logger.info("Starting metadata scanning subtask for %d packages...",
+                len(packages))
 
-    scan_metadata = ScanMetadata()
-    result = scan_metadata.scan(query, obj)
+    result = scan_metadata(
+        packages=packages,
+        logger=logger,
+    )
     if not result:
-        raise TaskFailedException("Couldn't scan metadata")
+        raise TaskFailedException
     return result
 
 
 @task
 def scan_metadata_list_task(query):
-    return _run_in_chunks(scan_metadata_task, [(p, ) for p in query.split()])
+    """
+    Runs a parallel metadata scan for packages in the query list (space
+    separated string). Task used only from the web interface.
+    """
+    _run_in_chunks(_scan_metadata_task, [p for p in query.split()])
 
 
 @task
 def scan_metadata_all_task():
-    return _run_in_chunks(
-        scan_metadata_task,
-        [('%s/%s' % (pkg.category, pkg.name), pkg)
-         for pkg in Package.objects.all()]
+    """
+    Runs a parallel metadata scan for all packages
+    """
+    _run_in_chunks(_scan_metadata_task, Package.objects.all())
+
+
+@task
+def _scan_portage_task(packages, no_logs=False, purge_packages=False,
+                       purge_versions=False, prefetch=False):
+    """
+    Scans portage for the given set of packages
+    """
+    logger = _scan_portage_task.get_logger()
+    logger.info("Starting portage scanning subtask for %d packages...",
+                len(packages))
+
+    result = scan_portage(
+        packages=packages,
+        no_logs=no_logs,
+        purge_packages=purge_packages,
+        purge_versions=purge_versions,
+        prefetch=prefetch,
+        logger=logger,
     )
-
-
-@task
-def scan_portage_list_task(query, purge=False):
-    scan_portage = ScanPortage()
-    logger = scan_portage_list_task.get_logger()
-
-    for pkg in query.split():
-        logger.info("Starting Portage package scanning: %s ...", pkg)
-
-        scan_portage.scan(pkg)
-
-    if purge:
-        logger.info("Purging")
-        scan_portage_purge()
-
-
-@task
-def scan_portage_all_task(purge=False):
-    logger = scan_portage_all_task.get_logger()
-    logger.info("Starting Portage scanning...")
-
-    scan_portage = ScanPortage()
-    scan_portage.scan()
-
-    if purge:
-        logger.info("Purging")
-        scan_portage_purge()
-
-
-@task
-def scan_upstream_task(query):
-    logger = scan_upstream_task.get_logger()
-    logger.info("Starting upstream scanning for package %s ...", query)
-
-    euscan_output.clean()
-    scan_upstream = ScanUpstream()
-    result = scan_upstream.scan(query)
-    euscan_output.clean()
-    if not result or result == {}:
-        raise TaskFailedException("Couldn't scan upstream")
+    if not result:
+        raise TaskFailedException
     return result
 
 
 @task
-def scan_upstream_list_task(query):
-    return _run_in_chunks(scan_upstream_task, [(p, ) for p in query.split()])
+def scan_portage_list_task(query, no_logs=False, purge_packages=False,
+                           purge_versions=False, prefetch=False):
+    """
+    Runs a parallel portage scan for packages in the query list (space
+    separated string). Task used only from the web interface.
+    """
+    kwargs = {"no_logs": no_logs, "purge_packages": purge_packages,
+              "purge_versions": purge_versions, "prefetch": prefetch}
+    _run_in_chunks(_scan_portage_task, [p for p in query.split()], kwargs)
 
 
 @task
-def scan_upstream_all_task(purge=False):
-    output = _run_in_chunks(
-        scan_upstream_task,
-        [('%s/%s' % (pkg.category, pkg.name), )
-         for pkg in Package.objects.all()],
-        n=16
+def scan_portage_all_task(no_logs=False, purge_packages=False,
+                          purge_versions=False, prefetch=False):
+    """
+    Runs a parallel portage scan for all packages
+    """
+    kwargs = {"no_logs": no_logs, "purge_packages": purge_packages,
+              "purge_versions": purge_versions, "prefetch": prefetch}
+    _run_in_chunks(_scan_metadata_task, Package.objects.all(), kwargs)
+
+
+@task
+def _scan_upstream_task(packages, purge_versions=False):
+    """
+    Scans upstream for the given set of packages
+    """
+    logger = _scan_upstream_task.get_logger()
+
+    logger.info("Starting upstream scanning subtask for %d packages...",
+                len(packages))
+
+    result = scan_upstream(
+        packages=packages,
+        purge_versions=purge_versions,
+        logger=logger,
     )
-
-    if purge:
-        output += [scan_upstream_purge()]
-
-    return output
+    if not result:
+        raise TaskFailedException
+    return result
 
 
 @task
-def emerge_sync():
-    cmd = ["emerge", "--sync", "--root", settings.PORTAGE_ROOT,
-           "--config-root", settings.PORTAGE_CONFIGROOT]
-    return _launch_command(cmd)
+def scan_upstream_list_task(query, purge_versions=False):
+    """
+    Runs a parallel upstream scan for packages in the query list (space
+    separated string). Task used only from the web interface.
+    """
+
+    kwargs = {"purge_versions": purge_versions}
+    _run_in_chunks(_scan_upstream_task, [p for p in query.split()], kwargs)
 
 
 @task
-def layman_sync():
-    from layman import Layman
-    l = Layman(config=settings.LAYMAN_CONFIG)
-    return l.sync(l.get_installed(), output_results=False)
+def scan_upstream_all_task(purge_versions=False):
+    """
+    Runs a parallel portage scan for all packages
+    """
+    kwargs = {"purge_versions": purge_versions}
+    _run_in_chunks(_scan_upstream_task, Package.objects.all(), kwargs)
 
 
 @task
-def emerge_regen():
-    cmd = [
-        "emerge", "--regen", "--jobs", settings.EMERGE_REGEN_JOBS, "--root",
-        settings.PORTAGE_ROOT, "--config-root", settings.PORTAGE_CONFIGROOT
-    ]
-    return _launch_command(cmd)
+def update_portage_trees_task():
+    """
+    Update portage tree
+    """
+    logger = update_portage_trees_task.get_logger()
+    update_portage_trees(logger=logger)
 
 
 @task
-def eix_update():
-    cmd = ["eix-update"]
-    return _launch_command(cmd)
+def update_task(update_portage_trees=True, scan_portage=True,
+                scan_metadata=True, scan_upstream=True, update_counter=True):
+    """
+    Update the whole euscan system
+    """
+    if update_portage_trees:
+        update_portage_trees_task()
+    if scan_portage:
+        scan_portage_all_task(prefetch=True, purge_packages=True,
+                              purge_versions=True)
+
+    # metadata and upstream scan can run concurrently, launch them
+    # asynchronously and wait for them to finish
+    metadata_job = None
+    if scan_metadata:
+        metadata_job = scan_metadata_all_task().delay()
+
+    upstream_job = None
+    if scan_upstream:
+        upstream_job = scan_upstream_all_task().delay()
+
+    if metadata_job:
+        metadata_job.wait()
+    if upstream_job:
+        upstream_job.wait()
+
+    update_counters(fast=False)
 
 
 @periodic_task(run_every=crontab(minute="*/1"))
-def refresh_package_consume():
+def consume_refresh_package_request():
+    """
+    Satisfies user requests for package refreshing, runs every minute
+    """
     try:
         obj = RefreshPackageQuery.objects.latest()
     except RefreshPackageQuery.DoesNotExist:
         return {}
     else:
-        result = scan_upstream_task(obj.query)
+        result = _scan_upstream_task([obj.query])
         obj.delete()
         return result
+
+
+@periodic_task(run_every=crontab(hour=03, minute=00, day_of_week=1))
+def update_periodic_task():
+    """
+    Runs a whole update once a week
+    """
+    update_task()
 
 
 admin_tasks = [
@@ -210,8 +266,6 @@ admin_tasks = [
     scan_portage_list_task,
     scan_upstream_all_task,
     scan_upstream_list_task,
-    emerge_sync,
-    layman_sync,
-    emerge_regen,
-    eix_update,
+    update_portage_trees,
+    update_task
 ]
