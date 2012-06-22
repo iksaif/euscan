@@ -234,6 +234,13 @@ def update_task(update_portage_trees=True, scan_portage=True,
     update_counters(fast=False)
 
 
+@task
+def scan_package_task(package):
+    _scan_portage_task([package], purge_packages=True, purge_versions=True)
+    _scan_metadata_task([package])
+    _scan_upstream_task([package])
+
+
 @periodic_task(run_every=crontab(minute="*/1"))
 def consume_refresh_package_request():
     """
@@ -244,7 +251,7 @@ def consume_refresh_package_request():
     except RefreshPackageQuery.DoesNotExist:
         return {}
     else:
-        result = _scan_upstream_task([obj.query])
+        result = scan_package_task(obj.query)
         obj.delete()
         return result
 
@@ -267,5 +274,6 @@ admin_tasks = [
     scan_upstream_all_task,
     scan_upstream_list_task,
     update_portage_trees,
-    update_task
+    update_task,
+    scan_package_task,
 ]
