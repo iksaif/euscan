@@ -1,4 +1,3 @@
-import sys
 from gentoolkit.query import Query
 from gentoolkit.errors import GentoolkitFatalError
 
@@ -7,12 +6,13 @@ from django.core.management.color import color_style
 from django.core.exceptions import ValidationError
 
 from djeuscan.models import Package, Herd, Maintainer
+from djeuscan.processing import FakeLogger
 
 
 class ScanMetadata(object):
-    def __init__(self, quiet=False):
-        self.quiet = quiet
+    def __init__(self, logger=None):
         self.style = color_style()
+        self.logger = logger or FakeLogger()
 
     @commit_on_success
     def scan(self, query=None, obj=None):
@@ -22,8 +22,8 @@ class ScanMetadata(object):
         )
 
         if not matches:
-            sys.stderr.write(
-                self.style.ERROR("Unknown package '%s'\n" % query)
+            self.logger.error(
+                self.style.ERROR("Unknown package '%s'" % query)
             )
             return
 
@@ -43,14 +43,14 @@ class ScanMetadata(object):
             obj.homepage = pkg.environment("HOMEPAGE")
             obj.description = pkg.environment("DESCRIPTION")
         except GentoolkitFatalError, err:
-            sys.stderr.write(
+            self.logger.error(
                 self.style.ERROR(
-                    "Gentoolkit fatal error: '%s'\n" % str(err)
+                    "Gentoolkit fatal error: '%s'" % str(err)
                 )
             )
 
-        if created and not self.quiet:
-            sys.stdout.write('+ [p] %s/%s\n' % (pkg.category, pkg.name))
+        if created:
+            self.logger.info('+ [p] %s/%s' % (pkg.category, pkg.name))
 
         if pkg.metadata:
             herds = dict(
@@ -92,8 +92,8 @@ class ScanMetadata(object):
                     )
                     obj.maintainers.add(maintainer)
                 except ValidationError:
-                    sys.stderr.write(
-                        self.style.ERROR("Bad maintainer: '%s' '%s'\n" % \
+                    self.logger.error(
+                        self.style.ERROR("Bad maintainer: '%s' '%s'" % \
                                          (maintainer.name, maintainer.email))
                     )
 
@@ -109,8 +109,8 @@ class ScanMetadata(object):
             defaults={"email": email}
         )
 
-        if created and not self.quiet:
-            sys.stdout.write('+ [h] %s <%s>\n' % (name, email))
+        if created:
+            self.logger.info('+ [h] %s <%s>' % (name, email))
 
         herd.email = email
         herd.save()
@@ -129,15 +129,14 @@ class ScanMetadata(object):
         )
 
         if created:
-            if not self.quiet:
-                sys.stdout.write(
-                    '+ [m] %s <%s>\n' % (name.encode('utf-8'), email)
-                )
+            self.logger.info(
+                '+ [m] %s <%s>' % (name.encode('utf-8'), email)
+            )
         return maintainer
 
 
-def scan_metadata(packages=None, quiet=False, logger=None):
-    scan_handler = ScanMetadata(quiet=quiet)
+def scan_metadata(packages=None, logger=None):
+    scan_handler = ScanMetadata(logger=logger)
     if packages is None:
         packages = Package.objects.all()
 

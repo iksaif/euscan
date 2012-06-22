@@ -1,8 +1,12 @@
+import logging
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
+from djeuscan.processing import set_verbosity_level
 from djeuscan.processing.update_counters import update_counters
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -10,11 +14,6 @@ class Command(BaseCommand):
     help = 'Update counters'
 
     option_list = BaseCommand.option_list + (
-        make_option('--quiet',
-            action='store_true',
-            dest='quiet',
-            default=False,
-            help='Be quiet'),
         make_option('--fast',
             action='store_true',
             dest='fast',
@@ -28,9 +27,9 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
+        set_verbosity_level(logger, options.get("verbosity", 1))
         update_counters(
-            stdout=self.stdout,
             fast=options["fast"],
-            quiet=options["quiet"],
             nolog=options["nolog"],
+            logger=logger,
         )

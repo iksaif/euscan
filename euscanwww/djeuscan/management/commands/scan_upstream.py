@@ -1,9 +1,13 @@
+import logging
 import sys
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
+from djeuscan.processing import set_verbosity_level
 from djeuscan.processing.scan_upstream import scan_upstream
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -20,16 +24,13 @@ class Command(BaseCommand):
             dest='purge-versions',
             default=False,
             help='Purge old versions'),
-        make_option('--quiet',
-            action='store_true',
-            dest='quiet',
-            default=False,
-            help='Be quiet'),
         )
     args = '<package package ...>'
     help = 'Scans metadata and fills database'
 
     def handle(self, *args, **options):
+        set_verbosity_level(logger, options.get("verbosity", 1))
+
         if options['all']:
             packages = None
 
@@ -41,6 +42,5 @@ class Command(BaseCommand):
         scan_upstream(
             packages=packages,
             purge_versions=options["purge-versions"],
-            quiet=options["quiet"],
-            stdout=self.stdout,
+            logger=logger,
         )

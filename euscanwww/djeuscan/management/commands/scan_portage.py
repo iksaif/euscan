@@ -1,8 +1,13 @@
 import sys
+import logging
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
+
+from djeuscan.processing import set_verbosity_level
 from djeuscan.processing.scan_portage import scan_portage
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -35,16 +40,13 @@ class Command(BaseCommand):
             default=False,
             help=('Prefetch all versions and packages from DB to '
                   'speedup full scan process.')),
-        make_option('--quiet',
-            action='store_true',
-            dest='quiet',
-            default=False,
-            help='Be quiet'),
         )
     args = '[package package ...]'
     help = 'Scans portage tree and fills database'
 
     def handle(self, *args, **options):
+        set_verbosity_level(logger, options.get("verbosity", 1))
+
         if options['all']:
             packages = None
 
@@ -59,6 +61,5 @@ class Command(BaseCommand):
             purge_packages=options["purge-packages"],
             purge_versions=options["purge-versions"],
             prefetch=options["prefetch"],
-            quiet=options["quiet"],
-            stdout=self.stdout,
+            logger=logger,
         )

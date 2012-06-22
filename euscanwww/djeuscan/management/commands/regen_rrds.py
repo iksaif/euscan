@@ -1,5 +1,10 @@
+import logging
 from django.core.management.base import BaseCommand
+
+from djeuscan.processing import set_verbosity_level
 from djeuscan.processing.regen_rrds import regen_rrds
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -7,4 +12,5 @@ class Command(BaseCommand):
     help = 'Regenerate rrd database'
 
     def handle(self, *args, **options):
-        regen_rrds()
+        set_verbosity_level(logger, options.get("verbosity", 1))
+        regen_rrds(logger=logger)

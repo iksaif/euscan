@@ -1,5 +1,3 @@
-import sys
-
 from django.db.transaction import commit_on_success
 from django.utils import timezone
 
@@ -39,13 +37,8 @@ def _add_last_ver(storage, version):
 
 
 @commit_on_success
-def update_counters(stdout=None, fast=False, quiet=False, nolog=False,
-                    logger=None):
-    if logger is None:
-        logger = FakeLogger()  # TODO: write log messages
-
-    if stdout is None:
-        stdout = sys.stdout
+def update_counters(fast=False, nolog=False, logger=None):
+    logger = logger or FakeLogger()
 
     now = timezone.now()
 
@@ -164,20 +157,17 @@ def update_counters(stdout=None, fast=False, quiet=False, nolog=False,
         return
 
     for clog in categories.values():
-        if not quiet:
-            stdout.write('+ [cl] %s\n' % clog)
+        logger.info('+ [cl] %s\n' % clog)
         charts.rrd_update('category-%s' % clog.category, now, clog)
         clog.save()
 
     for hlog in herds.values():
-        if not quiet:
-            stdout.write('+ [hl] %s\n' % hlog)
+        logger.info('+ [hl] %s\n' % hlog)
         charts.rrd_update('herd-%d' % hlog.herd.id, now, hlog)
         hlog.save()
 
     for mlog in maintainers.values():
-        if not quiet:
-            stdout.write('+ [ml] %s\n' % mlog)
+        logger.info('+ [ml] %s\n' % mlog)
         charts.rrd_update('maintainer-%d' % mlog.maintainer.id, now, mlog)
         mlog.save()
 
