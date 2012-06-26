@@ -2,9 +2,12 @@ import subprocess
 import portage
 import os
 import re
+from xml.dom.minidom import parseString
 
 from django.db.transaction import commit_on_success
 from django.core.management.color import color_style
+
+from euscan.helpers import get_version_type
 
 from djeuscan.processing import FakeLogger
 from djeuscan.models import Package, Version, VersionLog
@@ -83,11 +86,7 @@ class ScanPortage(object):
 
     @commit_on_success
     def scan(self, query=None):
-        env = os.environ
-        env['MY'] = "<category>/<name>-<version>:<slot> [<overlaynum>]\n"
-
-        cmd = ['eix', '--format', '<availableversions:MY>', '--pure-packages',
-               '-x']
+        cmd = ['eix', '--xml', '--pure-packages', '-x']
         if query:
             cmd.extend(['--exact', query])
 
@@ -96,7 +95,7 @@ class ScanPortage(object):
             Version.objects.filter(packaged=True).update(alive=False)
             self.logger.info('done')
 
-        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env).\
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE).\
             communicate()[0]
         output = output.strip().strip('\n')
 
@@ -118,50 +117,42 @@ class ScanPortage(object):
                 )
             return
 
-        output = output.split('\n')
-        packages = {}
+        dom = parseString(output)
 
-        line_re = re.compile(
-            r'^(?P<cpv>.*?):(?P<slot>.*?) \[(?P<overlay>.*?)\]$'
-        )
+        for category_tag in dom.getElementsByTagName("category"):
+            for package_tag in category_tag.getElementsByTagName("package"):
+                cat = category_tag.getAttribute("name")
+                pkg = package_tag.getAttribute("name")
+                homepage_tags = package_tag.getElementsByTagName("homepage")
+                homepage = homepage_tags[0].firstChild.nodeValue \
+                           if homepage_tags else ""
+                desc_tags = package_tag.getElementsByTagName("description")
+                desc = desc_tags[0].firstChild.nodeValue if desc_tags else ""
 
-        package = None
+                package = self.store_package(cat, pkg, homepage, desc)
 
-        for line in output:
-            match = line_re.match(line)
-
-            if not match:
-                continue
-
-            cpv = match.group('cpv')
-            slot = match.group('slot')
-            overlay = match.group('overlay')
-
-            cat, pkg, ver, rev = portage.catpkgsplit(cpv)
-
-            packages['%s/%s' % (cat, pkg)] = True
-
-            if not package or not \
-               (cat == package.category and pkg == package.name):
-                package = self.store_package(cat, pkg)
-
-            self.store_version(package, cpv, slot, overlay)
+                for version_tag in package_tag.getElementsByTagName("version"):
+                    cpv = "%s/%s-%s" % (cat, pkg,
+                                        version_tag.getAttribute("id"))
+                    slot = version_tag.getAttribute("slot")
+                    overlay = version_tag.getAttribute("overlay")
+                    self.store_version(package, cpv, slot, overlay)
 
         if self.purge_packages and not query:
             for package in Package.objects.all():
-                cp = "%s/%s" % (package.category, package.name)
-                if cp not in packages:
-                    self.logger.info('- [p] %s' % (package))
-                    package.delete()
+                self.logger.info('- [p] %s' % (package))
+                package.delete()
 
-    def store_package(self, cat, pkg):
+    def store_package(self, cat, pkg, homepage, description):
         created = False
         obj = self.cache_get_package(cat, pkg)
 
         if not obj:
             obj, created = Package.objects.get_or_create(
                 category=cat,
-                name=pkg
+                name=pkg,
+                homepage=homepage,
+                description=description,
             )
             self.cache_store_package(obj)
 
@@ -197,7 +188,13 @@ class ScanPortage(object):
                 package=package, slot=slot,
                 revision=rev, version=ver,
                 overlay=overlay,
-                defaults={"alive": True, "packaged": True}
+                defaults={
+                    "alive": True,
+                    "packaged": True,
+                    "version_type": get_version_type(ver),
+                    "confidence": 100,
+                    "handler": "portage"
+                }
             )
         if not created:  # Created objects have defaults values
             obj.alive = True

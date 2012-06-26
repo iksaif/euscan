@@ -126,6 +126,10 @@ class Version(models.Model):
     urls = models.TextField(blank=True)
     alive = models.BooleanField(default=True, db_index=True)
 
+    version_type = models.CharField(max_length=128, blank=True)
+    handler = models.CharField(max_length=128, blank=True)
+    confidence = models.IntegerField(default=0)
+
     class Meta:
         unique_together = ['package', 'slot', 'revision', 'version', 'overlay']
 
