@@ -187,6 +187,9 @@ class EuscanResult(models.Model):
     datetime = models.DateTimeField()
     result = models.TextField(blank=True)
 
+    scan_time = models.FloatField(null=True, blank=True)
+    ebuild = models.CharField(blank=True, max_length=256)
+
     objects = EuscanResultManager()
 
     class Meta:

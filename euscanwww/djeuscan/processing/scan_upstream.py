@@ -25,26 +25,31 @@ class ScanUpstream(object):
 
         try:
             cpv = out[package]["metadata"]["cpv"]
+            scan_time = out[package]["metadata"]["scan_time"]
+            ebuild = out[package]["metadata"]["ebuild"]
         except KeyError:
             return {}
 
-        obj = self.store_package(cpv)
+        with commit_on_success():
+            obj = self.store_package(cpv)
 
-        for res in out[package]["result"]:
-            self.store_version(obj, res["version"], " ".join(res["urls"]))
+            for res in out[package]["result"]:
+                self.store_version(obj, res["version"], " ".join(res["urls"]))
 
-        self.store_result(obj, out_json)
+            self.store_result(obj, out_json, scan_time, ebuild)
 
         return out
 
-    def store_result(self, package, log):
+    def store_result(self, package, formatted_log, scan_time, ebuild):
         # Remove previous logs
         EuscanResult.objects.filter(package=package).delete()
 
         obj = EuscanResult()
         obj.package = package
-        obj.result = log
+        obj.result = formatted_log
         obj.datetime = timezone.now()
+        obj.scan_time = scan_time
+        obj.ebuild = ebuild
         obj.save()
 
     def store_package(self, cpv):

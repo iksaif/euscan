@@ -3,6 +3,7 @@ from collections import defaultdict
 import json
 import signal
 import time
+import re
 
 from gentoolkit import pprinter as pp
 import portage
@@ -61,7 +62,7 @@ class EOutputMem(EOutput):
         self.out = StringIO()
 
     def getvalue(self):
-        return self.out.getvalue()
+        return re.sub("\033\[[0-9;]+m", "", self.out.getvalue())
 
     def _write(self, f, msg):
         super(EOutputMem, self)._write(self.out, msg)
