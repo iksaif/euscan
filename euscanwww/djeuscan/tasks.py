@@ -8,6 +8,8 @@ from celery.task import task, periodic_task
 from celery.task.schedules import crontab
 from celery.task.sets import TaskSet
 
+from django.conf import settings
+
 from djeuscan.models import Package, RefreshPackageQuery
 from djeuscan.processing.regen_rrds import regen_rrds
 from djeuscan.processing.update_counters import update_counters
@@ -32,7 +34,9 @@ def _chunks(it, n):
         yield [first] + list(islice(it, n - 1))
 
 
-def _run_in_chunks(task, packages, kwargs=None, concurrently=8, n=32):
+def _run_in_chunks(task, packages, kwargs=None,
+                   concurrently=settings.TASKS_CONCURRENTLY,
+                   n=settings.TASKS_SUBTASK_PACKAGES):
     """
     Launches a TaskSet at a time with <concurrently> subtasks.
     Each subtask has <n> packages to handle
