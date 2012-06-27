@@ -114,7 +114,7 @@ def scan_metadata_all_task():
 
 
 @task
-def _scan_portage_task(packages, no_logs=False, purge_packages=False,
+def _scan_portage_task(packages, no_log=False, purge_packages=False,
                        purge_versions=False, prefetch=False):
     """
     Scans portage for the given set of packages
@@ -125,7 +125,7 @@ def _scan_portage_task(packages, no_logs=False, purge_packages=False,
 
     result = scan_portage(
         packages=packages,
-        no_logs=no_logs,
+        no_log=no_log,
         purge_packages=purge_packages,
         purge_versions=purge_versions,
         prefetch=prefetch,
@@ -137,24 +137,24 @@ def _scan_portage_task(packages, no_logs=False, purge_packages=False,
 
 
 @task
-def scan_portage_list_task(query, no_logs=False, purge_packages=False,
+def scan_portage_list_task(query, no_log=False, purge_packages=False,
                            purge_versions=False, prefetch=False):
     """
     Runs a parallel portage scan for packages in the query list (space
     separated string). Task used only from the web interface.
     """
-    kwargs = {"no_logs": no_logs, "purge_packages": purge_packages,
+    kwargs = {"no_log": no_log, "purge_packages": purge_packages,
               "purge_versions": purge_versions, "prefetch": prefetch}
     _run_in_chunks(_scan_portage_task, [p for p in query.split()], kwargs)
 
 
 @task
-def scan_portage_all_task(no_logs=False, purge_packages=False,
+def scan_portage_all_task(no_log=False, purge_packages=False,
                           purge_versions=False, prefetch=False):
     """
     Runs a parallel portage scan for all packages
     """
-    kwargs = {"no_logs": no_logs, "purge_packages": purge_packages,
+    kwargs = {"no_log": no_log, "purge_packages": purge_packages,
               "purge_versions": purge_versions, "prefetch": prefetch}
     _run_in_chunks(_scan_metadata_task, Package.objects.all(), kwargs)
 
@@ -251,8 +251,8 @@ def consume_refresh_package_request():
     Satisfies user requests for package refreshing, runs every minute
     """
     try:
-        obj = RefreshPackageQuery.objects.latest()
-    except RefreshPackageQuery.DoesNotExist:
+        obj = RefreshPackageQuery.objects.all().order_by('-priority')[0]
+    except IndexError:
         return {}
     else:
         result = scan_package_task(obj.query)
@@ -277,7 +277,7 @@ admin_tasks = [
     scan_portage_list_task,
     scan_upstream_all_task,
     scan_upstream_list_task,
-    update_portage_trees,
+    update_portage_trees_task,
     update_task,
     scan_package_task,
 ]

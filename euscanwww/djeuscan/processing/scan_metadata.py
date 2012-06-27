@@ -96,8 +96,8 @@ class ScanMetadata(object):
                         self.style.ERROR("Bad maintainer: '%s' '%s'" % \
                                          (maintainer.name, maintainer.email))
                     )
-
         obj.save()
+        return True
 
     def store_herd(self, name, email):
         if not name:
@@ -142,6 +142,7 @@ def scan_metadata(packages=None, logger=None):
 
     for pkg in packages:
         if isinstance(pkg, Package):
-            scan_handler.scan('%s/%s' % (pkg.category, pkg.name), pkg)
+            result = scan_handler.scan('%s/%s' % (pkg.category, pkg.name), pkg)
         else:
-            scan_handler.scan(pkg)
+            result = scan_handler.scan(pkg)
+    return result

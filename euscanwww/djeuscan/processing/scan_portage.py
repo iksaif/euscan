@@ -299,5 +299,5 @@ def scan_portage(packages=None, no_log=False, purge_packages=False,
 
     if purge_versions:
         purge_versions(logger=logger, no_log=no_log)
-
     logger.info('Done.')
+    return True

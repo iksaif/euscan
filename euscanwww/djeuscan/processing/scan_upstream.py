@@ -131,11 +131,12 @@ def scan_upstream(packages=None, purge_versions=False,
 
     for pkg in packages:
         if isinstance(pkg, Package):
-            scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
+            result = scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
         else:
-            scan_handler.scan(pkg)
+            result = scan_handler.scan(pkg)
 
     if purge_versions:
         purge_versions(logger=logger)
 
     logger.info('Done.')
+    return result

@@ -272,9 +272,6 @@ class RefreshPackageQuery(models.Model):
     query = models.CharField(max_length=256, unique=True)
     priority = models.IntegerField(default=0)
 
-    class Meta:
-        get_latest_by = "priority"
-
     def __unicode__(self):
         return u'[%d] %s' % (self.priority, self.query)
 
