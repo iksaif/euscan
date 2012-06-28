@@ -35,11 +35,13 @@ def scan(cpv, url):
     # now create a filename-matching regexp
     # XXX: supposedly replace first with (?P<foo>...)
     # and remaining ones with (?P=foo)
-    fnre = re.compile('^%s$' % re.escape(filename).replace(re.escape(ver), '(.*?)'))
+    fnre = re.compile('^%s$' % \
+                      re.escape(filename).replace(re.escape(ver), '(.*?)'))
 
-    output.einfo("Using github API for: " + '/'.join(package))
+    output.einfo("Using github API for: " + '/'.join(filename))
 
-    dlreq = urllib2.urlopen('https://api.github.com/repos/%s/%s/downloads' % (user, project))
+    dlreq = urllib2.urlopen('https://api.github.com/repos/%s/%s/downloads' % \
+                            (user, project))
     dls = json.load(dlreq)
 
     for dl in dls:

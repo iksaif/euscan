@@ -251,7 +251,8 @@ def main():
         on_progress(maxval=len(queries) * 100, increment=0)
 
     for query in queries:
-        on_progress(increment=10, label=query)
+        if CONFIG["progress"]:
+            on_progress(increment=10, label=query)
 
         ret = []
 
