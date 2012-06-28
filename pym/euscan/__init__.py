@@ -19,7 +19,8 @@ CONFIG = {
     'skip-robots-txt': False,
     'cache': False,
     'format': None,
-    'indent': 2
+    'indent': 2,
+    'progress': False
 }
 
 BLACKLIST_VERSIONS = [

@@ -11,15 +11,20 @@ from portage.output import EOutput, TermProgressBar
 
 
 class ProgressHandler(object):
-    def __init__(self):
+    def __init__(self, progress_bar):
         self.curval = 0
         self.maxval = 0
         self.last_update = 0
         self.min_display_latency = 0.2
+        self.progress_bar = progress_bar
 
-    def on_progress(self, maxval, curval):
-        self.maxval = maxval
-        self.curval = curval
+    def on_progress(self, maxval=None, increment=1, label=None):
+        self.maxval = maxval or self.maxval
+        self.curval += increment
+
+        if label:
+            self.progress_bar.label(label)
+
         cur_time = time.time()
         if cur_time - self.last_update >= self.min_display_latency:
             self.last_update = cur_time
@@ -33,7 +38,7 @@ def progress_bar():
     on_progress = None
     progress_bar = TermProgressBar()
 
-    progress_handler = ProgressHandler()
+    progress_handler = ProgressHandler(progress_bar)
     on_progress = progress_handler.on_progress
 
     def display():
