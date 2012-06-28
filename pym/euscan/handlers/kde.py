@@ -1,5 +1,7 @@
 from euscan.handlers import generic
 
+PRIORITY = 100
+
 HANDLER_NAME = "kde"
 
 
