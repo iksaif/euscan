@@ -22,14 +22,20 @@
       <tr>
         <td></td>
         <td>
-          <input type="submit" value="Login" />
+          <input class="btn pull-right" type="submit" value="Login" />
+        </td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+      </tr>
+      <tr>
+        <td>
+        </td>
+        <td>
+          <a class="pull-right" href="{% url "django.contrib.auth.views.password_reset" %}">Forgot password</a>
         </td>
       </tr>
     </table>
     <input type="hidden" name="next" value="/" />
   </form>
-
-  <a href="{% url "registration.views.register" %}">Register</a>
-  <a href="{% url "django.contrib.auth.views.password_reset" %}">Forgot password</a>
-
 {% endblock %}

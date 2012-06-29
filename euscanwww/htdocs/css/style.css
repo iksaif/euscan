@@ -1,86 +1,67 @@
-body
-{
-  margin: 0;
-  padding: 0;
-  font-size: 0.8em;
-  font-family: Dejavu, Verdana, "Bitstream Vera Sans", "Lucida Grande", "Trebuchet MS", sans-serif;
-  color: #535353;
-  background: #D2D0D4;
-  }
-
-img
-{
-  border: none;
-  }
-
-h1
-{
-  margin-top: 0;
-  color: #369;
-  font-size: 1.6em;
+body {
+    font-size: 0.8em;
+    font-family: Dejavu, Verdana, "Bitstream Vera Sans", "Lucida Grande", "Trebuchet MS", sans-serif;
+    color: #535353;
+    background: #D2D0D4;
 }
 
-a:link, a:visited
-{
-  text-decoration: none;
-  font-weight: bold;
-  color: #ff8c00;
-  }
+img {
+    border: none;
+}
 
-a:hover, a:active
-{
-  font-weight: bold;
-  color: #ff4500;
-  text-decoration: underline;
-  }
+h1 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.6em;
+    width: 20em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+a:link, a:visited {
+    text-decoration: none;
+    font-weight: bold;
+    color: #ff8c00;
+}
+
+a:hover, a:active {
+    font-weight: bold;
+    color: #ff4500;
+    text-decoration: underline;
+}
 
 #header {
-    /* background: url(http://packages.gentoo.org/media/packages_gentoo_logo.jpg) no-repeat;
-    background-color: #46347C; */
     width: 100%;
     height: 30px;
     margin: 0;
     padding: 0;
     background: url(../img/gentoo-header-bar-bg.png) repeat-x;
+    margin-bottom: 20px;
 }
 
-#header #logo
-{
+#header #logo {
     float: left;
 }
 
 #content {
-    background: #F0F0F0;
-    padding: 10px;
-    margin-top: 10px;
-/*    margin-right: auto;
-    margin-left: auto;
-*/
-    margin-left: 20px;
-    /* margin-left: 20%; */
-    margin-right: 250px;
-    /* max-width: 60em; */
-
     border: 1px solid #67539B;
     background: #FEFEFE;
 
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
+    padding: 20px;
+
+    min-height: 350px;
 }
 
 .menu {
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
     border: 1px solid #67539B;
-}
-
-.menu {
-    width:100%;
-    margin-top: 30px;
     background: #8076A1;
     color: #FFF;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.notfirst-menu {
+    margin-top: 10px;
 }
 
 .menu a {
@@ -103,29 +84,7 @@ a:hover, a:active
     border: none;
 }
 
-#menus {
-    width: 200px;
-    position:absolute;
-    top:30px;
-    right:20px;
-
-/*
-    position: fixed;
-    right: 10px;
-    top: 2em;
-    width: 20%;
-*/
-}
-
-/*
-code, pre{
-    background-color:transparent;
-    font-family:"Courier New",Courier,monospace;
-    font-size:small;
-}
-*/
-
-a{
+a {
     color: #3F4C66;
 }
 
@@ -142,7 +101,7 @@ abbr:hover {
     text-decoration: underline;
 }
 
-pre{
+pre {
     border-left:5px solid;
     padding:0.5em 1em;
     margin-left:2em;
@@ -156,18 +115,6 @@ dd {
     border-left: 1px solid #ccc;
     margin: 5px;
     padding: 5px;
-}
-
-
-h1 {
-    color: #000;
-    width: 20em;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.ok {
-    color:#15B100;
 }
 
 hr {
@@ -204,7 +151,7 @@ th {
     font-size: 0.8em;
     width: 100%;
     margin: 0;
-    margin-top: 10px;
+    margin-top: 20px;
     color: #FFF;
 }
 
@@ -213,8 +160,7 @@ th {
     margin: 5px;
 }
 
-.err,.ok,.inf
-{
+.err, .ok, .inf {
     margin: 5px;
     margin-left: auto;
     margin-right: auto;
@@ -280,4 +226,10 @@ th {
 
 .hide {
     display: none;
+}
+
+.rounded {
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
 }

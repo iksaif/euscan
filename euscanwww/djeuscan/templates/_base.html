@@ -10,6 +10,7 @@
     <link rel="alternate" type="application/atom+xml" title="Global log" href="{% url "global_feed" %}" />
     {% endblock %}
     {% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/bootstrap.min.css" media="screen" title="Normal" />
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/style.css" media="screen" title="Normal" />
     {% endblock %}
     {% block javascript %}
@@ -22,53 +23,65 @@
       </a>
       {% block header %}<h1>Ebuild Upstream Scanner (euscan)</h1>{% endblock %}
     </div>
-    <div id="content">
-      {% block content %}{% endblock %}
-    </div>
-    <div id="menus">
-      {% block menus %}
-        <div class="menu">
-          <ul>
-            {% block menu %}
-              <li><a href="{% url "index" %}">Home</a></li>
-              <li><a href="{% url "categories" %}">Categories</a></li>
-              <li><a href="{% url "herds" %}">Herds</a></li>
-              <li><a href="{% url "maintainers" %}">Maintainers</a></li>
-              <li><a href="{% url "overlays" %}">Overlays</a></li>
-              <li><a href="{% url "world" %}">Scan World</a></li>
-              <li><a href="{% url "statistics" %}">Statistics</a></li>
-
-              <li>---</li>
-
-              {% if user.is_authenticated %}
-                <li><a href="{% url "accounts_index" %}">{{ user }}'s profile</a></li>
-                <ul class="submenu">
-                  <li><a href="{% url "accounts_categories" %}">Categories</a></li>
-                  <li><a href="{% url "accounts_herds" %}">Herds</a></li>
-                  <li><a href="{% url "accounts_maintainers" %}">Maintainers</a></li>
-                  <li><a href="{% url "accounts_packages" %}">Packages</a></li>
-                </ul>
-                <li><a href="{% url "django.contrib.auth.views.logout" %}">Logout</a></li>
-              {% else %}
-                <li><a href="{% url "django.contrib.auth.views.login" %}?next={% url "accounts_index" %}">Login</a></li>
-                <li><a href="{% url "registration.views.register" %}">Register</a></li>
-              {% endif %}
-
-              <li>---</li>
-
-              {% block menu_feed %}
-                <li>
-                  <img src="{{ STATIC_URL }}img/feed.png" alt="feed" />
-                  <a title="Global Feed" href="{% url "global_feed" %}">Global Feed</a>
-                </li>
-              {% endblock %}
-              <li>---</li>
-              <li><a href="{% url "api" %}">API</a></li>
-              <li><a href="{% url "about" %}">About</a></li>
-            {% endblock %}
-          </ul>
+    <div class="row-fluid">
+      <div class="span10">
+        <div class="row-fluid">
+          <div class="span1"></div>
+          <div id="content" class="rounded span11">
+            {% block content %}{% endblock %}
+          </div>
         </div>
-      {% endblock %}
+      </div>
+      <div class="span2">
+        <div class="row-fluid">
+          <div id="menus" class="span11">
+            {% block menus %}
+              <div class="menu rounded">
+                <ul>
+                  {% block menu %}
+                    <li><a href="{% url "index" %}">Home</a></li>
+                    <li><a href="{% url "categories" %}">Categories</a></li>
+                    <li><a href="{% url "herds" %}">Herds</a></li>
+                    <li><a href="{% url "maintainers" %}">Maintainers</a></li>
+                    <li><a href="{% url "overlays" %}">Overlays</a></li>
+                    <li><a href="{% url "world" %}">Scan World</a></li>
+                    <li><a href="{% url "statistics" %}">Statistics</a></li>
+
+                    <li>---</li>
+
+                    {% if user.is_authenticated %}
+                      <li><a href="{% url "accounts_index" %}">{{ user }}'s profile</a></li>
+                      <ul class="submenu">
+                        <li><a href="{% url "accounts_categories" %}">Categories</a></li>
+                        <li><a href="{% url "accounts_herds" %}">Herds</a></li>
+                        <li><a href="{% url "accounts_maintainers" %}">Maintainers</a></li>
+                        <li><a href="{% url "accounts_packages" %}">Packages</a></li>
+                      </ul>
+                      <li><a href="{% url "django.contrib.auth.views.logout" %}">Logout</a></li>
+                    {% else %}
+                      <li><a href="{% url "django.contrib.auth.views.login" %}?next={% url "accounts_index" %}">Login</a></li>
+                      <li><a href="{% url "registration.views.register" %}">Register</a></li>
+                    {% endif %}
+
+                    <li>---</li>
+
+                    {% block menu_feed %}
+                      <li>
+                        <img src="{{ STATIC_URL }}img/feed.png" alt="feed" />
+                        <a title="Global Feed" href="{% url "global_feed" %}">Global Feed</a>
+                      </li>
+                    {% endblock %}
+                    <li>---</li>
+                    <li><a href="{% url "api" %}">API</a></li>
+                    <li><a href="{% url "about" %}">About</a></li>
+                  {% endblock %}
+                </ul>
+              </div>
+            {% endblock %}
+          </div>
+          <div class="span1"></div>
+        </div>
+      </div>
     </div>
     <div id="footer">
       <p>
