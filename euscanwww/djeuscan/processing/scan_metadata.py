@@ -137,7 +137,7 @@ class ScanMetadata(object):
 
 def scan_metadata(packages=None, logger=None):
     scan_handler = ScanMetadata(logger=logger)
-    if packages is None:
+    if not packages:
         packages = Package.objects.all()
 
     for pkg in packages:

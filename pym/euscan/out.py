@@ -67,10 +67,18 @@ class EOutputMem(EOutput):
         self.out = StringIO()
 
     def getvalue(self):
-        return re.sub("\033\[[0-9;]+m", "", self.out.getvalue())
+        return clean_colors(self.out.getvalue())
 
     def _write(self, f, msg):
         super(EOutputMem, self)._write(self.out, msg)
+
+
+def clean_colors(string):
+    if type(string) is str:
+        string = re.sub("\033\[[0-9;]+m", "", string)
+        string = re.sub(r"\\u001b\[[0-9;]+m", "", string)
+        string = re.sub(r"\x1b\[[0-9;]+m", "", string)
+    return string
 
 
 class EuscanOutput(object):
@@ -141,7 +149,8 @@ class EuscanOutput(object):
 
     def metadata(self, key, value, show=True):
         if self.config["format"]:
-            self.queries[self.current_query]["metadata"][key] = value
+            self.queries[self.current_query]["metadata"][key] = \
+                clean_colors(value)
         elif show:
             print "%s: %s" % (key.capitalize(), value)
 

@@ -16,6 +16,7 @@ class ScanUpstream(object):
 
     def scan(self, package):
         CONFIG["format"] = "dict"
+        output.clean()
         output.set_query(package)
 
         euscan_scan_upstream(package)
@@ -34,7 +35,14 @@ class ScanUpstream(object):
             obj = self.store_package(cpv)
 
             for res in out[package]["result"]:
-                self.store_version(obj, res["version"], " ".join(res["urls"]))
+                self.store_version(
+                    obj,
+                    res["version"],
+                    " ".join(res["urls"]),
+                    res["type"],
+                    res["handler"],
+                    res["confidence"],
+                )
 
             self.store_result(obj, out_json, scan_time, ebuild)
 
@@ -66,10 +74,17 @@ class ScanUpstream(object):
 
         return obj
 
-    def store_version(self, package, ver, url):
+    def store_version(self, package, ver, url, version_type, handler,
+                      confidence):
         obj, created = Version.objects.get_or_create(
-            package=package, slot='', revision='r0', version=ver, overlay='',
-            defaults={"alive": True, "urls": url, "packaged": False}
+            package=package,
+            slot='',
+            revision='r0',
+            version=ver,
+            overlay='',
+            defaults={"alive": True, "urls": url, "packaged": False,
+                      "version_type": version_type, "handler": handler,
+                      "confidence": confidence}
         )
         if not created:
             obj.alive = True
@@ -97,7 +112,7 @@ class ScanUpstream(object):
 
 
 @commit_on_success
-def purge_versions(logger=None):
+def do_purge_versions(logger=None):
     logger = logger or FakeLogger()
 
     # For each dead versions
@@ -126,17 +141,21 @@ def scan_upstream(packages=None, purge_versions=False,
 
     logger.info('Scanning upstream...')
 
-    if packages is None:
+    if not packages:
         packages = Package.objects.all()
+
+    result = True
 
     for pkg in packages:
         if isinstance(pkg, Package):
-            result = scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
+            curr = scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
         else:
-            result = scan_handler.scan(pkg)
+            curr = scan_handler.scan(pkg)
+        if not curr:
+            result = False
 
     if purge_versions:
-        purge_versions(logger=logger)
+        do_purge_versions(logger=logger)
 
     logger.info('Done.')
     return result

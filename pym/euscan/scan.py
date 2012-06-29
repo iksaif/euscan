@@ -45,9 +45,13 @@ def filter_versions(cp, versions):
 def scan_upstream_urls(cpv, urls, on_progress):
     versions = []
 
-    progress_available = 70
-    num_urls = sum([len(urls[fn]) for fn in urls])
-    progress_increment = progress_available / num_urls
+    if on_progress:
+        progress_available = 70
+        num_urls = sum([len(urls[fn]) for fn in urls])
+        if num_urls > 0:
+            progress_increment = progress_available / num_urls
+        else:
+            progress_increment = 0
 
     for filename in urls:
         for url in urls[filename]:

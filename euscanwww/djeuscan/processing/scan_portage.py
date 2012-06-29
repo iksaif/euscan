@@ -15,11 +15,10 @@ from djeuscan.models import Package, Version, VersionLog
 
 class ScanPortage(object):
     def __init__(self, logger=None, no_log=False, purge_packages=False,
-                 purge_versions=False, kill_versions=False):
+                 kill_versions=False):
         self.logger = logger or FakeLogger()
         self.no_log = no_log
         self.purge_packages = purge_packages
-        self.purge_versions = purge_versions
         self.kill_versions = kill_versions
 
         self.style = color_style()
@@ -84,8 +83,13 @@ class ScanPortage(object):
 
         return self._overlays
 
-    @commit_on_success
     def scan(self, query=None):
+        if self.purge_packages:
+            with commit_on_success():
+                for package in Package.objects.all():
+                    self.logger.info('- [p] %s' % (package))
+                    package.delete()
+
         cmd = ['eix', '--xml', '--pure-packages', '-x']
         if query:
             cmd.extend(['--exact', query])
@@ -97,7 +101,6 @@ class ScanPortage(object):
 
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE).\
             communicate()[0]
-        output = output.strip().strip('\n')
 
         if len(output) == 0:
             if not query:
@@ -124,24 +127,26 @@ class ScanPortage(object):
                 cat = category_tag.getAttribute("name")
                 pkg = package_tag.getAttribute("name")
                 homepage_tags = package_tag.getElementsByTagName("homepage")
-                homepage = homepage_tags[0].firstChild.nodeValue \
-                           if homepage_tags else ""
+                try:
+                    homepage = homepage_tags[0].firstChild.nodeValue
+                except (IndexError, AttributeError):
+                    homepage = ""
                 desc_tags = package_tag.getElementsByTagName("description")
-                desc = desc_tags[0].firstChild.nodeValue if desc_tags else ""
+                try:
+                    desc = desc_tags[0].firstChild.nodeValue
+                except (IndexError, AttributeError):
+                    desc = ""
 
-                package = self.store_package(cat, pkg, homepage, desc)
+                with commit_on_success():
+                    package = self.store_package(cat, pkg, homepage, desc)
 
-                for version_tag in package_tag.getElementsByTagName("version"):
-                    cpv = "%s/%s-%s" % (cat, pkg,
-                                        version_tag.getAttribute("id"))
-                    slot = version_tag.getAttribute("slot")
-                    overlay = version_tag.getAttribute("overlay")
-                    self.store_version(package, cpv, slot, overlay)
-
-        if self.purge_packages and not query:
-            for package in Package.objects.all():
-                self.logger.info('- [p] %s' % (package))
-                package.delete()
+                    for version_tag in package_tag.\
+                                       getElementsByTagName("version"):
+                        cpv = "%s/%s-%s" % (cat, pkg,
+                                            version_tag.getAttribute("id"))
+                        slot = version_tag.getAttribute("slot")
+                        overlay = version_tag.getAttribute("overlay")
+                        self.store_version(package, cpv, slot, overlay)
 
     def store_package(self, cat, pkg, homepage, description):
         created = False
@@ -232,7 +237,7 @@ class ScanPortage(object):
 
 
 @commit_on_success
-def purge_versions(logger=None, nolog=False):
+def do_purge_versions(logger=None, no_log=False):
     logger = logger or FakeLogger()
 
     # For each dead versions
@@ -246,7 +251,7 @@ def purge_versions(logger=None, nolog=False):
 
         logger.info('- [v] %s' % (version))
 
-        if nolog:
+        if no_log:
             continue
 
         VersionLog.objects.create(
@@ -274,7 +279,6 @@ def scan_portage(packages=None, no_log=False, purge_packages=False,
         logger=logger,
         no_log=no_log,
         purge_packages=purge_packages,
-        purge_versions=purge_versions,
         kill_versions=kill_versions,
     )
 
@@ -288,16 +292,16 @@ def scan_portage(packages=None, no_log=False, purge_packages=False,
             scan_handler.cache_store_version(version)
         logger.info('done')
 
-    if packages is None:
+    if not packages:
         scan_handler.scan()
     else:
         for pkg in packages:
             if isinstance(pkg, Package):
-                scan_handler.scan('%s/%s' % (pkg.category, pkg.name), pkg)
+                scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
             else:
                 scan_handler.scan(pkg)
 
     if purge_versions:
-        purge_versions(logger=logger, no_log=no_log)
+        do_purge_versions(logger=logger, no_log=no_log)
     logger.info('Done.')
     return True

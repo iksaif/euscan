@@ -58,7 +58,7 @@ def _run_in_chunks(task, packages, kwargs=None,
         job = TaskSet(tasks=tasks)
         result = job.apply_async()
         # TODO: understand why this causes timeout
-        output.extend(list(result.join(timeout=3600)))
+        output.extend(list(result.join()))
     return output
 
 
@@ -102,7 +102,7 @@ def scan_metadata_list_task(query):
     Runs a parallel metadata scan for packages in the query list (space
     separated string). Task used only from the web interface.
     """
-    _run_in_chunks(_scan_metadata_task, [p for p in query.split()])
+    return _run_in_chunks(_scan_metadata_task, [p for p in query.split()])
 
 
 @task
@@ -110,7 +110,7 @@ def scan_metadata_all_task():
     """
     Runs a parallel metadata scan for all packages
     """
-    _run_in_chunks(_scan_metadata_task, Package.objects.all())
+    return _run_in_chunks(_scan_metadata_task, Package.objects.all())
 
 
 @task
@@ -120,8 +120,11 @@ def _scan_portage_task(packages, no_log=False, purge_packages=False,
     Scans portage for the given set of packages
     """
     logger = _scan_portage_task.get_logger()
-    logger.info("Starting portage scanning subtask for %d packages...",
-                len(packages))
+    if packages:
+        logger.info("Starting portage scanning subtask for %d packages...",
+                    len(packages))
+    else:
+        logger.info("Starting portage scanning for all packages...")
 
     result = scan_portage(
         packages=packages,
@@ -145,18 +148,23 @@ def scan_portage_list_task(query, no_log=False, purge_packages=False,
     """
     kwargs = {"no_log": no_log, "purge_packages": purge_packages,
               "purge_versions": purge_versions, "prefetch": prefetch}
-    _run_in_chunks(_scan_portage_task, [p for p in query.split()], kwargs)
+    return _run_in_chunks(_scan_portage_task, [p for p in query.split()],
+                          kwargs)
 
 
 @task
 def scan_portage_all_task(no_log=False, purge_packages=False,
                           purge_versions=False, prefetch=False):
     """
-    Runs a parallel portage scan for all packages
+    Runs a syncronous portage scan for all packages
     """
-    kwargs = {"no_log": no_log, "purge_packages": purge_packages,
-              "purge_versions": purge_versions, "prefetch": prefetch}
-    _run_in_chunks(_scan_metadata_task, Package.objects.all(), kwargs)
+    return _scan_portage_task(
+        packages=None,
+        no_log=no_log,
+        purge_packages=purge_packages,
+        purge_versions=purge_versions,
+        prefetch=prefetch,
+    )
 
 
 @task
@@ -187,7 +195,8 @@ def scan_upstream_list_task(query, purge_versions=False):
     """
 
     kwargs = {"purge_versions": purge_versions}
-    _run_in_chunks(_scan_upstream_task, [p for p in query.split()], kwargs)
+    return _run_in_chunks(_scan_upstream_task, [p for p in query.split()],
+                          kwargs)
 
 
 @task
@@ -196,7 +205,7 @@ def scan_upstream_all_task(purge_versions=False):
     Runs a parallel portage scan for all packages
     """
     kwargs = {"purge_versions": purge_versions}
-    _run_in_chunks(_scan_upstream_task, Package.objects.all(), kwargs)
+    return _run_in_chunks(_scan_upstream_task, Package.objects.all(), kwargs)
 
 
 @task
