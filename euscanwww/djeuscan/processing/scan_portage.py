@@ -2,6 +2,7 @@ import subprocess
 import portage
 import os
 import re
+
 from xml.dom.minidom import parseString
 
 from django.db.transaction import commit_on_success
@@ -15,11 +16,11 @@ from djeuscan.models import Package, Version, VersionLog
 
 class ScanPortage(object):
     def __init__(self, logger=None, no_log=False, purge_packages=False,
-                 kill_versions=False):
+                 purge_versions=False):
         self.logger = logger or FakeLogger()
         self.no_log = no_log
         self.purge_packages = purge_packages
-        self.kill_versions = kill_versions
+        self.purge_versions = purge_versions
 
         self.style = color_style()
         self._cache = {'packages': {}, 'versions': {}}
@@ -57,71 +58,43 @@ class ScanPortage(object):
         )
         self._cache['versions'][key] = version
 
-    def overlays(self):
-        if self._overlays:
-            return self._overlays
-
-        env = os.environ
-        env['OVERLAYS_LIST'] = 'all'
-        env['PRINT_COUNT_ALWAYS'] = 'never'
-
-        cmd = ['eix', '-!']
-
-        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env).\
-            communicate()[0]
-        output = output.strip().strip('\n').split('\n')
-
-        overlay_re = re.compile(r'^\[(?P<key>\d+)] "(?P<name>.*?)"')
-
-        self._overlays = {}
-
-        for line in output:
-            match = overlay_re.match(line)
-            if not match:
-                continue
-            self._overlays[match.group('key')] = match.group('name')
-
-        return self._overlays
-
     def scan(self, query=None):
-        if self.purge_packages:
-            with commit_on_success():
-                for package in Package.objects.all():
-                    self.logger.info('- [p] %s' % (package))
-                    package.delete()
-
-        cmd = ['eix', '--xml', '--pure-packages', '-x']
+        cmd = ['eix', '--xml']
         if query:
             cmd.extend(['--exact', query])
 
-        if self.kill_versions:
-            self.logger.info('Killing existing versions...')
-            Version.objects.filter(packaged=True).update(alive=False)
-            self.logger.info('done')
+        if not query:
+            current_packages = Package.objects.all()
+        elif '/' in query:
+            cat, pkg = portage.catsplit(query)
+            current_packages = Package.objects.filter(category=cat, name=pkg)
+        else:
+            current_packages = Package.objects.filter(name=query)
+
+        if self.purge_versions:
+            if not query:
+                self.logger.info('Killing existing versions...')
+                Version.objects.filter(packaged=True).update(alive=False)
+                self.logger.info('done')
+            else:
+                for package in current_packages:
+                    Version.objects.filter(package=package, packaged=True).update(alive=False)
 
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE).\
             communicate()[0]
 
-        if len(output) == 0:
-            if not query:
-                return
-            if self.purge_packages:
-                self.logger.info('- [p] %s' % (query))
-                if '/' in query:
-                    cat, pkg = portage.catsplit(query)
-                    Package.objects.filter(category=cat, name=pkg).delete()
-                else:
-                    Package.objects.filter(name=query).delete()
-            else:
-                self.logger.error(
-                    self.style.ERROR(
-                        "Unknown package '%s'" % query
+        if len(output) == 0 and query:
+            self.logger.error(
+                self.style.ERROR(
+                    "Unknown package '%s'" % query
                     )
                 )
             return
 
-        dom = parseString(output)
+        packages_alive = set()
 
+        dom = parseString(output)
+        # SAX
         for category_tag in dom.getElementsByTagName("category"):
             for package_tag in category_tag.getElementsByTagName("package"):
                 cat = category_tag.getAttribute("name")
@@ -137,16 +110,25 @@ class ScanPortage(object):
                 except (IndexError, AttributeError):
                     desc = ""
 
-                with commit_on_success():
-                    package = self.store_package(cat, pkg, homepage, desc)
+                package = self.store_package(cat, pkg, homepage, desc)
+                packages_alive.add('%s/%s' % (cat, pkg))
 
-                    for version_tag in package_tag.\
-                                       getElementsByTagName("version"):
-                        cpv = "%s/%s-%s" % (cat, pkg,
-                                            version_tag.getAttribute("id"))
-                        slot = version_tag.getAttribute("slot")
-                        overlay = version_tag.getAttribute("overlay")
-                        self.store_version(package, cpv, slot, overlay)
+                for version_tag in package_tag.\
+                        getElementsByTagName("version"):
+                    cpv = "%s/%s-%s" % (cat, pkg,
+                                        version_tag.getAttribute("id"))
+                    slot = version_tag.getAttribute("slot")
+                    overlay = version_tag.getAttribute("repository")
+                    self.store_version(package, cpv, slot, overlay)
+
+        if self.purge_packages:
+            for package in current_packages:
+                cp = "%s/%s" % (package.category, package.name)
+                if cp not in packages_alive:
+                    self.logger.info('- [p] %s' % (package))
+                    package.delete()
+        if self.purge_versions:
+            self.purge_old_versions(current_packages)
 
     def store_package(self, cat, pkg, homepage, description):
         created = False
@@ -166,7 +148,7 @@ class ScanPortage(object):
 
         # Set all versions dead, then set found versions alive and
         # delete old versions
-        if not self.kill_versions:
+        if not self.purge_versions:
             Version.objects.filter(
                 package=obj,
                 packaged=True
@@ -176,12 +158,7 @@ class ScanPortage(object):
 
     def store_version(self, package, cpv, slot, overlay):
         cat, pkg, ver, rev = portage.catpkgsplit(cpv)
-
-        overlays = self.overlays()
-
-        if overlay in overlays:
-            overlay = overlays[overlay]
-        else:
+        if not overlay:
             overlay = 'gentoo'
 
         created = False
@@ -235,51 +212,55 @@ class ScanPortage(object):
             overlay=obj.overlay
         )
 
+    def purge_old_versions(self, packages):
+        # For each dead versions
+        if packages:
+            versions = []
+            for package in packages:
+                qs = Version.objects.filter(package=package, packaged=True, alive=False)
+                for version in qs:
+                    versions.append(version)
+        else:
+            versions = Version.objects.filter(packaged=True, alive=False)
+
+        for version in versions:
+            if version.overlay == 'gentoo':
+                version.package.n_packaged -= 1
+            else:
+                version.package.n_overlay -= 1
+            version.package.n_versions -= 1
+            version.package.save()
+
+            self.logger.info('- [v] %s' % (version))
+
+            if self.no_log:
+                continue
+
+            VersionLog.objects.create(
+                package=version.package,
+                action=VersionLog.VERSION_REMOVED,
+                slot=version.slot,
+                revision=version.revision,
+                version=version.version,
+                overlay=version.overlay
+            )
+
+        Version.objects.filter(packaged=True, alive=False).delete()
 
 @commit_on_success
-def do_purge_versions(logger=None, no_log=False):
-    logger = logger or FakeLogger()
-
-    # For each dead versions
-    for version in Version.objects.filter(packaged=True, alive=False):
-        if version.overlay == 'gentoo':
-            version.package.n_packaged -= 1
-        else:
-            version.package.n_overlay -= 1
-        version.package.n_versions -= 1
-        version.package.save()
-
-        logger.info('- [v] %s' % (version))
-
-        if no_log:
-            continue
-
-        VersionLog.objects.create(
-            package=version.package,
-            action=VersionLog.VERSION_REMOVED,
-            slot=version.slot,
-            revision=version.revision,
-            version=version.version,
-            overlay=version.overlay
-        )
-
-    Version.objects.filter(packaged=True, alive=False).delete()
-
-
 def scan_portage(packages=None, no_log=False, purge_packages=False,
                  purge_versions=False, prefetch=False, logger=None):
 
     logger = logger or FakeLogger()
-    kill_versions = False
+
     if packages is None:
         prefetch = True
-        kill_versions = True
 
     scan_handler = ScanPortage(
         logger=logger,
         no_log=no_log,
         purge_packages=purge_packages,
-        kill_versions=kill_versions,
+        purge_versions=purge_versions,
     )
 
     logger.info('Scanning portage tree...')
@@ -301,7 +282,5 @@ def scan_portage(packages=None, no_log=False, purge_packages=False,
             else:
                 scan_handler.scan(pkg)
 
-    if purge_versions:
-        do_purge_versions(logger=logger, no_log=no_log)
     logger.info('Done.')
     return True

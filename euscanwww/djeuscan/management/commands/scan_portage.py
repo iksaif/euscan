@@ -49,7 +49,6 @@ class Command(BaseCommand):
 
         if options['all']:
             packages = None
-
         elif len(args):
             packages = [pkg for pkg in args]
         else:
