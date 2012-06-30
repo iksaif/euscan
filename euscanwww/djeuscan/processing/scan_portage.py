@@ -2,7 +2,7 @@ import subprocess
 import portage
 import os
 import re
-from xml.dom.minidom import parseString
+from xml.etree.ElementTree import iterparse, ParseError
 
 from django.db.transaction import commit_on_success
 from django.core.management.color import color_style
@@ -99,10 +99,14 @@ class ScanPortage(object):
             Version.objects.filter(packaged=True).update(alive=False)
             self.logger.info('done')
 
-        output = subprocess.Popen(cmd, stdout=subprocess.PIPE).\
-            communicate()[0]
+        sub = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
-        if len(output) == 0:
+        output = sub.stdout
+
+        try:
+            parser = iterparse(output, ["start", "end"])
+            parser.next()  # read root tag just for testing output
+        except ParseError:
             if not query:
                 return
             if self.purge_packages:
@@ -120,33 +124,41 @@ class ScanPortage(object):
                 )
             return
 
-        dom = parseString(output)
+        cat, pkg, homepage, desc = ("", "", "", "")
+        versions = []
 
-        for category_tag in dom.getElementsByTagName("category"):
-            for package_tag in category_tag.getElementsByTagName("package"):
-                cat = category_tag.getAttribute("name")
-                pkg = package_tag.getAttribute("name")
-                homepage_tags = package_tag.getElementsByTagName("homepage")
-                try:
-                    homepage = homepage_tags[0].firstChild.nodeValue
-                except (IndexError, AttributeError):
-                    homepage = ""
-                desc_tags = package_tag.getElementsByTagName("description")
-                try:
-                    desc = desc_tags[0].firstChild.nodeValue
-                except (IndexError, AttributeError):
-                    desc = ""
+        for event, elem in parser:
+            if event == "start":  # on tag opening
+                if elem.tag == "category":
+                    cat = elem.attrib["name"]
+                if elem.tag == "package":
+                    pkg = elem.attrib["name"]
+                if elem.tag == "description":
+                    desc = elem.text or ""
+                if elem.tag == "homepage":
+                    homepage = elem.text or ""
+                if elem.tag == "version":
+                    # append version data to versions
+                    cpv = "%s/%s-%s" % (cat, pkg, elem.attrib["id"])
+                    slot = elem.attrib.get("slot", "")
+                    overlay = elem.attrib.get("overlay", "")
+                    versions.append((cpv, slot, overlay))
 
-                with commit_on_success():
-                    package = self.store_package(cat, pkg, homepage, desc)
+            elif event == "end":  # on tag closing
+                if elem.tag == "package":
+                    # package tag has been closed, saving everything!
+                    with commit_on_success():
+                        package = self.store_package(cat, pkg, homepage, desc)
+                        for cpv, slot, overlay in versions:
+                            self.store_version(package, cpv, slot, overlay)
 
-                    for version_tag in package_tag.\
-                                       getElementsByTagName("version"):
-                        cpv = "%s/%s-%s" % (cat, pkg,
-                                            version_tag.getAttribute("id"))
-                        slot = version_tag.getAttribute("slot")
-                        overlay = version_tag.getAttribute("overlay")
-                        self.store_version(package, cpv, slot, overlay)
+                    # clean old data
+                    pkg, homepage, desc = ("", "", "")
+                    versions = []
+
+                if elem.tag == "category":
+                    # clean old data
+                    cat = ""
 
     def store_package(self, cat, pkg, homepage, description):
         created = False
