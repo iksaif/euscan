@@ -205,7 +205,11 @@ def scan_upstream_all_task(purge_versions=False):
     Runs a parallel portage scan for all packages
     """
     kwargs = {"purge_versions": purge_versions}
-    return _run_in_chunks(_scan_upstream_task, Package.objects.all(), kwargs)
+    return _run_in_chunks(
+        _scan_upstream_task,
+        Package.objects.all().order_by('?'),
+        kwargs
+    )
 
 
 @task
