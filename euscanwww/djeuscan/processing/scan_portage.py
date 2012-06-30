@@ -87,61 +87,51 @@ class ScanPortage(object):
             parser = iterparse(output, ["start", "end"])
             parser.next()  # read root tag just for testing output
         except ParseError:
-            if not query:
-                return
-            if self.purge_packages:
-                self.logger.info('- [p] %s' % (query))
-                if '/' in query:
-                    cat, pkg = portage.catsplit(query)
-                    Package.objects.filter(category=cat, name=pkg).delete()
-                else:
-                    Package.objects.filter(name=query).delete()
-            else:
-                self.logger.error(
-                    self.style.ERROR(
-                        "Unknown package '%s'" % query
-                    )
+            self.logger.error(
+                self.style.ERROR(
+                    "Unknown package '%s'" % query
                 )
-                return
+            )
+        else:
+            cat, pkg, homepage, desc = ("", "", "", "")
+            versions = []
+            packages_alive = set()
 
-        cat, pkg, homepage, desc = ("", "", "", "")
-        versions = []
-        packages_alive = set()
+            for event, elem in parser:
+                if event == "start":  # on tag opening
+                    if elem.tag == "category":
+                        cat = elem.attrib["name"]
+                    if elem.tag == "package":
+                        pkg = elem.attrib["name"]
+                    if elem.tag == "description":
+                        desc = elem.text or ""
+                    if elem.tag == "homepage":
+                        homepage = elem.text or ""
+                    if elem.tag == "version":
+                        # append version data to versions
+                        cpv = "%s/%s-%s" % (cat, pkg, elem.attrib["id"])
+                        slot = elem.attrib.get("slot", "")
+                        overlay = elem.attrib.get("overlay", "")
+                        versions.append((cpv, slot, overlay))
 
-        for event, elem in parser:
-            if event == "start":  # on tag opening
-                if elem.tag == "category":
-                    cat = elem.attrib["name"]
-                if elem.tag == "package":
-                    pkg = elem.attrib["name"]
-                if elem.tag == "description":
-                    desc = elem.text or ""
-                if elem.tag == "homepage":
-                    homepage = elem.text or ""
-                if elem.tag == "version":
-                    # append version data to versions
-                    cpv = "%s/%s-%s" % (cat, pkg, elem.attrib["id"])
-                    slot = elem.attrib.get("slot", "")
-                    overlay = elem.attrib.get("overlay", "")
-                    versions.append((cpv, slot, overlay))
+                elif event == "end":  # on tag closing
+                    if elem.tag == "package":
+                        # package tag has been closed, saving everything!
+                        with commit_on_success():
+                            package = self.store_package(cat, pkg, homepage,
+                                                         desc)
+                            packages_alive.add('%s/%s' % (cat, pkg))
+                            for cpv, slot, overlay in versions:
+                                self.store_version(package, cpv, slot, overlay)
 
-            elif event == "end":  # on tag closing
-                if elem.tag == "package":
-                    # package tag has been closed, saving everything!
-                    with commit_on_success():
-                        package = self.store_package(cat, pkg, homepage, desc)
-                        packages_alive.add('%s/%s' % (cat, pkg))
-                        for cpv, slot, overlay in versions:
-                            self.store_version(package, cpv, slot, overlay)
+                        # clean old data
+                        pkg, homepage, desc = ("", "", "")
+                        versions = []
 
-                    # clean old data
-                    pkg, homepage, desc = ("", "", "")
-                    versions = []
-
-                if elem.tag == "category":
-                    # clean old data
-                    cat = ""
-            elem.clear()
+                    if elem.tag == "category":
+                        # clean old data
+                        cat = ""
+                elem.clear()
 
         if self.purge_packages:
             for package in current_packages:
@@ -271,7 +261,6 @@ class ScanPortage(object):
         Version.objects.filter(packaged=True, alive=False).delete()
 
 
-@commit_on_success
 def scan_portage(packages=None, no_log=False, purge_packages=False,
                  purge_versions=False, prefetch=False, logger=None):
 
