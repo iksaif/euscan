@@ -249,7 +249,7 @@ def update_task(update_portage_trees=True, scan_portage=True,
 
 @task
 def scan_package_task(package):
-    _scan_portage_task([package], purge_versions=True)
+    _scan_portage_task([package], purge_packages=True, purge_versions=True)
     _scan_metadata_task([package])
     _scan_upstream_task([package])
 
