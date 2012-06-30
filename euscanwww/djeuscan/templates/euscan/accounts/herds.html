@@ -1,0 +1,14 @@
+{% extends "euscan/_datatable.html" %}
+{% load url from future %}
+{% load euscan %}
+
+{% block title %}
+  {{ block.super }} - Watched herds
+{% endblock %}
+
+
+{% block content %}
+  <h2>Watched herds</h2>
+
+  {% herds_table herds %}
+{% endblock %}

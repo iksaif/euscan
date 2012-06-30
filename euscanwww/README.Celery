@@ -1,0 +1,40 @@
+Requirements
+============
+
+Installing requirements with setup.py is the easiest way, just run::
+
+    python setup.py develop
+
+or::
+
+    python setup.py install  # to install euscan and requirements
+
+If you prefer to use portage just install dev-python/django-celery-2.5.5
+
+There's the need of having a broker for tasks. The default and reccommended
+broker is RabbitMQ.
+Install with::
+emerge rabbitmq-server
+
+
+Running Celery
+==============
+
+You'll need:
+* celeryd (celery daemon for running tasks)::
+
+    python manage.py celeryd -E -l INFO
+
+* celerycam (for monitoring celery and see the results in the django admin page)::
+
+    python manage.py celerycam
+
+* celerybeat (for running periodic tasks)::
+
+    python manage.py celerybeat -l INFO
+
+
+TODO
+====
+
+Provide a supervisord configuration

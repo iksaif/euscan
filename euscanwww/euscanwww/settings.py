@@ -157,6 +157,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 INSTALLED_APPS = (
+    'euscanwww',
+    'djeuscan',
+
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -166,8 +169,8 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'south',
-    'euscanwww',
-    'djeuscan',
+    'djcelery',
+    'registration',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -178,12 +181,22 @@ INSTALLED_APPS = (
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(levelname)s %(asctime)s %(message)s'
+        },
+    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
     'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -196,14 +209,49 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'djeuscan': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True
+        }
     }
 }
+
+# django-registration
+ACCOUNT_ACTIVATION_DAYS = 7
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# djeuscan tasks
+PORTAGE_ROOT = "/usr/portage/"
+PORTAGE_CONFIGROOT = PORTAGE_ROOT
+LAYMAN_CONFIG = "/etc/layman/layman.cfg"
+EMERGE_REGEN_JOBS = 4
+
+# Celery config
+import djcelery
+djcelery.setup_loader()
+BROKER_URL = "amqp://guest:guest@localhost:5672//"
+CELERY_RESULT_BACKEND = "amqp"
+BROKER_CONNECTION_TIMEOUT = 3600
+CELERYD_CONCURRENCY = 4
+
+TASKS_CONCURRENTLY = 4
+TASKS_SUBTASK_PACKAGES = 32
+
+# LDAP authentication
+# TODO: Test data - change me!
+AUTH_LDAP_SERVER_URI = "ldap://localhost"
+AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=users,dc=my-domain,dc=com"
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 try:
     from local_settings import *
 except ImportError, ex:
     import sys
-    sys.stderr.write(\
-            ("settings.py: error importing local settings file:\n" + \
-            "\t%s\n" + \
-            "Do you have a local_settings.py module?\n") % str(ex))
+    sys.stderr.write(
+        "settings.py: error importing local settings file:\n"
+        "\t%s\nDo you have a local_settings.py module?\n" % str(ex)
+    )

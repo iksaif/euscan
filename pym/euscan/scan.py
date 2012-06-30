@@ -1,4 +1,7 @@
+from __future__ import print_function
+
 import os
+import sys
 from datetime import datetime
 
 import portage
@@ -42,15 +45,21 @@ def filter_versions(cp, versions):
 def scan_upstream_urls(cpv, urls, on_progress):
     versions = []
 
-    maxval = len(urls) + 5
-    curval = 1
+    if on_progress:
+        progress_available = 70
+        num_urls = sum([len(urls[fn]) for fn in urls])
+        if num_urls > 0:
+            progress_increment = progress_available / num_urls
+        else:
+            progress_increment = 0
 
     for filename in urls:
-        curval += 1
-        if on_progress:
-            on_progress(maxval, curval)
-
         for url in urls[filename]:
+
+            if on_progress and progress_available > 0:
+                on_progress(increment=progress_increment)
+                progress_available -= progress_increment
+
             if not CONFIG['quiet'] and not CONFIG['format']:
                 pp.uprint()
             output.einfo("SRC_URI is '%s'" % url)
@@ -79,15 +88,10 @@ def scan_upstream_urls(cpv, urls, on_progress):
 
     cp, ver, rev = portage.pkgsplit(cpv)
 
-    curval += 1
-    if on_progress:
-        on_progress(maxval, curval)
-
     result = filter_versions(cp, versions)
 
-    curval += 1
-    if on_progress:
-        on_progress(maxval, curval)
+    if on_progress and progress_available > 0:
+        on_progress(increment=progress_available)
 
     return result
 
@@ -114,9 +118,6 @@ def scan_upstream(query, on_progress=None):
     """
     Scans the upstream searching new versions for the given query
     """
-
-    maxval = 3
-    curval = 0
 
     matches = []
 
@@ -156,9 +157,8 @@ def scan_upstream(query, on_progress=None):
     output.metadata("cp", pkg.cp, show=False)
     output.metadata("cpv", pkg.cpv, show=False)
 
-    curval += 1
     if on_progress:
-        on_progress(maxval, curval)
+        on_progress(increment=10)
 
     if pkg.cp in BLACKLIST_PACKAGES:
         output.ewarn(
@@ -210,14 +210,16 @@ def scan_upstream(query, on_progress=None):
     scan_time = (datetime.now() - start_time).total_seconds()
     output.metadata("scan_time", scan_time, show=False)
 
-    curval += 1
-    if on_progress:
-        on_progress(maxval, curval)
-
     result = scan_upstream_urls(pkg.cpv, urls, on_progress)
 
-    curval += 1
     if on_progress:
-        on_progress(maxval, curval)
+        on_progress(increment=10)
+
+    if len(result) > 0:
+        if not (CONFIG['format'] or CONFIG['quiet']):
+            print("\n", file=sys.stderr)
+
+        for cp, url, version, handler, confidence in result:
+            output.result(cp, version, url, handler, confidence)
 
     return result

@@ -1,96 +1,80 @@
-body
-{
-  margin: 0;
-  padding: 0;
-  font-size: 0.8em;
-  font-family: Dejavu, Verdana, "Bitstream Vera Sans", "Lucida Grande", "Trebuchet MS", sans-serif;
-  color: #535353;
-  background: #D2D0D4;
-  }
-
-img
-{
-  border: none;
-  }
-
-h1
-{
-  margin-top: 0;
-  color: #369;
-  font-size: 1.6em;
+body {
+    font-size: 0.8em;
+    font-family: Dejavu, Verdana, "Bitstream Vera Sans", "Lucida Grande", "Trebuchet MS", sans-serif;
+    color: #535353;
+    background: #D2D0D4;
 }
 
-a:link, a:visited
-{
-  text-decoration: none;
-  font-weight: bold;
-  color: #ff8c00;
-  }
+img {
+    border: none;
+}
 
-a:hover, a:active
-{
-  font-weight: bold;
-  color: #ff4500;
-  text-decoration: underline;
-  }
+h1 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.6em;
+    width: 20em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+a:link, a:visited {
+    text-decoration: none;
+    font-weight: bold;
+    color: #ff8c00;
+}
+
+a:hover, a:active {
+    font-weight: bold;
+    color: #ff4500;
+    text-decoration: underline;
+}
 
 #header {
-    /* background: url(http://packages.gentoo.org/media/packages_gentoo_logo.jpg) no-repeat;
-    background-color: #46347C; */
     width: 100%;
     height: 30px;
     margin: 0;
     padding: 0;
     background: url(../img/gentoo-header-bar-bg.png) repeat-x;
+    margin-bottom: 20px;
 }
 
-#header #logo
-{
+#header #logo {
     float: left;
 }
 
 #content {
-    background: #F0F0F0;
-    padding: 10px;
-    margin-top: 10px;
-/*    margin-right: auto;
-    margin-left: auto;
-*/
-    margin-left: 20px;
-    /* margin-left: 20%; */
-    margin-right: 250px;
-    /* max-width: 60em; */
-
     border: 1px solid #67539B;
     background: #FEFEFE;
 
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
+    padding: 20px;
+
+    min-height: 350px;
 }
 
 .menu {
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
     border: 1px solid #67539B;
-}
-
-.menu {
-    width:100%;
-    margin-top: 30px;
     background: #8076A1;
     color: #FFF;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.notfirst-menu {
+    margin-top: 10px;
 }
 
 .menu a {
     color: #fff;
 }
 
-.menu li
-{
-  list-style-type: none;
- }
+.menu li {
+    list-style-type: none;
+}
+
+.submenu {
+    padding-left: 15px;
+}
 
 .menu dl {
     margin-left: 15px;
@@ -100,84 +84,48 @@ a:hover, a:active
     border: none;
 }
 
-#menus {
-    width: 200px;
-    position:absolute;
-    top:30px;
-    right:20px;
-
-/*
-    position: fixed;
-    right: 10px;
-    top: 2em;
-    width: 20%;
-*/
-}
-
-/*
-code, pre{
-	background-color:transparent;
-	font-family:"Courier New",Courier,monospace;
-	font-size:small;
-}
-*/
-
-a{
-	color: #3F4C66;
+a {
+    color: #3F4C66;
 }
 
 a:link, a:visited, a:active {
-	color: #3F4C66;
-	text-decoration: none;
+    color: #3F4C66;
+    text-decoration: none;
 }
 a:hover {
-	color: #4C5C7B;
-	text-decoration: underline;
+    color: #4C5C7B;
+    text-decoration: underline;
 }
 
 abbr:hover {
-	text-decoration: underline;
+    text-decoration: underline;
 }
 
-pre{
-	border-left:5px solid;
-	padding:0.5em 1em;
-	margin-left:2em;
+pre {
+    border-left:5px solid;
+    padding:0.5em 1em;
+    margin-left:2em;
 }
 
 dt {
-	font-weight: bold;
+    font-weight: bold;
 }
 
 dd {
-	border-left: 1px solid #ccc;
-	margin: 5px;
-	padding: 5px;
+    border-left: 1px solid #ccc;
+    margin: 5px;
+    padding: 5px;
+}
+
+hr {
+    margin: 0.3em 1em 0.3em 1em;
+    height: 1px;
+    border: #bcbcbc dashed;
+    border-width: 0 0 1px 0;
 }
 
 
-h1 {
-        color: #000;
-	width: 20em;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-.ok {
-	color:#15B100;
-}
-
-hr
-{
-  margin: 0.3em 1em 0.3em 1em;
-  height: 1px;
-  border: #bcbcbc dashed;
-  border-width: 0 0 1px 0;
-  }
-
-
-table
-{
+table {
     max-width: 60em;
     /* width: 50%; */
     border-collapse: collapse;
@@ -188,62 +136,56 @@ table
     text-align: left;
 }
 
-td
-{
-  vertical-align: top;
-  }
+td {
+    vertical-align: top;
+}
 
-th
-{
-  font-size: 0.8em;
-  text-align: center;
-  border-bottom: 3px solid;
- }
+th {
+    font-size: 0.8em;
+    text-align: center;
+    border-bottom: 3px solid;
+}
 
-#footer
-{
+#footer {
     background: #8076A1;
     font-size: 0.8em;
     width: 100%;
     margin: 0;
-    margin-top: 10px;
+    margin-top: 20px;
     color: #FFF;
- }
+}
 
 #footer p {
     text-align: right;
     margin: 5px;
 }
 
-.err,.ok,.inf
-{
-  margin: 5px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 70%;
-  font-weight:bold;
-  border: 1px dotted #5682AD;
-  }
+.err, .ok, .inf {
+    margin: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 70%;
+    font-weight:bold;
+    border: 1px dotted #5682AD;
+}
 
 .added {
-  color: #262;
+    color: #262;
 }
 
 .removed {
-  color: #F00;
+    color: #F00;
 }
 
-.err
-{
-  border-color: #F00;
-  color: #F00;
- }
+.err {
+    border-color: #F00;
+    color: #F00;
+}
 
-.ok
-{
-  border-color: #262;
-  color: #262;
-  }
+.ok {
+    border-color: #262;
+    color: #262;
+}
 
 .logo {
     float: right;
@@ -280,4 +222,14 @@ th
 .log {
     max-height: 100pt;
     overflow: auto;
+}
+
+.hide {
+    display: none;
+}
+
+.rounded {
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
 }

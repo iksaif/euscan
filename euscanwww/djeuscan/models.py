@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import RegexValidator, validate_email, URLValidator
 from django.core.exceptions import ValidationError
 
+from django.contrib.auth.models import User
+
 from djeuscan.managers import PackageManager, VersionLogManager, \
     EuscanResultManager
 
@@ -115,15 +117,18 @@ class Version(models.Model):
     """
 
     package = models.ForeignKey(Package)
-    slot = models.CharField(max_length=128, blank=True, default='')
+    slot = models.CharField(max_length=128, blank=True, default="")
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
-    overlay = models.CharField(max_length=128, blank=True,
-                               default='gentoo', db_index=True,
-                               validators=[validate_name])
+    overlay = models.CharField(max_length=128, default='gentoo', db_index=True,
+                               validators=[validate_name], blank=True)
     urls = models.TextField(blank=True)
     alive = models.BooleanField(default=True, db_index=True)
+
+    version_type = models.CharField(max_length=128, blank=True)
+    handler = models.CharField(max_length=128, blank=True)
+    confidence = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ['package', 'slot', 'revision', 'version', 'overlay']
@@ -149,12 +154,12 @@ class VersionLog(models.Model):
 
     package = models.ForeignKey(Package)
     datetime = models.DateTimeField(auto_now_add=True)
-    slot = models.CharField(max_length=128, blank=True, default='')
+    slot = models.CharField(max_length=128, blank=True, default="")
     revision = models.CharField(max_length=128)
     version = models.CharField(max_length=128)
     packaged = models.BooleanField()
-    overlay = models.CharField(max_length=128, blank=True,
-                               default='gentoo', validators=[validate_name])
+    overlay = models.CharField(max_length=128, default='gentoo',
+                               validators=[validate_name], blank=True)
     action = models.IntegerField(choices=VERSION_ACTIONS)
 
     objects = VersionLogManager()
@@ -182,6 +187,9 @@ class EuscanResult(models.Model):
     datetime = models.DateTimeField()
     result = models.TextField(blank=True)
 
+    scan_time = models.FloatField(null=True, blank=True)
+    ebuild = models.CharField(blank=True, max_length=256)
+
     objects = EuscanResultManager()
 
     class Meta:
@@ -190,6 +198,11 @@ class EuscanResult(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(EuscanResult, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return '[%s] %s/%s' % (
+            self.datetime, self.package.category, self.package.name
+        )
 
 
 class Log(models.Model):
@@ -253,3 +266,55 @@ class MaintainerLog(Log):
 
     def __unicode__(self):
         return u'%s %s' % (self.maintainer, Log.__unicode__(self))
+
+
+class RefreshPackageQuery(models.Model):
+    query = models.CharField(max_length=256, unique=True)
+    priority = models.IntegerField(default=0)
+
+    def __unicode__(self):
+        return u'[%d] %s' % (self.priority, self.query)
+
+
+class HerdAssociation(models.Model):
+    user = models.ForeignKey(User)
+    herd = models.ForeignKey(Herd)
+
+    class Meta:
+        unique_together = ['user', 'herd']
+
+    def __unicode__(self):
+        return u'[%s] %s' % (self.user, self.herd)
+
+
+class MaintainerAssociation(models.Model):
+    user = models.ForeignKey(User)
+    maintainer = models.ForeignKey(Maintainer)
+
+    class Meta:
+        unique_together = ['user', 'maintainer']
+
+    def __unicode__(self):
+        return u'[%s] %s' % (self.user, self.maintainer)
+
+
+class PackageAssociation(models.Model):
+    user = models.ForeignKey(User)
+    package = models.ForeignKey(Package)
+
+    class Meta:
+        unique_together = ['user', 'package']
+
+    def __unicode__(self):
+        return u'[%s] %s' % (self.user, self.package)
+
+
+class CategoryAssociation(models.Model):
+    user = models.ForeignKey(User)
+    category = models.CharField(max_length=128, validators=[validate_category])
+
+    class Meta:
+        unique_together = ['user', 'category']
+
+    def __unicode__(self):
+        return u'[%s] %s' % (self.user, self.category)

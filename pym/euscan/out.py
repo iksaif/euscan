@@ -3,6 +3,7 @@ from collections import defaultdict
 import json
 import signal
 import time
+import re
 
 from gentoolkit import pprinter as pp
 import portage
@@ -10,15 +11,20 @@ from portage.output import EOutput, TermProgressBar
 
 
 class ProgressHandler(object):
-    def __init__(self):
+    def __init__(self, progress_bar):
         self.curval = 0
         self.maxval = 0
         self.last_update = 0
         self.min_display_latency = 0.2
+        self.progress_bar = progress_bar
 
-    def on_progress(self, maxval, curval):
-        self.maxval = maxval
-        self.curval = curval
+    def on_progress(self, maxval=None, increment=1, label=None):
+        self.maxval = maxval or self.maxval
+        self.curval += increment
+
+        if label:
+            self.progress_bar.label(label)
+
         cur_time = time.time()
         if cur_time - self.last_update >= self.min_display_latency:
             self.last_update = cur_time
@@ -32,7 +38,7 @@ def progress_bar():
     on_progress = None
     progress_bar = TermProgressBar()
 
-    progress_handler = ProgressHandler()
+    progress_handler = ProgressHandler(progress_bar)
     on_progress = progress_handler.on_progress
 
     def display():
@@ -61,10 +67,18 @@ class EOutputMem(EOutput):
         self.out = StringIO()
 
     def getvalue(self):
-        return self.out.getvalue()
+        return clean_colors(self.out.getvalue())
 
     def _write(self, f, msg):
         super(EOutputMem, self)._write(self.out, msg)
+
+
+def clean_colors(string):
+    if type(string) is str:
+        string = re.sub("\033\[[0-9;]+m", "", string)
+        string = re.sub(r"\\u001b\[[0-9;]+m", "", string)
+        string = re.sub(r"\x1b\[[0-9;]+m", "", string)
+    return string
 
 
 class EuscanOutput(object):
@@ -73,6 +87,10 @@ class EuscanOutput(object):
     """
     def __init__(self, config):
         self.config = config
+        self.queries = defaultdict(dict)
+        self.current_query = None
+
+    def clean(self):
         self.queries = defaultdict(dict)
         self.current_query = None
 
@@ -95,7 +113,7 @@ class EuscanOutput(object):
             "metadata": {},
         }
 
-    def get_formatted_output(self):
+    def get_formatted_output(self, format_=None):
         data = {}
 
         for query in self.queries:
@@ -105,8 +123,11 @@ class EuscanOutput(object):
                 "messages": self.queries[query]["output"].getvalue(),
             }
 
-        if self.config["format"].lower() == "json":
+        format_ = format_ or self.config["format"]
+        if format_.lower() == "json":
             return json.dumps(data, indent=self.config["indent"])
+        elif format_.lower() == "dict":
+            return data
         else:
             raise TypeError("Invalid output format")
 
@@ -128,12 +149,13 @@ class EuscanOutput(object):
 
     def metadata(self, key, value, show=True):
         if self.config["format"]:
-            self.queries[self.current_query]["metadata"][key] = value
+            self.queries[self.current_query]["metadata"][key] = \
+                clean_colors(value)
         elif show:
             print "%s: %s" % (key.capitalize(), value)
 
     def __getattr__(self, key):
-        if not self.config["quiet"]:
+        if not self.config["quiet"] and self.current_query is not None:
             output = self.queries[self.current_query]["output"]
             return getattr(output, key)
         else:

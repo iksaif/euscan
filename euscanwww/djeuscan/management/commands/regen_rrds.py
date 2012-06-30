@@ -1,25 +1,10 @@
+import logging
 from django.core.management.base import BaseCommand
-from djeuscan.models import HerdLog, MaintainerLog, CategoryLog, WorldLog
-from djeuscan import charts
 
+from djeuscan.processing import set_verbosity_level
+from djeuscan.processing.regen_rrds import regen_rrds
 
-def regen_rrds():
-    """
-    Regenerates the rrd database
-    """
-    for wlog in WorldLog.objects.all():
-        charts.rrd_update('world', wlog.datetime, wlog)
-
-    for clog in CategoryLog.objects.all():
-        charts.rrd_update('category-%s' % clog.category,
-                          clog.datetime, clog)
-
-    for hlog in HerdLog.objects.all():
-        charts.rrd_update('herd-%d' % hlog.herd.id, hlog.datetime, hlog)
-
-    for mlog in MaintainerLog.objects.all():
-        charts.rrd_update('maintainer-%d' % mlog.maintainer.id,
-                          mlog.datetime, mlog)
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -27,4 +12,5 @@ class Command(BaseCommand):
     help = 'Regenerate rrd database'
 
     def handle(self, *args, **options):
-        regen_rrds()
+        set_verbosity_level(logger, options.get("verbosity", 1))
+        regen_rrds(logger=logger)

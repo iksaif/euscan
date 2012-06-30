@@ -1,4 +1,5 @@
-import json, urllib2
+import json
+import urllib2
 import re
 
 import portage
@@ -7,15 +8,19 @@ from euscan import helpers, output
 
 HANDLER_NAME = "github"
 CONFIDENCE = 100.0
+PRIORITY = 100
+
 
 def can_handle(cpv, url):
     return url.startswith('mirror://github/')
+
 
 def guess_package(cp, url):
     match = re.search('^mirror://github/(.*?)/(.*?)/(.*)$', url)
 
     assert(match)
     return (match.group(1), match.group(2), match.group(3))
+
 
 def scan(cpv, url):
     'http://developer.github.com/v3/repos/downloads/'
@@ -30,11 +35,13 @@ def scan(cpv, url):
     # now create a filename-matching regexp
     # XXX: supposedly replace first with (?P<foo>...)
     # and remaining ones with (?P=foo)
-    fnre = re.compile('^%s$' % re.escape(filename).replace(re.escape(ver), '(.*?)'))
+    fnre = re.compile('^%s$' % \
+                      re.escape(filename).replace(re.escape(ver), '(.*?)'))
 
-    output.einfo("Using github API for: " + '/'.join(package))
+    output.einfo("Using github API for: " + '/'.join(filename))
 
-    dlreq = urllib2.urlopen('https://api.github.com/repos/%s/%s/downloads' % (user, project))
+    dlreq = urllib2.urlopen('https://api.github.com/repos/%s/%s/downloads' % \
+                            (user, project))
     dls = json.load(dlreq)
 
     for dl in dls:
@@ -45,6 +52,7 @@ def scan(cpv, url):
             if helpers.version_filtered(cp, ver, pv):
                 continue
             yield (dl['html_url'], pv, HANDLER_NAME, CONFIDENCE)
+
 
 def brute_force(cpv, url):
     return []

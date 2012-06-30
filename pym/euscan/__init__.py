@@ -19,7 +19,8 @@ CONFIG = {
     'skip-robots-txt': False,
     'cache': False,
     'format': None,
-    'indent': 2
+    'indent': 2,
+    'progress': False
 }
 
 BLACKLIST_VERSIONS = [
@@ -67,4 +68,4 @@ ROBOTS_TXT_BLACKLIST_DOMAINS = [
 ]
 
 from out import EuscanOutput
-output = out.EuscanOutput(CONFIG)
+output = EuscanOutput(CONFIG)

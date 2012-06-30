@@ -21,8 +21,8 @@ __description__ = "A tool to detect new upstream releases."
 import sys
 import os
 import getopt
-import errno
-import httplib
+from errno import EINTR, EINVAL
+from httplib import HTTPConnection
 
 from portage.output import white, yellow, turquoise, green
 from portage.exception import AmbiguousPackageName
@@ -37,6 +37,8 @@ from euscan.out import progress_bar
 
 
 # Globals
+isatty = os.environ.get('TERM') != 'dumb' and sys.stdout.isatty()
+
 
 def exit_helper(status):
     if CONFIG["format"]:
@@ -52,7 +54,7 @@ def setup_signals():
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         print()
-        exit_helper(errno.EINTR)
+        exit_helper(EINTR)
 
     signal.signal(signal.SIGINT, exithandler)
     signal.signal(signal.SIGTERM, exithandler)
@@ -121,6 +123,8 @@ def print_usage(_error=None, help=None):
         print(yellow(" -f, --format=<format>") +
               "     - define the output " + yellow("<format>") +
               " (available: json)", file=out)
+        print(yellow(" -p, --progress") +
+              "     - display a progress bar", file=out)
         print(file=out)
 
     if _error in ('packages',) or help:
@@ -172,6 +176,8 @@ def parse_args():
                 CONFIG['format'] = a
                 CONFIG['nocolor'] = True
                 pp.output.nocolor()
+            elif o in ("-p", "--progress"):
+                CONFIG['progress'] = isatty
             else:
                 return_code = False
 
@@ -179,7 +185,7 @@ def parse_args():
 
     # here are the different allowed command line options (getopt args)
     getopt_options = {'short': {}, 'long': {}}
-    getopt_options['short']['global'] = "hVCqv1bf:"
+    getopt_options['short']['global'] = "hVCqv1bf:p"
     getopt_options['long']['global'] = [
         "help", "version", "nocolor", "quiet", "verbose", "oneshot",
         "brute-force=", "format="
@@ -207,7 +213,7 @@ def parse_args():
 def main():
     """Parse command line and execute all actions."""
     CONFIG['nocolor'] = (
-        port_settings["NOCOLOR"] in ('yes', 'true') or not sys.stdout.isatty()
+        port_settings["NOCOLOR"] in ('yes', 'true') or not isatty
     )
     if CONFIG['nocolor']:
         pp.output.nocolor()
@@ -230,19 +236,23 @@ def main():
 
         else:
             print_usage(e.value)
-            exit_helper(errno.EINVAL)
+            exit_helper(EINVAL)
 
     if CONFIG['verbose'] > 2:
-        httplib.HTTPConnection.debuglevel = 1
+        HTTPConnection.debuglevel = 1
 
-    isatty = os.environ.get('TERM') != 'dumb' and sys.stdout.isatty()
+    if not CONFIG["format"]:
+        CONFIG["progress"] = False
+
+    on_progress = None
+    if CONFIG['progress']:
+        on_progress_gen = progress_bar()
+        on_progress = on_progress_gen.next()
+        on_progress(maxval=len(queries) * 100, increment=0)
 
     for query in queries:
-        on_progress = None
-        if (CONFIG['format'] or CONFIG['quiet']) and isatty:
-            print("%s:" % query, file=sys.stderr)
-            on_progress_gen = progress_bar()
-            on_progress = on_progress_gen.next()
+        if CONFIG["progress"]:
+            on_progress(increment=10, label=query)
 
         ret = []
 
@@ -271,26 +281,15 @@ def main():
             output.eerror('%s: %s' % (query, str(err)))
             exit_helper(1)
 
-        if not CONFIG['quiet'] and not CONFIG['format']:
-            print()
+        if not ret and not CONFIG['quiet']:
+            output.ewarn(
+                "Didn't find any new version, check package's homepage " +
+                "for more informations"
+            )
 
-        if (CONFIG['format'] or CONFIG['quiet']) and isatty:
-            on_progress_gen.next()
-            print("\n", file=sys.stderr)
-
-        if ret is not None:
-            if len(ret) > 0:
-                for cp, url, version, handler, confidence in ret:
-                    output.result(cp, version, url, handler, confidence)
-
-                if (CONFIG['format'] or CONFIG['quiet']) and isatty:
-                    print("\n", file=sys.stderr)
-
-            elif not CONFIG['quiet']:
-                output.ewarn(
-                    "Didn't find any new version, check package's homepage " +
-                    "for more informations"
-                )
+    if CONFIG['progress']:
+        on_progress_gen.next()
+        print("\n", file=sys.stderr)
 
     output.set_query(None)
 

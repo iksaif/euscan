@@ -10,6 +10,7 @@ urlpatterns = patterns('',
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^', include('djeuscan.urls')),
 )
 

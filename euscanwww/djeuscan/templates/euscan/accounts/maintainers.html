@@ -1,0 +1,14 @@
+{% extends "euscan/_datatable.html" %}
+{% load url from future %}
+{% load euscan %}
+
+{% block title %}
+  {{ block.super }} - Watched maintainers
+{% endblock %}
+
+
+{% block content %}
+  <h2>Watched maintainers</h2>
+
+  {% maintainers_table maintainers %}
+{% endblock %}

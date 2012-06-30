@@ -1,13 +1,19 @@
 """ Views """
 
-from annoying.decorators import render_to
+import inspect
+from annoying.decorators import render_to, ajax_request
+
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 from djeuscan.helpers import version_key, packages_from_names
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
-    VersionLog
+    VersionLog, RefreshPackageQuery, HerdAssociation, MaintainerAssociation, \
+    CategoryAssociation, PackageAssociation
 from djeuscan.forms import WorldForm, PackagesForm
+from djeuscan.tasks import admin_tasks
 from djeuscan import charts
 
 
@@ -161,13 +167,23 @@ def package(request, category, package):
     except EuscanResult.DoesNotExist:
         last_scan = None
 
+    favourited = False
+    if request.user.is_authenticated():
+        try:
+            PackageAssociation.objects.get(user=request.user, package=package)
+        except PackageAssociation.DoesNotExist:
+            pass
+        else:
+            favourited = True
+
     return {
         'package': package,
         'packaged': packaged,
         'upstream': upstream,
         'log': log,
         'vlog': vlog,
-        'last_scan': last_scan
+        'last_scan': last_scan,
+        'favourited': favourited,
     }
 
 
@@ -254,3 +270,164 @@ def chart_herd(request, **kwargs):
 
 def chart_category(request, **kwargs):
     return chart(request, **kwargs)
+
+
+@ajax_request
+def registered_tasks(request):
+    data = {}
+    for task in admin_tasks:
+        argspec = inspect.getargspec(task.run)
+        data[task.name] = {
+            "args": argspec.args,
+            "defaults": argspec.defaults,
+            "default_types": None
+        }
+        if argspec.defaults is not None:
+            data[task.name].update({
+                "defaults_types": [type(x).__name__ for x in argspec.defaults]
+            })
+    return {"tasks": data}
+
+
+@login_required
+@require_POST
+@ajax_request
+def refresh_package(request, query):
+    obj, created = RefreshPackageQuery.objects.get_or_create(query=query)
+    if not created:
+        obj.priority += 1
+        obj.save()
+    return {"result": "success"}
+
+
+@login_required
+@render_to('euscan/accounts/index.html')
+def accounts_index(request):
+    return {}
+
+
+@login_required
+@render_to('euscan/accounts/categories.html')
+def accounts_categories(request):
+    categories = [obj.category for obj in
+                  CategoryAssociation.objects.filter(user=request.user)]
+    return {"categories": categories}
+
+
+@login_required
+@render_to('euscan/accounts/herds.html')
+def accounts_herds(request):
+    herds = [obj.herd for obj in
+             HerdAssociation.objects.filter(user=request.user)]
+    return {"herds": herds}
+
+
+@login_required
+@render_to('euscan/accounts/maintainers.html')
+def accounts_maintainers(request):
+    maintainers = [obj.maintainer for obj in
+                   MaintainerAssociation.objects.filter(user=request.user)]
+    return {"maintainers": maintainers}
+
+
+@login_required
+@render_to('euscan/accounts/packages.html')
+def accounts_packages(request):
+    packages = [obj.package for obj in
+                PackageAssociation.objects.filter(user=request.user)]
+    return {"packages": packages}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_package(request, category, package):
+    obj = get_object_or_404(Package, category=category, name=package)
+    _, created = PackageAssociation.objects.get_or_create(
+        user=request.user, package=obj
+    )
+    return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def unfavourite_package(request, category, package):
+    package = get_object_or_404(Package, category=category, name=package)
+    obj = get_object_or_404(
+        PackageAssociation, package=package, user=request.user
+    )
+    obj.delete()
+    return {"success": True}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_herd(request, herd):
+    obj = get_object_or_404(Herd, herd=herd)
+    _, created = HerdAssociation.objects.get_or_create(
+        user=request.user, herd=obj
+    )
+    return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def unfavourite_herd(request, herd):
+    herd = get_object_or_404(Herd, herd=herd)
+    obj = get_object_or_404(
+        HerdAssociation, herd=herd, user=request.user
+    )
+    obj.delete()
+    return {"success": True}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_maintainer(request, maintainer_id):
+    obj = get_object_or_404(Maintainer, pk=maintainer_id)
+    _, created = MaintainerAssociation.objects.get_or_create(
+        user=request.user, maintainer=obj
+    )
+    return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def unfavourite_maintainer(request, maintainer_id):
+    maintainer = get_object_or_404(Maintainer, pk=maintainer_id)
+    obj = get_object_or_404(
+        MaintainerAssociation, maintainer=maintainer, user=request.user
+    )
+    obj.delete()
+    return {"success": True}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_category(request, category):
+    packages = Package.objects.for_category(category, last_versions=True)
+
+    if not packages:
+        raise Http404
+
+    _, created = CategoryAssociation.objects.get_or_create(
+        user=request.user, category=category
+    )
+    return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def unfavourite_category(request, category):
+    obj = get_object_or_404(
+        CategoryAssociation, user=request.user, category=category
+    )
+    obj.delete()
+    return {"success": True}

@@ -7,6 +7,7 @@ from euscan import helpers, output
 
 HANDLER_NAME = "php"
 CONFIDENCE = 100.0
+PRIORITY = 100
 
 
 def can_handle(cpv, url):

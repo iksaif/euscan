@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import sys, os
+import sys
+import os
 import os.path
 
 PROJECT = '/path/to/euscanwww'

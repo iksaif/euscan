@@ -44,7 +44,7 @@ def get_version_type(version):
         if token in gentoo_types:
             types.append(token)
     if types:
-        return types[0]
+        return types[0]  # TODO: consider returning all types
     return "release"
 
 
