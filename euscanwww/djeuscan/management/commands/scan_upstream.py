@@ -157,11 +157,6 @@ class Command(BaseCommand):
             dest='all',
             default=False,
             help='Scan all packages'),
-        make_option('--feed',
-            action='store_true',
-            dest='feed',
-            default=False,
-            help='Read euscan output from stdin'),
         make_option('--purge-versions',
             action='store_true',
             dest='purge-versions',
@@ -179,7 +174,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         scan_upstream = ScanUpstream(options)
 
-        if options['feed']:
+        if not args and not options['all']:
             scan_upstream.parse_output(sys.stdin)
             if options['purge-versions']:
                 purge_versions(options)
