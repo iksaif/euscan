@@ -65,6 +65,7 @@ ROBOTS_TXT_BLACKLIST_DOMAINS = [
     '(.*)qt.nokia.com(.*)',
     '(.*)chromium.org(.*)',
     '(.*)nodejs.org(.*)',
+    '(.*)download.mono-project.com(.*)',
 ]
 
 from out import EuscanOutput
