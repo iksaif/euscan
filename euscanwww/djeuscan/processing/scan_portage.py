@@ -117,12 +117,11 @@ class ScanPortage(object):
                 elif event == "end":  # on tag closing
                     if elem.tag == "package":
                         # package tag has been closed, saving everything!
-                        with commit_on_success():
-                            package = self.store_package(cat, pkg, homepage,
-                                                         desc)
-                            packages_alive.add('%s/%s' % (cat, pkg))
-                            for cpv, slot, overlay in versions:
-                                self.store_version(package, cpv, slot, overlay)
+                        package = self.store_package(cat, pkg, homepage,
+                                                     desc)
+                        packages_alive.add('%s/%s' % (cat, pkg))
+                        for cpv, slot, overlay in versions:
+                            self.store_version(package, cpv, slot, overlay)
 
                         # clean old data
                         pkg, homepage, desc = ("", "", "")
@@ -261,6 +260,7 @@ class ScanPortage(object):
         Version.objects.filter(packaged=True, alive=False).delete()
 
 
+@commit_on_success
 def scan_portage(packages=None, no_log=False, purge_packages=False,
                  purge_versions=False, prefetch=False, logger=None):
 
