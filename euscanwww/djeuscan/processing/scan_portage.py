@@ -141,6 +141,7 @@ class ScanPortage(object):
                 if elem.tag == "category":
                     # clean old data
                     cat = ""
+            elem.clear()
 
         if self.purge_packages:
             for package in current_packages:
