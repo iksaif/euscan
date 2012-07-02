@@ -269,7 +269,7 @@ class MaintainerLog(Log):
 
 
 class RefreshPackageQuery(models.Model):
-    query = models.CharField(max_length=256, unique=True)
+    query = models.CharField(max_length=255, unique=True)
     priority = models.IntegerField(default=0)
 
     def __unicode__(self):

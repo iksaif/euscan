@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         # Adding model 'RefreshPackageQuery'
         db.create_table('djeuscan_refreshpackagequery', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('query', self.gf('django.db.models.fields.CharField')(unique=True, max_length=256)),
+            ('query', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
             ('priority', self.gf('django.db.models.fields.IntegerField')(default=0)),
         ))
         db.send_create_signal('djeuscan', ['RefreshPackageQuery'])
@@ -104,7 +104,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'RefreshPackageQuery'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'priority': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'query': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '256'})
+            'query': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
         },
         'djeuscan.version': {
             'Meta': {'unique_together': "(['package', 'slot', 'revision', 'version', 'overlay'],)", 'object_name': 'Version'},
