@@ -56,11 +56,78 @@ class ScanPortage(object):
         )
         self._cache['versions'][key] = version
 
-    def scan(self, query=None):
+    def scan_eix_xml(self, query, category=None):
         cmd = ['eix', '--xml']
         if query:
             cmd.extend(['--exact', query])
+        if category:
+            cmd.extend(['-C', category])
 
+        sub = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        output = sub.stdout
+
+        try:
+            parser = iterparse(output, ["start", "end"])
+            parser.next()  # read root tag just for testing output
+        except ParseError:
+            if query:
+                msg = "Unknown package '%s'" % query
+            else:
+                msg = "No packages."
+            self.logger.error(self.style.ERROR(msg))
+            return
+
+        package = {'versions' : []}
+        category = ""
+
+        for event, elem in parser:
+            if event == "start":  # on tag opening
+                if elem.tag == "category":
+                    category = elem.attrib["name"]
+                elif elem.tag == "package":
+                    package["package"] = elem.attrib["name"]
+                    package["category"] = category
+                elif elem.tag in ["description", "homepage"]:
+                    package[elem.tag] = elem.text or ""
+                elif elem.tag == "version":
+                    # append version data to versions
+                    cpv = "%s/%s-%s" % \
+                        (package["category"], package["package"], elem.attrib["id"])
+                    slot = elem.attrib.get("slot", "")
+                    overlay = elem.attrib.get("repository", "gentoo")
+                    package["versions"].append((cpv, slot, overlay))
+
+            elif event == "end":  # on tag closing
+                if elem.tag == "package":
+                    # clean old data
+                    yield package
+                    package = {"versions" : []}
+
+                if elem.tag == "category":
+                    # clean old data
+                    category = ""
+            elem.clear()
+
+    def prepare_purge_versions(self, packages, query=None, category=None):
+        if not self.purge_versions:
+            return
+
+        # Set all versions dead, then set found versions alive and
+        # delete old versions
+        if not query:
+            # Optimisation for --all or --category
+            self.logger.info('Killing existing versions...')
+            qs = Version.objects.filter(packaged=True)
+            if category:
+                qs.filter(package__category=category)
+            qs.update(alive=False)
+            self.logger.info('done')
+        else:
+            for package in packages:
+                Version.objects.filter(package=package, packaged=True).\
+                    update(alive=False)
+
+    def scan(self, query=None, category=None):
         if not query:
             current_packages = Package.objects.all()
         elif '/' in query:
@@ -68,78 +135,22 @@ class ScanPortage(object):
             current_packages = Package.objects.filter(category=cat, name=pkg)
         else:
             current_packages = Package.objects.filter(name=query)
+        if category:
+            current_packages = current_packages.filter(category=category)
 
-        if self.purge_versions:
-            if not query:
-                self.logger.info('Killing existing versions...')
-                Version.objects.filter(packaged=True).update(alive=False)
-                self.logger.info('done')
-            else:
-                for package in current_packages:
-                    Version.objects.filter(package=package, packaged=True).\
-                                    update(alive=False)
+        self.prepare_purge_versions(current_packages, query, category)
 
-        sub = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        packages_alive = set()
 
-        output = sub.stdout
+        for data in self.scan_eix_xml(query, category):
+            cat, pkg = data['category'], data['package']
+            package = self.store_package(cat, pkg, data['homepage'], data['description'])
+            packages_alive.add("%s/%s" % (cat, pkg))
+            for cpv, slot, overlay in data['versions']:
+                self.store_version(package, cpv, slot, overlay)
 
-        try:
-            parser = iterparse(output, ["start", "end"])
-            parser.next()  # read root tag just for testing output
-        except ParseError:
-            self.logger.error(
-                self.style.ERROR(
-                    "Unknown package '%s'" % query
-                )
-            )
-        else:
-            cat, pkg, homepage, desc = ("", "", "", "")
-            versions = []
-            packages_alive = set()
-
-            for event, elem in parser:
-                if event == "start":  # on tag opening
-                    if elem.tag == "category":
-                        cat = elem.attrib["name"]
-                    if elem.tag == "package":
-                        pkg = elem.attrib["name"]
-                    if elem.tag == "description":
-                        desc = elem.text or ""
-                    if elem.tag == "homepage":
-                        homepage = elem.text or ""
-                    if elem.tag == "version":
-                        # append version data to versions
-                        cpv = "%s/%s-%s" % (cat, pkg, elem.attrib["id"])
-                        slot = elem.attrib.get("slot", "")
-                        overlay = elem.attrib.get("overlay", "")
-                        versions.append((cpv, slot, overlay))
-
-                elif event == "end":  # on tag closing
-                    if elem.tag == "package":
-                        # package tag has been closed, saving everything!
-                        package = self.store_package(cat, pkg, homepage,
-                                                     desc)
-                        packages_alive.add('%s/%s' % (cat, pkg))
-                        for cpv, slot, overlay in versions:
-                            self.store_version(package, cpv, slot, overlay)
-
-                        # clean old data
-                        pkg, homepage, desc = ("", "", "")
-                        versions = []
-
-                    if elem.tag == "category":
-                        # clean old data
-                        cat = ""
-                elem.clear()
-
-        if self.purge_packages:
-            for package in current_packages:
-                cp = "%s/%s" % (package.category, package.name)
-                if cp not in packages_alive:
-                    self.logger.info('- [p] %s' % (package))
-                    package.delete()
-        if self.purge_versions:
-            self.purge_old_versions(current_packages)
+        self.purge_old_packages(current_packages, packages_alive)
+        self.purge_old_versions()
 
     def store_package(self, cat, pkg, homepage, description):
         created = False
@@ -156,14 +167,6 @@ class ScanPortage(object):
 
         if created:
             self.logger.info('+ [p] %s/%s' % (cat, pkg))
-
-        # Set all versions dead, then set found versions alive and
-        # delete old versions
-        if not self.purge_versions:
-            Version.objects.filter(
-                package=obj,
-                packaged=True
-            ).update(alive=False)
 
         return obj
 
@@ -223,18 +226,21 @@ class ScanPortage(object):
             overlay=obj.overlay
         )
 
-    def purge_old_versions(self, packages):
-        # For each dead versions
-        if packages:
-            versions = []
-            for package in packages:
-                qs = Version.objects.filter(package=package, packaged=True,
-                                            alive=False)
-                for version in qs:
-                    versions.append(version)
-        else:
-            versions = Version.objects.filter(packaged=True, alive=False)
+    def purge_old_packages(self, packages, alive):
+        if not self.purge_packages:
+            return
 
+        for package in packages:
+            cp = "%s/%s" % (package.category, package.name)
+            if cp not in alive:
+                self.logger.info('- [p] %s' % (package))
+                package.delete()
+
+    def purge_old_versions(self):
+        if not self.purge_versions:
+            return
+
+        versions = Version.objects.filter(packaged=True, alive=False)
         for version in versions:
             if version.overlay == 'gentoo':
                 version.package.n_packaged -= 1
@@ -257,11 +263,11 @@ class ScanPortage(object):
                 overlay=version.overlay
             )
 
-        Version.objects.filter(packaged=True, alive=False).delete()
+        versions.delete()
 
 
 @commit_on_success
-def scan_portage(packages=None, no_log=False, purge_packages=False,
+def scan_portage(packages=None, category=None, no_log=False, purge_packages=False,
                  purge_versions=False, prefetch=False, logger=None):
 
     logger = logger or FakeLogger()
@@ -287,7 +293,7 @@ def scan_portage(packages=None, no_log=False, purge_packages=False,
         logger.info('done')
 
     if not packages:
-        scan_handler.scan()
+        scan_handler.scan(category=category)
     else:
         for pkg in packages:
             if isinstance(pkg, Package):
