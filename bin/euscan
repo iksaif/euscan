@@ -188,7 +188,7 @@ def parse_args():
     getopt_options['short']['global'] = "hVCqv1bf:p"
     getopt_options['long']['global'] = [
         "help", "version", "nocolor", "quiet", "verbose", "oneshot",
-        "brute-force=", "format="
+        "brute-force=", "format=", "progress"
     ]
 
     short_opts = getopt_options['short']['global']
@@ -241,7 +241,7 @@ def main():
     if CONFIG['verbose'] > 2:
         HTTPConnection.debuglevel = 1
 
-    if not CONFIG["format"]:
+    if not CONFIG["format"] and not CONFIG['quiet']:
         CONFIG["progress"] = False
 
     on_progress = None
