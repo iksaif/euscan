@@ -1,3 +1,5 @@
+import os.path
+
 from gentoolkit.query import Query
 from gentoolkit.errors import GentoolkitFatalError
 
@@ -8,17 +10,19 @@ from django.core.exceptions import ValidationError
 from djeuscan.models import Package, Herd, Maintainer
 from djeuscan.processing import FakeLogger
 
-
 class ScanMetadata(object):
     def __init__(self, logger=None):
         self.style = color_style()
         self.logger = logger or FakeLogger()
 
-    @commit_on_success
     def scan(self, query=None, obj=None):
-        matches = Query(query).find(
-            include_masked=True,
-            in_installed=False,
+        matches = Query(query).smart_find(
+                in_installed=True,
+                in_porttree=True,
+                in_overlay=True,
+                include_masked=True,
+                show_progress=False,
+                no_matches_fatal=False,
         )
 
         if not matches:
@@ -39,65 +43,52 @@ class ScanMetadata(object):
         else:
             created = False
 
-        try:
-            obj.homepage = pkg.environment("HOMEPAGE")
-            obj.description = pkg.environment("DESCRIPTION")
-        except GentoolkitFatalError, err:
-            self.logger.error(
-                self.style.ERROR(
-                    "Gentoolkit fatal error: '%s'" % str(err)
-                )
-            )
-
         if created:
             self.logger.info('+ [p] %s/%s' % (pkg.category, pkg.name))
 
-        if pkg.metadata:
-            herds = dict(
-                [(herd[0], herd) for herd in pkg.metadata.herds(True)]
-            )
-            maintainers = dict(
-                [(m.email, m) for m in pkg.metadata.maintainers()]
-            )
+        if not pkg.metadata:
+            return
 
-            existing_herds = [h.herd for h in obj.herds.all()]
-            new_herds = set(herds.keys()).difference(existing_herds)
-            old_herds = set(existing_herds).difference(herds.keys())
+        herds = dict(
+            [(herd[0], herd) for herd in pkg.metadata.herds(True)]
+        )
+        maintainers = dict(
+            [(m.email, m) for m in pkg.metadata.maintainers()]
+        )
 
-            existing_maintainers = [m.email for m in obj.maintainers.all()]
-            new_maintainers = set(
-                maintainers.keys()).difference(existing_maintainers
-            )
-            old_maintainers = set(
-                existing_maintainers).difference(maintainers.keys()
-            )
+        existing_herds = [h.herd for h in obj.herds.all()]
+        new_herds = set(herds.keys()).difference(existing_herds)
+        old_herds = set(existing_herds).difference(herds.keys())
 
-            for herd in obj.herds.all():
-                if herd.herd in old_herds:
-                    obj.herds.remove(herd)
+        existing_maintainers = [m.email for m in obj.maintainers.all()]
+        new_maintainers = set(maintainers.keys()).difference(existing_maintainers)
+        old_maintainers = set(existing_maintainers).difference(maintainers.keys())
 
-            for herd in new_herds:
-                herd = self.store_herd(*herds[herd])
-                obj.herds.add(herd)
+        for herd in obj.herds.all():
+            if herd.herd in old_herds:
+                obj.herds.remove(herd)
 
-            for maintainer in obj.maintainers.all():
-                if maintainer.email in old_maintainers:
-                    obj.maintainers.remove(maintainer)
+        for herd in new_herds:
+            herd = self.store_herd(*herds[herd])
+            obj.herds.add(herd)
 
-            for maintainer in new_maintainers:
-                maintainer = maintainers[maintainer]
-                try:
-                    maintainer = self.store_maintainer(
-                        maintainer.name, maintainer.email
+        for maintainer in obj.maintainers.all():
+            if maintainer.email in old_maintainers:
+                obj.maintainers.remove(maintainer)
+
+        for maintainer in new_maintainers:
+            maintainer = maintainers[maintainer]
+            try:
+                maintainer = self.store_maintainer(
+                    maintainer.name, maintainer.email
                     )
-                    obj.maintainers.add(maintainer)
-                except ValidationError:
-                    self.logger.error(
-                        self.style.ERROR("Bad maintainer: '%s' '%s'" % \
+                obj.maintainers.add(maintainer)
+            except ValidationError:
+                self.logger.error(
+                    self.style.ERROR("Bad maintainer: '%s' '%s'" % \
                                          (maintainer.name, maintainer.email))
                     )
         obj.save()
-        return True
 
     def store_herd(self, name, email):
         if not name:
@@ -134,15 +125,18 @@ class ScanMetadata(object):
             )
         return maintainer
 
-
-def scan_metadata(packages=None, logger=None):
+@commit_on_success
+def scan_metadata(packages=None, category=None, logger=None):
     scan_handler = ScanMetadata(logger=logger)
-    if not packages:
+
+    if category:
+        packages = Package.objects.filter(category=category)
+    elif not packages:
         packages = Package.objects.all()
 
     for pkg in packages:
         if isinstance(pkg, Package):
-            result = scan_handler.scan('%s/%s' % (pkg.category, pkg.name), pkg)
+            scan_handler.scan('%s/%s' % (pkg.category, pkg.name), pkg)
         else:
-            result = scan_handler.scan(pkg)
-    return result
+            scan_handler.scan(pkg)
+

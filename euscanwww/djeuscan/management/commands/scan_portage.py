@@ -19,6 +19,11 @@ class Command(BaseCommand):
             dest='all',
             default=False,
             help='Scan all packages'),
+        make_option('--category',
+            action='store',
+            dest='category',
+            default=None,
+            help='Scan only this category'),
         make_option('--purge-packages',
             action='store_true',
             dest='purge-packages',
@@ -47,7 +52,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         set_verbosity_level(logger, options.get("verbosity", 1))
 
-        if options['all']:
+        if options['all'] or options['category']:
             packages = None
         elif len(args):
             packages = [pkg for pkg in args]
@@ -56,6 +61,7 @@ class Command(BaseCommand):
 
         scan_portage(
             packages=packages,
+            category=options['category'],
             no_log=options["no-log"],
             purge_packages=options["purge-packages"],
             purge_versions=options["purge-versions"],
