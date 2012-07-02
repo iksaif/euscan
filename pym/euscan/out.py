@@ -58,6 +58,28 @@ def progress_bar():
     yield None
 
 
+def clean_colors(string):
+    if type(string) is str:
+        string = re.sub("\033\[[0-9;]+m", "", string)
+        string = re.sub(r"\\u001b\[[0-9;]+m", "", string)
+        string = re.sub(r"\x1b\[[0-9;]+m", "", string)
+    return string
+
+
+def to_mirror(url):
+    mirrors = portage.settings.thirdpartymirrors()
+    for mirror_name in mirrors:
+        for mirror_url in mirrors[mirror_name]:
+            if url.startswith(mirror_url):
+                url_part = url.split(mirror_url)[1]
+                return "mirror://%s%s%s" % (
+                    mirror_name,
+                    "" if url_part.startswith("/") else "/",
+                    url_part
+                )
+    return url
+
+
 class EOutputMem(EOutput):
     """
     Override of EOutput, allows to specify an output file for writes
@@ -71,14 +93,6 @@ class EOutputMem(EOutput):
 
     def _write(self, f, msg):
         super(EOutputMem, self)._write(self.out, msg)
-
-
-def clean_colors(string):
-    if type(string) is str:
-        string = re.sub("\033\[[0-9;]+m", "", string)
-        string = re.sub(r"\\u001b\[[0-9;]+m", "", string)
-        string = re.sub(r"\x1b\[[0-9;]+m", "", string)
-    return string
 
 
 class EuscanOutput(object):
@@ -131,14 +145,20 @@ class EuscanOutput(object):
         else:
             raise TypeError("Invalid output format")
 
-    def result(self, cp, version, url, handler, confidence):
+    def result(self, cp, version, urls, handler, confidence):
         from euscan.helpers import get_version_type
 
         if self.config['format']:
             _curr = self.queries[self.current_query]
             _curr["result"].append(
-                {"version": version, "urls": [url], "handler": handler,
-                 "confidence": confidence, "type": get_version_type(version)}
+                {
+                    "version": version,
+                    "urls": [to_mirror(url) if self.config['mirror'] else url
+                             for url in urls.split()],
+                    "handler": handler,
+                    "confidence": confidence,
+                    "type": get_version_type(version)
+                }
             )
         else:
             if not self.config['quiet']:

@@ -121,10 +121,12 @@ def print_usage(_error=None, help=None):
             " " * 29 + "bigger levels will generate more versions numbers\n" +
             " " * 29 + "0 means disabled", file=out)
         print(yellow(" -f, --format=<format>") +
-              "     - define the output " + yellow("<format>") +
-              " (available: json)", file=out)
+            "     - define the output " + yellow("<format>") +
+            " (available: json)", file=out)
         print(yellow(" -p, --progress") +
-              "     - display a progress bar", file=out)
+            "            - display a progress bar", file=out)
+        print(yellow(" -m, --mirror") +
+            "              - use mirror:// urls", file=out)
         print(file=out)
 
     if _error in ('packages',) or help:
@@ -178,6 +180,8 @@ def parse_args():
                 pp.output.nocolor()
             elif o in ("-p", "--progress"):
                 CONFIG['progress'] = isatty
+            elif o in ("-m", "--mirror"):
+                CONFIG['mirror'] = True
             else:
                 return_code = False
 
@@ -185,7 +189,7 @@ def parse_args():
 
     # here are the different allowed command line options (getopt args)
     getopt_options = {'short': {}, 'long': {}}
-    getopt_options['short']['global'] = "hVCqv1bf:p"
+    getopt_options['short']['global'] = "hVCqv1bf:pm"
     getopt_options['long']['global'] = [
         "help", "version", "nocolor", "quiet", "verbose", "oneshot",
         "brute-force=", "format="

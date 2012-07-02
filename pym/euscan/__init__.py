@@ -20,7 +20,8 @@ CONFIG = {
     'cache': False,
     'format': None,
     'indent': 2,
-    'progress': False
+    'progress': False,
+    'mirror': False,
 }
 
 BLACKLIST_VERSIONS = [
