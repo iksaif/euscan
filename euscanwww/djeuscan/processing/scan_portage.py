@@ -302,4 +302,4 @@ def scan_portage(packages=None, category=None, no_log=False, purge_packages=Fals
                 scan_handler.scan(pkg)
 
     logger.info('Done.')
-    return True
+
