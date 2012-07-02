@@ -1,8 +1,6 @@
 import os
 import re
-import pkg_resources
 import errno
-
 import urllib2
 
 import portage
@@ -15,10 +13,9 @@ except ImportError:
     import robotparser
     import urlparse
 
-
-from euscan import CONFIG, BLACKLIST_VERSIONS, ROBOTS_TXT_BLACKLIST_DOMAINS
 import euscan
-
+from euscan import CONFIG, BLACKLIST_VERSIONS, ROBOTS_TXT_BLACKLIST_DOMAINS
+from euscan.version import parse_version
 
 def htop_vercmp(a, b):
     def fixver(v):
@@ -182,8 +179,8 @@ def simple_vercmp(a, b):
         return r
 
     # Fallback
-    a = pkg_resources.parse_version(a)
-    b = pkg_resources.parse_version(b)
+    a = pkg_parse_version(a)
+    b = pkg_parse_version(b)
 
     if a < b:
         return -1
@@ -198,8 +195,8 @@ def vercmp(package, a, b):
 
 
 def version_is_nightly(a, b):
-    a = pkg_resources.parse_version(a)
-    b = pkg_resources.parse_version(b)
+    a = parse_version(a)
+    b = parse_version(b)
 
     ''' Try to skip nightly builds when not wanted (www-apps/moodle) '''
     if len(a) != len(b) and len(b) == 2 and len(b[0]) == len('yyyymmdd'):
