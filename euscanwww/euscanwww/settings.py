@@ -222,10 +222,10 @@ ACCOUNT_ACTIVATION_DAYS = 7
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # djeuscan tasks
-PORTAGE_ROOT = "/usr/portage/"
-PORTAGE_CONFIGROOT = PORTAGE_ROOT
+PORTAGE_ROOT = "/"
+PORTAGE_CONFIGROOT = "/"
 LAYMAN_CONFIG = "/etc/layman/layman.cfg"
-EMERGE_REGEN_JOBS = 4
+EGENCACHE_JOBS = 4
 
 # Celery config
 import djcelery
@@ -255,3 +255,7 @@ except ImportError, ex:
         "settings.py: error importing local settings file:\n"
         "\t%s\nDo you have a local_settings.py module?\n" % str(ex)
     )
+
+os.environ['ROOT'] = PORTAGE_ROOT
+os.environ['PORTAGE_CONFIGROOT'] = PORTAGE_CONFIGROOT
+os.environ['EIX_CACHEFILE'] = os.path.join(PORTAGE_ROOT, 'var/cache/eix')

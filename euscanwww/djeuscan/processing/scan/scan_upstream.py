@@ -11,8 +11,9 @@ from djeuscan.models import Package, Version, EuscanResult, VersionLog
 
 
 class ScanUpstream(object):
-    def __init__(self, logger=None):
+    def __init__(self, logger=None, purge_versions=False):
         self.logger = logger or FakeLogger()
+        self.purge_versions = purge_versions
 
     def scan(self, package):
         CONFIG["format"] = "dict"
@@ -31,22 +32,19 @@ class ScanUpstream(object):
         except KeyError:
             return {}
 
-        with commit_on_success():
-            obj = self.store_package(cpv)
+        obj = self.store_package(cpv)
 
-            for res in out[package]["result"]:
-                self.store_version(
-                    obj,
-                    res["version"],
-                    " ".join(res["urls"]),
-                    res["type"],
-                    res["handler"],
-                    res["confidence"],
-                )
+        for res in out[package]["result"]:
+            self.store_version(
+                obj,
+                res["version"],
+                " ".join(res["urls"]),
+                res["type"],
+                res["handler"],
+                res["confidence"],
+            )
 
             self.store_result(obj, out_json, scan_time, ebuild)
-
-        return out
 
     def store_result(self, package, formatted_log, scan_time, ebuild):
         # Remove previous logs
@@ -70,7 +68,8 @@ class ScanUpstream(object):
 
         # Set all versions dead, then set found versions alive and
         # delete old versions
-        Version.objects.filter(package=obj, packaged=False).update(alive=False)
+        if self.purge_versions:
+            Version.objects.filter(package=obj, packaged=False).update(alive=False)
 
         return obj
 
@@ -111,33 +110,34 @@ class ScanUpstream(object):
         package.save()
 
 
+    def purge_old_versions(self):
+        if not self.purge_versions:
+            return
+
+        versions = Version.objects.filter(packaged=False, alive=False)
+        for version in versions:
+            VersionLog.objects.create(
+                package=version.package,
+                action=VersionLog.VERSION_REMOVED,
+                slot=version.slot,
+                revision=version.revision,
+                version=version.version,
+                overlay=version.overlay
+            )
+
+            version.package.n_versions -= 1
+            version.package.save()
+
+            self.logger.info('- [u] %s %s' % (version, version.urls))
+
+        versions.delete()
+
 @commit_on_success
-def do_purge_versions(logger=None):
-    logger = logger or FakeLogger()
-
-    # For each dead versions
-    for version in Version.objects.filter(packaged=False, alive=False):
-        VersionLog.objects.create(
-            package=version.package,
-            action=VersionLog.VERSION_REMOVED,
-            slot=version.slot,
-            revision=version.revision,
-            version=version.version,
-            overlay=version.overlay
-        )
-
-        version.package.n_versions -= 1
-        version.package.save()
-
-        logger.info('- [u] %s %s' % (version, version.urls))
-    Version.objects.filter(packaged=False, alive=False).delete()
-
-
 def scan_upstream(packages=None, purge_versions=False,
                   logger=None):
     logger = logger or FakeLogger()
 
-    scan_handler = ScanUpstream(logger=logger)
+    scan_handler = ScanUpstream(logger=logger, purge_versions=purge_versions)
 
     logger.info('Scanning upstream...')
 
@@ -148,14 +148,10 @@ def scan_upstream(packages=None, purge_versions=False,
 
     for pkg in packages:
         if isinstance(pkg, Package):
-            curr = scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
+            scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
         else:
-            curr = scan_handler.scan(pkg)
-        if not curr:
-            result = False
+            scan_handler.scan(pkg)
 
-    if purge_versions:
-        do_purge_versions(logger=logger)
+    scan_handler.purge_old_versions()
 
     logger.info('Done.')
-    return result
