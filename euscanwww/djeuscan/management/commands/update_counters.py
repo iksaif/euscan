@@ -4,7 +4,7 @@ from optparse import make_option
 from django.core.management.base import BaseCommand
 
 from djeuscan.processing import set_verbosity_level
-from djeuscan.processing.update_counters import update_counters
+from djeuscan.processing.misc import update_counters
 
 logger = logging.getLogger(__name__)
 

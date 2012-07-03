@@ -1,5 +1,3 @@
-import logging
-
 
 class FakeLogger(object):
     def __getattr__(self, key):
@@ -7,6 +5,8 @@ class FakeLogger(object):
 
 
 def set_verbosity_level(logger, verbosity):
+    import logging
+
     try:
         verbosity = int(verbosity)
     except (ValueError, TypeError):
@@ -29,3 +29,4 @@ def set_verbosity_level(logger, verbosity):
     logger.setLevel(levels[verbosity])
 
     return logger
+

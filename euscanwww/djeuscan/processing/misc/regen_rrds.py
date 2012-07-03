@@ -3,7 +3,6 @@ from djeuscan import charts
 
 from djeuscan.processing import FakeLogger
 
-
 def regen_rrds(logger=None):
     """
     Regenerates the rrd database
