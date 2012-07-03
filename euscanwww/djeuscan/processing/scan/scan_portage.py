@@ -56,6 +56,38 @@ class ScanPortage(object):
         )
         self._cache['versions'][key] = version
 
+    def scan_gentoopm(self, query, category=None):
+        import gentoopm
+
+        pm = gentoopm.get_package_manager()
+
+        if category:
+            packages = pm.stack.filter(key_category=category)
+        elif query:
+            packages = pm.stack.filter(query)
+        else:
+            packages = pm.stack
+
+        package = {}
+        package_name = None
+
+        for p in packages:
+            pkg = p.key.package
+
+            if pkg != package_name:
+                if package_name:
+                    yield package
+                package_name = pkg
+                package['package'] = p.key.package
+                package['category'] = p.key.category
+                package['homepage'] = ' '.join(p.homepages)
+                package['description'] = p.description
+                package['versions'] = []
+            package['versions'].append((p._cpv, p.slot, p.repository or 'gentoo'))
+
+        if package_name:
+            yield package
+
     def scan_eix_xml(self, query, category=None):
         cmd = ['eix', '--xml']
         if query:
@@ -93,7 +125,7 @@ class ScanPortage(object):
                     # append version data to versions
                     cpv = "%s/%s-%s" % \
                         (package["category"], package["package"], elem.attrib["id"])
-                    slot = elem.attrib.get("slot", "")
+                    slot = elem.attrib.get("slot", "0")
                     overlay = elem.attrib.get("repository", "gentoo")
                     package["versions"].append((cpv, slot, overlay))
 
@@ -119,7 +151,7 @@ class ScanPortage(object):
             self.logger.info('Killing existing versions...')
             qs = Version.objects.filter(packaged=True)
             if category:
-                qs.filter(package__category=category)
+                qs = qs.filter(package__category=category)
             qs.update(alive=False)
             self.logger.info('done')
         else:
@@ -143,6 +175,7 @@ class ScanPortage(object):
         packages_alive = set()
 
         for data in self.scan_eix_xml(query, category):
+        #for data in self.scan_gentoopm(query, category):
             cat, pkg = data['category'], data['package']
             package = self.store_package(cat, pkg, data['homepage'], data['description'])
             packages_alive.add("%s/%s" % (cat, pkg))
