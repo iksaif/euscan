@@ -23,15 +23,11 @@ Running Celery
 You'll need:
 * celeryd (celery daemon for running tasks)::
 
-    python manage.py celeryd -E -l INFO
+    python manage.py celeryd -B -E -l INFO
 
 * celerycam (for monitoring celery and see the results in the django admin page)::
 
     python manage.py celerycam
-
-* celerybeat (for running periodic tasks)::
-
-    python manage.py celerybeat -l INFO
 
 
 TODO

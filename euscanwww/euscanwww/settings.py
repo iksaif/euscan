@@ -1,6 +1,7 @@
 # Django settings for euscanwww project.
 
 import os.path
+from datetime import timedelta
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -237,6 +238,22 @@ CELERYD_CONCURRENCY = 4
 
 TASKS_CONCURRENTLY = 4
 TASKS_SUBTASK_PACKAGES = 32
+
+CELERYBEAT_SCHEDULE = {
+    "refresh_package_query": {
+        "task": "djeuscan.tasks.consume_refresh_package_request",
+        "schedule": timedelta(minutes=1),
+    },
+    "weekly_update": {
+        "task": "djeuscan.tasks.update_task",
+        "schedule": timedelta(days=7),
+    },
+    "daily_update": {
+        "task": "djeuscan.tasks.update_task",
+        "schedule": timedelta(days=1),
+        "kwargs": {"scan_upstream": False}
+    },
+}
 
 # LDAP authentication
 # TODO: Test data - change me!

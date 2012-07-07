@@ -2,6 +2,7 @@ import os
 
 from django.conf import settings
 
+
 def _launch_command(cmd, logger=None):
     """
     Helper for launching shell commands inside tasks
@@ -12,7 +13,7 @@ def _launch_command(cmd, logger=None):
 
     fp = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    mask = select.EPOLLIN|select.EPOLLHUP|select.EPOLLERR
+    mask = select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR
 
     epoll = select.epoll()
     epoll.register(fp.stdout.fileno(), mask)
@@ -36,12 +37,13 @@ def _launch_command(cmd, logger=None):
                         source, out = fp.stderr, error
                     line = source.readline().rstrip('\n')
                     out("%s[%s]: %s" % (cmd[0], fp.pid, line))
-                elif event & (select.EPOLLERR|select.EPOLLHUP):
+                elif event & (select.EPOLLERR | select.EPOLLHUP):
                     exited = True
     finally:
         epoll.close()
 
     fp.wait()
+
 
 def emerge_sync(logger):
     """
@@ -81,9 +83,11 @@ def layman_sync(logger, cache=True):
     for overlay in installed_overlays:
         logger.info('Generating cache for overlay %s...' % overlay)
         overlay_path = os.path.join(l.config['storage'], overlay)
-        if not os.path.exists(os.path.join(overlay_path, 'profiles/repo_name')):
+        repo_path = os.path.join(overlay_path, 'profiles/repo_name')
+        if not os.path.exists(repo_path):
             continue
         _launch_command(cmd + ['--repo', overlay], logger)
+
 
 def eix_update(logger):
     """

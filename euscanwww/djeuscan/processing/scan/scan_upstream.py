@@ -69,7 +69,9 @@ class ScanUpstream(object):
         # Set all versions dead, then set found versions alive and
         # delete old versions
         if self.purge_versions:
-            Version.objects.filter(package=obj, packaged=False).update(alive=False)
+            Version.objects.filter(
+                package=obj, packaged=False
+            ).update(alive=False)
 
         return obj
 
@@ -109,7 +111,6 @@ class ScanUpstream(object):
         package.n_versions += 1
         package.save()
 
-
     def purge_old_versions(self):
         if not self.purge_versions:
             return
@@ -132,6 +133,7 @@ class ScanUpstream(object):
 
         versions.delete()
 
+
 @commit_on_success
 def scan_upstream(packages=None, purge_versions=False,
                   logger=None):
@@ -143,8 +145,6 @@ def scan_upstream(packages=None, purge_versions=False,
 
     if not packages:
         packages = Package.objects.all()
-
-    result = True
 
     for pkg in packages:
         if isinstance(pkg, Package):

@@ -83,7 +83,9 @@ class ScanPortage(object):
                 package['homepage'] = ' '.join(p.homepages)
                 package['description'] = p.description
                 package['versions'] = []
-            package['versions'].append((p._cpv, p.slot, p.repository or 'gentoo'))
+            package['versions'].append(
+                (p._cpv, p.slot, p.repository or 'gentoo')
+            )
 
         if package_name:
             yield package
@@ -109,7 +111,7 @@ class ScanPortage(object):
             self.logger.error(self.style.ERROR(msg))
             return
 
-        package = {'versions' : []}
+        package = {'versions': []}
         category = ""
 
         for event, elem in parser:
@@ -123,8 +125,11 @@ class ScanPortage(object):
                     package[elem.tag] = elem.text or ""
                 elif elem.tag == "version":
                     # append version data to versions
-                    cpv = "%s/%s-%s" % \
-                        (package["category"], package["package"], elem.attrib["id"])
+                    cpv = "%s/%s-%s" % (
+                        package["category"],
+                        package["package"],
+                        elem.attrib["id"]
+                    )
                     slot = elem.attrib.get("slot", "0")
                     overlay = elem.attrib.get("repository", "gentoo")
                     package["versions"].append((cpv, slot, overlay))
@@ -133,7 +138,7 @@ class ScanPortage(object):
                 if elem.tag == "package":
                     # clean old data
                     yield package
-                    package = {"versions" : []}
+                    package = {"versions": []}
 
                 if elem.tag == "category":
                     # clean old data
@@ -177,7 +182,9 @@ class ScanPortage(object):
         for data in self.scan_eix_xml(query, category):
         #for data in self.scan_gentoopm(query, category):
             cat, pkg = data['category'], data['package']
-            package = self.store_package(cat, pkg, data['homepage'], data['description'])
+            package = self.store_package(
+                cat, pkg, data['homepage'], data['description']
+            )
             packages_alive.add("%s/%s" % (cat, pkg))
             for cpv, slot, overlay in data['versions']:
                 self.store_version(package, cpv, slot, overlay)
@@ -300,8 +307,9 @@ class ScanPortage(object):
 
 
 @commit_on_success
-def scan_portage(packages=None, category=None, no_log=False, purge_packages=False,
-                 purge_versions=False, prefetch=False, logger=None):
+def scan_portage(packages=None, category=None, no_log=False,
+                 purge_packages=False, purge_versions=False, prefetch=False,
+                 logger=None):
 
     logger = logger or FakeLogger()
 
@@ -335,4 +343,3 @@ def scan_portage(packages=None, category=None, no_log=False, purge_packages=Fals
                 scan_handler.scan(pkg)
 
     logger.info('Done.')
-

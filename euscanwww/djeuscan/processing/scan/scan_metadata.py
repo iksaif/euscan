@@ -1,7 +1,4 @@
-import os.path
-
 from gentoolkit.query import Query
-from gentoolkit.errors import GentoolkitFatalError
 
 from django.db.transaction import commit_on_success
 from django.core.management.color import color_style
@@ -9,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from djeuscan.models import Package, Herd, Maintainer
 from djeuscan.processing import FakeLogger
+
 
 class ScanMetadata(object):
     def __init__(self, logger=None):
@@ -61,8 +59,10 @@ class ScanMetadata(object):
         old_herds = set(existing_herds).difference(herds.keys())
 
         existing_maintainers = [m.email for m in obj.maintainers.all()]
-        new_maintainers = set(maintainers.keys()).difference(existing_maintainers)
-        old_maintainers = set(existing_maintainers).difference(maintainers.keys())
+        new_maintainers = set(maintainers.keys()).\
+                          difference(existing_maintainers)
+        old_maintainers = set(existing_maintainers).\
+                          difference(maintainers.keys())
 
         for herd in obj.herds.all():
             if herd.herd in old_herds:
@@ -125,6 +125,7 @@ class ScanMetadata(object):
             )
         return maintainer
 
+
 @commit_on_success
 def scan_metadata(packages=None, category=None, logger=None):
     scan_handler = ScanMetadata(logger=logger)
@@ -139,4 +140,3 @@ def scan_metadata(packages=None, category=None, logger=None):
             scan_handler.scan('%s/%s' % (pkg.category, pkg.name), pkg)
         else:
             scan_handler.scan(pkg)
-

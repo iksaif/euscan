@@ -4,19 +4,15 @@ Celery tasks for djeuscan
 
 from itertools import islice
 
-from celery.task import task, periodic_task
-from celery.task.schedules import crontab
+from celery.task import task
 from celery.task.sets import TaskSet
 
 from django.conf import settings
 
 from djeuscan.models import Package, RefreshPackageQuery
-from djeuscan.processing.regen_rrds import regen_rrds
-from djeuscan.processing.update_counters import update_counters
-from djeuscan.processing.scan_metadata import scan_metadata
-from djeuscan.processing.scan_portage import scan_portage
-from djeuscan.processing.scan_upstream import scan_upstream
-from djeuscan.processing.update_portage_trees import update_portage_trees
+from djeuscan.processing.misc import regen_rrds, update_counters, \
+    update_portage_trees
+from djeuscan.processing.scan import scan_metadata, scan_portage, scan_upstream
 
 
 class TaskFailedException(Exception):
@@ -87,13 +83,10 @@ def _scan_metadata_task(packages):
     logger.info("Starting metadata scanning subtask for %d packages...",
                 len(packages))
 
-    result = scan_metadata(
+    scan_metadata(
         packages=packages,
         logger=logger,
     )
-    if not result:
-        raise TaskFailedException
-    return result
 
 
 @task
@@ -126,7 +119,7 @@ def _scan_portage_task(packages, no_log=False, purge_packages=False,
     else:
         logger.info("Starting portage scanning for all packages...")
 
-    result = scan_portage(
+    scan_portage(
         packages=packages,
         no_log=no_log,
         purge_packages=purge_packages,
@@ -134,9 +127,6 @@ def _scan_portage_task(packages, no_log=False, purge_packages=False,
         prefetch=prefetch,
         logger=logger,
     )
-    if not result:
-        raise TaskFailedException
-    return result
 
 
 @task
@@ -182,8 +172,9 @@ def _scan_upstream_task(packages, purge_versions=False):
         purge_versions=purge_versions,
         logger=logger,
     )
-    if not result:
-        raise TaskFailedException
+    # TODO: implement some kind of error raising in case of failure
+    #if not result:
+    #    raise TaskFailedException
     return result
 
 
@@ -258,7 +249,9 @@ def scan_package_task(package):
     _scan_upstream_task([package])
 
 
-@periodic_task(run_every=crontab(minute="*/1"))
+# Periodic tasks
+
+@task
 def consume_refresh_package_request():
     """
     Satisfies user requests for package refreshing, runs every minute
@@ -271,14 +264,6 @@ def consume_refresh_package_request():
         result = scan_package_task(obj.query)
         obj.delete()
         return result
-
-
-@periodic_task(run_every=crontab(hour=03, minute=00, day_of_week=1))
-def update_periodic_task():
-    """
-    Runs a whole update once a week
-    """
-    update_task()
 
 
 admin_tasks = [

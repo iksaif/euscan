@@ -1,4 +1,3 @@
-
 class FakeLogger(object):
     def __getattr__(self, key):
         return lambda *x, **y: None
@@ -29,4 +28,3 @@ def set_verbosity_level(logger, verbosity):
     logger.setLevel(levels[verbosity])
 
     return logger
-
