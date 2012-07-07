@@ -4,8 +4,7 @@ Celery tasks for djeuscan
 
 from itertools import islice
 
-from celery.task import task
-from celery.task.sets import TaskSet
+from celery.task import task, group, chord
 
 from django.conf import settings
 
@@ -34,7 +33,7 @@ def _run_in_chunks(task, packages, kwargs=None,
                    concurrently=settings.TASKS_CONCURRENTLY,
                    n=settings.TASKS_SUBTASK_PACKAGES):
     """
-    Launches a TaskSet at a time with <concurrently> subtasks.
+    Launches a group at a time with <concurrently> subtasks.
     Each subtask has <n> packages to handle
     """
     output = []
@@ -51,10 +50,7 @@ def _run_in_chunks(task, packages, kwargs=None,
                 done = True
             else:
                 tasks.append(task.subtask((chunk, ), kwargs))
-        job = TaskSet(tasks=tasks)
-        result = job.apply_async()
-        # TODO: understand why this causes timeout
-        output.extend(list(result.join()))
+        output.extend(group(tasks)())
     return output
 
 
@@ -107,8 +103,9 @@ def scan_metadata_all_task():
 
 
 @task
-def _scan_portage_task(packages, no_log=False, purge_packages=False,
-                       purge_versions=False, prefetch=False):
+def _scan_portage_task(packages, category=None, no_log=False,
+                       purge_packages=False, purge_versions=False,
+                       prefetch=False):
     """
     Scans portage for the given set of packages
     """
@@ -121,6 +118,7 @@ def _scan_portage_task(packages, no_log=False, purge_packages=False,
 
     scan_portage(
         packages=packages,
+        category=category,
         no_log=no_log,
         purge_packages=purge_packages,
         purge_versions=purge_versions,
@@ -138,8 +136,9 @@ def scan_portage_list_task(query, no_log=False, purge_packages=False,
     """
     kwargs = {"no_log": no_log, "purge_packages": purge_packages,
               "purge_versions": purge_versions, "prefetch": prefetch}
-    return _run_in_chunks(_scan_portage_task, [p for p in query.split()],
-                          kwargs)
+    return _run_in_chunks(
+        _scan_portage_task, [p for p in query.split()], kwargs
+    )
 
 
 @task
@@ -148,8 +147,9 @@ def scan_portage_all_task(no_log=False, purge_packages=False,
     """
     Runs a syncronous portage scan for all packages
     """
-    return _scan_portage_task(
+    _scan_portage_task(
         packages=None,
+        category=None,
         no_log=no_log,
         purge_packages=purge_packages,
         purge_versions=purge_versions,
@@ -214,7 +214,7 @@ def update_portage_trees_task():
 
 @task
 def update_task(update_portage_trees=True, scan_portage=True,
-                scan_metadata=True, scan_upstream=True, update_counter=True):
+                scan_metadata=True, scan_upstream=True, update_counters=True):
     """
     Update the whole euscan system
     """
@@ -225,21 +225,21 @@ def update_task(update_portage_trees=True, scan_portage=True,
                               purge_versions=True)
 
     # metadata and upstream scan can run concurrently, launch them
-    # asynchronously and wait for them to finish
-    metadata_job = None
+    # in a group and wait for them to finish
+    tasks = []
     if scan_metadata:
-        metadata_job = scan_metadata_all_task().delay()
+        tasks.append(scan_metadata_all_task.subtask())
 
-    upstream_job = None
     if scan_upstream:
-        upstream_job = scan_upstream_all_task().delay()
+        tasks.append(scan_upstream_all_task.subtask())
 
-    if metadata_job:
-        metadata_job.wait()
-    if upstream_job:
-        upstream_job.wait()
-
-    update_counters(fast=False)
+    if update_counters:
+        chord(tasks)(
+            # immutable means that the result of previous tasks is not passed
+            update_counters_task.subtask((), {"fast": False}, immutable=True)
+        )
+    else:
+        group(tasks)()
 
 
 @task

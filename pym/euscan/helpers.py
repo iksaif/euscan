@@ -17,6 +17,7 @@ import euscan
 from euscan import CONFIG, BLACKLIST_VERSIONS, ROBOTS_TXT_BLACKLIST_DOMAINS
 from euscan.version import parse_version
 
+
 def htop_vercmp(a, b):
     def fixver(v):
         if v in ['0.11', '0.12', '0.13']:
@@ -179,8 +180,8 @@ def simple_vercmp(a, b):
         return r
 
     # Fallback
-    a = pkg_parse_version(a)
-    b = pkg_parse_version(b)
+    a = parse_version(a)
+    b = parse_version(b)
 
     if a < b:
         return -1

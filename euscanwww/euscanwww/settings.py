@@ -225,7 +225,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # djeuscan tasks
 PORTAGE_ROOT = "/"
 PORTAGE_CONFIGROOT = "/"
+EIX_CACHEFILE = os.path.join(PORTAGE_ROOT, 'var/cache/eix')
 LAYMAN_CONFIG = "/etc/layman/layman.cfg"
+
 EGENCACHE_JOBS = 4
 
 # Celery config
@@ -236,7 +238,7 @@ CELERY_RESULT_BACKEND = "amqp"
 BROKER_CONNECTION_TIMEOUT = 3600
 CELERYD_CONCURRENCY = 4
 
-TASKS_CONCURRENTLY = 4
+TASKS_CONCURRENTLY = 8
 TASKS_SUBTASK_PACKAGES = 32
 
 CELERYBEAT_SCHEDULE = {
@@ -275,4 +277,4 @@ except ImportError, ex:
 
 os.environ['ROOT'] = PORTAGE_ROOT
 os.environ['PORTAGE_CONFIGROOT'] = PORTAGE_CONFIGROOT
-os.environ['EIX_CACHEFILE'] = os.path.join(PORTAGE_ROOT, 'var/cache/eix')
+os.environ['EIX_CACHEFILE'] = EIX_CACHEFILE
