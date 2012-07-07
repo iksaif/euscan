@@ -19,8 +19,9 @@ package_patterns = patterns('djeuscan.views',
     url(r'^(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/favourite$',
         'favourite_package', name="favourite_package"),
     url((r'^(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/'
-         'unfavourite$'),
-        'unfavourite_package', name="unfavourite_package"),
+         'unfavourite$'), 'unfavourite_package', name="unfavourite_package"),
+    url((r'^(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/'
+         'refresh$'), "refresh_package", name="refresh_package"),
 )
 
 categories_patterns = patterns('djeuscan.views',
@@ -68,9 +69,6 @@ overlays_patterns = patterns('djeuscan.views',
 )
 
 tasks_patterns = patterns('djeuscan.views',
-    url(r'^refresh_package/(?P<query>(?:[\w+][\w+.-]*/[\w+][\w+.-]*))/$',
-        "refresh_package",
-        name="refresh_package"),
     url(r'^registered_tasks/$', admin_required(registered_tasks),
         name="registered_tasks"),
     url(r'^apply/(?P<task_name>.*)/$', admin_required(apply_task),

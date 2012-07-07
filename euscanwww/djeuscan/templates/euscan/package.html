@@ -28,7 +28,7 @@
   {{ package.category }}/{{ package.name }}
 
   {% if user.is_authenticated %}
-    <button class="btn refresh-button" data-package="{{ package.category }}/{{ package.name }}">
+    <button class="btn refresh-button" data-category="{{ package.category }}" data-package="{{ package.name }}">
       Refresh
     </button>
     <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_package" package.category package.name %}">
@@ -146,10 +146,11 @@
 
 <script type="text/javascript">
   $(".refresh-button").click(function() {
-    var url = "{% url "refresh_package" "x/x" %}";
-    $.post(url.replace("x/x", $(this).data("package")), function() {
-      alert("Submitted!");
-    });
+    var url = "{% url "refresh_package" "XXX" "YYY" %}";
+    $.post(url.replace("XXX", $(this).data("category")).replace("YYY", $(this).data("package")),
+      function() {
+        alert("Submitted!");
+      });
   });
 
   $(".favourite-button").click(function() {

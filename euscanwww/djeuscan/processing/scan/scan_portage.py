@@ -200,8 +200,7 @@ class ScanPortage(object):
             obj, created = Package.objects.get_or_create(
                 category=cat,
                 name=pkg,
-                homepage=homepage,
-                description=description,
+                defaults={"homepage": homepage, "description": description},
             )
             self.cache_store_package(obj)
 

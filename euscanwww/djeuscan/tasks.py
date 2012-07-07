@@ -261,7 +261,7 @@ def consume_refresh_package_request():
     except IndexError:
         return {}
     else:
-        result = scan_package_task(obj.query)
+        result = scan_package_task(obj.package)
         obj.delete()
         return result
 

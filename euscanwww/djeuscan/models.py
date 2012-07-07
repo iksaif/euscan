@@ -269,11 +269,11 @@ class MaintainerLog(Log):
 
 
 class RefreshPackageQuery(models.Model):
-    query = models.CharField(max_length=255, unique=True)
+    package = models.ForeignKey(Package)
     priority = models.IntegerField(default=0)
 
     def __unicode__(self):
-        return u'[%d] %s' % (self.priority, self.query)
+        return u'[%d] %s' % (self.priority, self.package)
 
 
 class HerdAssociation(models.Model):

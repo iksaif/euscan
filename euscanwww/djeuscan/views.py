@@ -292,8 +292,10 @@ def registered_tasks(request):
 @login_required
 @require_POST
 @ajax_request
-def refresh_package(request, query):
-    obj, created = RefreshPackageQuery.objects.get_or_create(query=query)
+def refresh_package(request, category, package):
+    pkg = get_object_or_404(Package, category=category, name=package)
+
+    obj, created = RefreshPackageQuery.objects.get_or_create(package=pkg)
     if not created:
         obj.priority += 1
         obj.save()
