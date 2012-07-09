@@ -318,3 +318,14 @@ class CategoryAssociation(models.Model):
 
     def __unicode__(self):
         return u'[%s] %s' % (self.user, self.category)
+
+
+class ProblemReport(models.Model):
+    package = models.ForeignKey(Package)
+    version = models.ForeignKey(Version, null=True, blank=True)
+    subject = models.CharField(max_length=128)
+    message = models.TextField()
+    datetime = models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        return u"[%s] %s" % (self.datetime, self.package)

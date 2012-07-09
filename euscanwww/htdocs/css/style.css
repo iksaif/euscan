@@ -233,3 +233,7 @@ th {
     -moz-border-radius: 10px;
     border-radius: 10px;
 }
+
+textarea {
+    width: inherit;
+}

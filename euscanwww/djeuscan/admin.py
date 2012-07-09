@@ -1,7 +1,7 @@
 from djeuscan.models import Package, Version, VersionLog, EuscanResult, \
     Log, WorldLog, CategoryLog, HerdLog, MaintainerLog, Herd, Maintainer, \
     RefreshPackageQuery, HerdAssociation, CategoryAssociation, \
-    MaintainerAssociation, PackageAssociation
+    MaintainerAssociation, PackageAssociation, ProblemReport
 from django.contrib import admin
 
 
@@ -52,3 +52,4 @@ admin.site.register(HerdAssociation)
 admin.site.register(CategoryAssociation)
 admin.site.register(MaintainerAssociation)
 admin.site.register(PackageAssociation)
+admin.site.register(ProblemReport)

@@ -11,8 +11,8 @@ from django.views.decorators.http import require_POST
 from djeuscan.helpers import version_key, packages_from_names
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog, RefreshPackageQuery, HerdAssociation, MaintainerAssociation, \
-    CategoryAssociation, PackageAssociation
-from djeuscan.forms import WorldForm, PackagesForm
+    CategoryAssociation, PackageAssociation, ProblemReport
+from djeuscan.forms import WorldForm, PackagesForm, ProblemReportForm
 from djeuscan.tasks import admin_tasks
 from djeuscan import charts
 
@@ -176,6 +176,20 @@ def package(request, category, package):
         else:
             favourited = True
 
+    thanks_for_reporting = False
+    if request.method == "POST":
+        problem_form = ProblemReportForm(package, request.POST)
+        if problem_form.is_valid():
+            ProblemReport(
+                package=package,
+                version=problem_form.cleaned_data["version"],
+                subject=problem_form.cleaned_data["subject"],
+                message=problem_form.cleaned_data["message"],
+            ).save()
+            thanks_for_reporting = True
+    else:
+        problem_form = ProblemReportForm(package)
+
     return {
         'package': package,
         'packaged': packaged,
@@ -184,6 +198,8 @@ def package(request, category, package):
         'vlog': vlog,
         'last_scan': last_scan,
         'favourited': favourited,
+        'problem_form': problem_form,
+        'thanks_for_reporting': thanks_for_reporting
     }
 
 
