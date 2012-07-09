@@ -36,7 +36,7 @@ class ProgressHandler(object):
 
 def progress_bar():
     on_progress = None
-    progress_bar = TermProgressBar()
+    progress_bar = TermProgressBar(title="euscan")
 
     progress_handler = ProgressHandler(progress_bar)
     on_progress = progress_handler.on_progress

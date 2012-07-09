@@ -252,7 +252,7 @@ def main():
     if CONFIG['progress']:
         on_progress_gen = progress_bar()
         on_progress = on_progress_gen.next()
-        on_progress(maxval=len(queries) * 100, increment=0)
+        on_progress(maxval=len(queries) * 100, increment=0, label="Working...")
 
     for query in queries:
         if CONFIG["progress"]:

@@ -30,6 +30,11 @@ class ScanUpstream(object):
             scan_time = out[package]["metadata"]["scan_time"]
             ebuild = out[package]["metadata"]["ebuild"]
         except KeyError:
+            self.logger.error(
+                "Error while scanning upstream for package %s!\n%s",
+                package,
+                out_json
+            )
             return {}
 
         obj = self.store_package(cpv)
@@ -147,9 +152,9 @@ def scan_upstream(packages=None, purge_versions=False,
         packages = Package.objects.all()
 
     for pkg in packages:
-        if isinstance(pkg, Package):
+        try:
             scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
-        else:
+        except AttributeError:
             scan_handler.scan(pkg)
 
     scan_handler.purge_old_versions()

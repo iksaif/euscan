@@ -136,7 +136,7 @@ class Version(models.Model):
     def __unicode__(self):
         return '%s/%s-%s-%s:%s [%s]' % (
             self.package.category, self.package.name, self.version,
-            self.revision, self.slot, self.overlay
+            self.revision, self.slot, self.overlay or "<upstream>"
         )
 
     def save(self, *args, **kwargs):
@@ -169,7 +169,7 @@ class VersionLog(models.Model):
         txt += '%s/%s-%s-%s:%s [%s]' % (
             self.package.category, self.package.name, self.version,
             self.revision, self.slot,
-            self.overlay if self.overlay else '<upstream>'
+            self.overlay or '<upstream>'
         )
         return txt
 
