@@ -28,12 +28,10 @@ from portage.output import white, yellow, turquoise, green
 from portage.exception import AmbiguousPackageName
 
 from gentoolkit import pprinter as pp
-from gentoolkit.eclean.search import (port_settings)
+from gentoolkit.eclean.search import port_settings
 from gentoolkit.errors import GentoolkitException
 
 from euscan import CONFIG, output
-from euscan.scan import scan_upstream
-from euscan.out import progress_bar
 
 
 # Globals
@@ -216,6 +214,7 @@ def parse_args():
 
 def main():
     """Parse command line and execute all actions."""
+
     CONFIG['nocolor'] = (
         port_settings["NOCOLOR"] in ('yes', 'true') or not isatty
     )
@@ -241,6 +240,10 @@ def main():
         else:
             print_usage(e.value)
             exit_helper(EINVAL)
+
+    # Importing stuff here for performance reasons
+    from euscan.scan import scan_upstream
+    from euscan.out import progress_bar
 
     if CONFIG['verbose'] > 2:
         HTTPConnection.debuglevel = 1
