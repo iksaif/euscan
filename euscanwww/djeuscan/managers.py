@@ -52,13 +52,16 @@ class PackageMixin(object):
         """
         return self.values('category').annotate(**ANNOTATE_DICT)
 
-    def herds(self, rename=False):
+    def herds(self, ids=None, rename=False):
         """
         Returns all the available herds
         """
         # FIXME: optimize the query, it uses 'LEFT OUTER JOIN' instead of
         # 'INNER JOIN'
-        res = self.filter(herds__isnull=False)
+        if ids is not None:
+            res = self.filter(herds__id__in=ids)
+        else:
+            res = self.filter(herds__isnull=False)
         res = res.values('herds__herd').annotate(**ANNOTATE_DICT)
 
         if rename:
@@ -66,11 +69,16 @@ class PackageMixin(object):
 
         return res
 
-    def maintainers(self, rename=False):
+    def maintainers(self, ids=None, rename=False):
         """
         Returns all the available maintainers
         """
-        res = self.filter(maintainers__isnull=False).values(
+        if ids is not None:
+            res = self.filter(maintainers__id__in=ids)
+        else:
+            res = self.filter(maintainers__isnull=False)
+
+        res = res.values(
             'maintainers__id', 'maintainers__name', 'maintainers__email'
         )
         res = res.annotate(**ANNOTATE_DICT)
@@ -90,7 +98,7 @@ class PackageMixin(object):
         Returns the all available overlays
         """
         res = self.values('version__overlay').exclude(version__overlay='')
-        return res.distinct()
+        return [o["version__overlay"] for o in res.distinct()]
 
     def for_overlay(self, overlay):
         """

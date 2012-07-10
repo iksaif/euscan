@@ -130,6 +130,9 @@ class Version(models.Model):
     handler = models.CharField(max_length=128, blank=True)
     confidence = models.IntegerField(default=0)
 
+    ebuild_path = models.CharField(blank=True, max_length=256)
+    metadata_path = models.CharField(blank=True, max_length=256)
+
     class Meta:
         unique_together = ['package', 'slot', 'revision', 'version', 'overlay']
 
@@ -315,6 +318,17 @@ class CategoryAssociation(models.Model):
 
     class Meta:
         unique_together = ['user', 'category']
+
+    def __unicode__(self):
+        return u'[%s] %s' % (self.user, self.category)
+
+
+class OverlayAssociation(models.Model):
+    user = models.ForeignKey(User)
+    overlay = models.CharField(max_length=128, validators=[validate_name])
+
+    class Meta:
+        unique_together = ['user', 'overlay']
 
     def __unicode__(self):
         return u'[%s] %s' % (self.user, self.category)

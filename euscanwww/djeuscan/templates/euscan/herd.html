@@ -16,7 +16,18 @@
 {% endblock %}
 
 {% block content %}
-<h2>Herd: {{ herd.herd }}</h2>
+<h2>
+  Herd: {{ herd.herd }}
+  {% if user.is_authenticated %}
+    <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_herd" herd.herd %}">
+      Watch
+    </button>
+    <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_herd" herd.herd %}">
+      Unwatch
+    </button>
+  {% endif %}
+
+</h2>
 {% packages packages %}
 
 <h3>Statistics</h2>
@@ -36,11 +47,27 @@
   <img src="{% url "chart_herd" herd.herd 'packages-monthly' %}" />
 </p>
 
+<script type="text/javascript">
+  $(".favourite-button").click(function() {
+    $.post($(this).data("url"), function() {
+      $(".unfavourite-button").removeClass("hide");
+      $(".favourite-button").addClass("hide");
+    });
+  });
+
+  $(".unfavourite-button").click(function() {
+    $.post($(this).data("url"), function() {
+      $(".favourite-button").removeClass("hide");
+      $(".unfavourite-button").addClass("hide");
+    });
+  });
+</script>
+
 {% endblock %}
 
 {% block menus %}
 {{ block.super }}
-<div class="menu">
+<div class="menu rounded notfirst-menu">
   <dl>
     <dt>Versions</dt>
     <dd><img src="{% url "chart_herd" herd.herd 'versions-monthly-small' %}" /></dd>

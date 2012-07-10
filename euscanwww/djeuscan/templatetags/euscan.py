@@ -47,3 +47,11 @@ def maintainers_table(maintainers, extras=False):
         "extras": extras,
         "STATIC_URL": settings.STATIC_URL,
     }
+
+
+@register.inclusion_tag('euscan/_overlays_table.html')
+def overlays_table(overlays):
+    return {
+        "overlays": overlays,
+        "STATIC_URL": settings.STATIC_URL,
+    }

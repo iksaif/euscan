@@ -88,8 +88,7 @@ class PackageModelTests(TestCase):
 
     def test_overlays(self):
         overlays, packages = setup_overlays()
-        overlay_names = [o["version__overlay"]
-                         for o in Package.objects.overlays()]
+        overlay_names = Package.objects.overlays()
         for overlay in overlays:
             self.assertTrue(overlay in overlay_names)
 

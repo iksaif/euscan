@@ -1,0 +1,18 @@
+{% load url from future %}
+
+<table id="table" class="display">
+  <thead>
+    <th>Overlay</th>
+  </thead>
+  <tbody>
+  {% for overlay in overlays %}
+  <tr>
+    <td>
+      <a href="{% url "overlay" overlay %}">
+        {{ overlay }}
+      </a>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>

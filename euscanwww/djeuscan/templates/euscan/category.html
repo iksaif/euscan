@@ -16,7 +16,18 @@
 {% endblock %}
 
 {% block content %}
-<h2>Category: {{ category }}</h2>
+<h2>
+  Category: {{ category }}
+
+  {% if user.is_authenticated %}
+    <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_category" category %}">
+      Watch
+    </button>
+    <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_category" category %}">
+      Unwatch
+    </button>
+  {% endif %}
+</h2>
 
 {% packages packages %}
 
@@ -38,11 +49,27 @@
   <img src="{% url "chart_category" category 'packages-monthly' %}" />
 </p>
 
+<script type="text/javascript">
+  $(".favourite-button").click(function() {
+    $.post($(this).data("url"), function() {
+      $(".unfavourite-button").removeClass("hide");
+      $(".favourite-button").addClass("hide");
+    });
+  });
+
+  $(".unfavourite-button").click(function() {
+    $.post($(this).data("url"), function() {
+      $(".favourite-button").removeClass("hide");
+      $(".unfavourite-button").addClass("hide");
+    });
+  });
+</script>
+
 {% endblock %}
 
 {% block menus %}
 {{ block.super }}
-<div class="menu">
+<div class="menu rounded notfirst-menu">
   <dl>
     <dt>Versions</dt>
     <dd><img src="{% url "chart_category" category 'versions-monthly-small' %}" /></dd>
@@ -50,5 +77,4 @@
     <dd><img src="{% url "chart_category" category 'packages-monthly-small' %}" /></dd>
   </dl>
 </div>
-
 {% endblock %}

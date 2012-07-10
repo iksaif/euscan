@@ -1,5 +1,6 @@
 {% extends "euscan/_datatable.html" %}
 
+{% load url from future %}
 {% load euscan %}
 
 {% block title %}
@@ -7,6 +8,35 @@
 {% endblock %}
 
 {% block content %}
-<h2>Overlay: {{ overlay }}</h2>
+<h2>
+  Overlay: {{ overlay }}
+  {% if user.is_authenticated %}
+    <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_overlay" overlay %}">
+      Watch
+    </button>
+    <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_overlay" overlay %}">
+      Unwatch
+    </button>
+  {% endif %}
+
+</h2>
+
 {% packages packages %}
+
+<script type="text/javascript">
+  $(".favourite-button").click(function() {
+    $.post($(this).data("url"), function() {
+      $(".unfavourite-button").removeClass("hide");
+      $(".favourite-button").addClass("hide");
+    });
+  });
+
+  $(".unfavourite-button").click(function() {
+    $.post($(this).data("url"), function() {
+      $(".favourite-button").removeClass("hide");
+      $(".unfavourite-button").addClass("hide");
+    });
+  });
+</script>
+
 {% endblock %}

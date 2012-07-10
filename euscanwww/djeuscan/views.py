@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST
 from djeuscan.helpers import version_key, packages_from_names
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog, RefreshPackageQuery, HerdAssociation, MaintainerAssociation, \
-    CategoryAssociation, PackageAssociation, ProblemReport
+    CategoryAssociation, PackageAssociation, OverlayAssociation, ProblemReport
 from djeuscan.forms import WorldForm, PackagesForm, ProblemReportForm
 from djeuscan.tasks import admin_tasks
 from djeuscan import charts
@@ -64,7 +64,18 @@ def category(request, category):
     except EuscanResult.DoesNotExist:
         last_scan = None
 
-    return {'category': category, 'packages': packages, 'last_scan': last_scan}
+    favourited = False
+    if request.user.is_authenticated():
+        try:
+            CategoryAssociation.objects.get(user=request.user,
+                                            category=category)
+        except CategoryAssociation.DoesNotExist:
+            pass
+        else:
+            favourited = True
+
+    return {'category': category, 'packages': packages, 'last_scan': last_scan,
+            'favourited': favourited}
 
 
 @render_to('euscan/herds.html')
@@ -89,7 +100,17 @@ def herd(request, herd):
     except EuscanResult.DoesNotExist:
         last_scan = None
 
-    return {'herd': herd, 'packages': packages, "last_scan": last_scan}
+    favourited = False
+    if request.user.is_authenticated():
+        try:
+            HerdAssociation.objects.get(user=request.user, herd=herd)
+        except HerdAssociation.DoesNotExist:
+            pass
+        else:
+            favourited = True
+
+    return {'herd': herd, 'packages': packages, "last_scan": last_scan,
+            'favourited': favourited}
 
 
 @render_to('euscan/maintainers.html')
@@ -115,11 +136,18 @@ def maintainer(request, maintainer_id):
     except EuscanResult.DoesNotExist:
         last_scan = None
 
-    return {
-        'maintainer': maintainer,
-        'packages': packages,
-        'last_scan': last_scan
-    }
+    favourited = False
+    if request.user.is_authenticated():
+        try:
+            MaintainerAssociation.objects.get(user=request.user,
+                                              maintainer=maintainer)
+        except MaintainerAssociation.DoesNotExist:
+            pass
+        else:
+            favourited = True
+
+    return {'maintainer': maintainer, 'packages': packages,
+            'last_scan': last_scan, 'favourited': favourited}
 
 
 @render_to('euscan/overlays.html')
@@ -145,7 +173,17 @@ def overlay(request, overlay):
     except EuscanResult.DoesNotExist:
         last_scan = None
 
-    return {'overlay': overlay, 'packages': packages, 'last_scan': last_scan}
+    favourited = False
+    if request.user.is_authenticated():
+        try:
+            OverlayAssociation.objects.get(user=request.user, overlay=overlay)
+        except OverlayAssociation.DoesNotExist:
+            pass
+        else:
+            favourited = True
+
+    return {'overlay': overlay, 'packages': packages, 'last_scan': last_scan,
+            'favourited': favourited}
 
 
 @render_to('euscan/package.html')
@@ -327,24 +365,28 @@ def accounts_index(request):
 @login_required
 @render_to('euscan/accounts/categories.html')
 def accounts_categories(request):
-    categories = [obj.category for obj in
-                  CategoryAssociation.objects.filter(user=request.user)]
+    category_names = [obj.category for obj in
+                      CategoryAssociation.objects.filter(user=request.user)]
+    categories = [c for c in Package.objects.categories()
+                  if c["category"] in category_names]
     return {"categories": categories}
 
 
 @login_required
 @render_to('euscan/accounts/herds.html')
 def accounts_herds(request):
-    herds = [obj.herd for obj in
-             HerdAssociation.objects.filter(user=request.user)]
+    ids = [obj.herd.pk for obj in
+           HerdAssociation.objects.filter(user=request.user)]
+    herds = Package.objects.herds(ids=ids)
     return {"herds": herds}
 
 
 @login_required
 @render_to('euscan/accounts/maintainers.html')
 def accounts_maintainers(request):
-    maintainers = [obj.maintainer for obj in
-                   MaintainerAssociation.objects.filter(user=request.user)]
+    ids = [obj.maintainer.pk for obj in
+           MaintainerAssociation.objects.filter(user=request.user)]
+    maintainers = Package.objects.maintainers(ids=ids)
     return {"maintainers": maintainers}
 
 
@@ -354,6 +396,14 @@ def accounts_packages(request):
     packages = [obj.package for obj in
                 PackageAssociation.objects.filter(user=request.user)]
     return {"packages": packages}
+
+
+@login_required
+@render_to('euscan/accounts/overlays.html')
+def accounts_overlays(request):
+    overlays = [obj.overlay for obj in
+                OverlayAssociation.objects.filter(user=request.user)]
+    return {"overlays": overlays}
 
 
 @login_required
@@ -446,6 +496,31 @@ def favourite_category(request, category):
 def unfavourite_category(request, category):
     obj = get_object_or_404(
         CategoryAssociation, user=request.user, category=category
+    )
+    obj.delete()
+    return {"success": True}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_overlay(request, overlay):
+    packages = Package.objects.for_overlay(overlay)
+    if not packages:
+        raise Http404
+
+    _, created = OverlayAssociation.objects.get_or_create(
+        user=request.user, overlay=overlay
+    )
+    return {"success": created}
+
+
+@login_required
+@require_POST
+@ajax_request
+def unfavourite_overlay(request, overlay):
+    obj = get_object_or_404(
+        OverlayAssociation, user=request.user, overlay=overlay
     )
     obj.delete()
     return {"success": True}

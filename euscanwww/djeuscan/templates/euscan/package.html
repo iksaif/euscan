@@ -39,10 +39,10 @@
       Refresh
     </button>
     <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_package" package.category package.name %}">
-      Add to favourites
+      Watch
     </button>
     <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_package" package.category package.name %}">
-      Remove from favourites
+      Unwatch
     </button>
   {% endif %}
 </h2>
