@@ -163,9 +163,9 @@ class EuscanOutput(object):
         else:
             if not self.config['quiet']:
                 print "Upstream Version:", pp.number("%s" % version),
-                print pp.path(" %s" % url)
+                print pp.path(" %s" % urls)
             else:
-                print pp.cpv("%s-%s" % (cp, version)) + ":", pp.path(url)
+                print pp.cpv("%s-%s" % (cp, version)) + ":", pp.path(urls)
 
     def metadata(self, key, value, show=True):
         if self.config["format"]:
