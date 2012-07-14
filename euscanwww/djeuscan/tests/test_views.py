@@ -73,6 +73,10 @@ class PackageTests(SystemTestCase):
 
             self.assertIn(self.package.name, response.content)
 
+            self.post("unfavourite_package", category=self.package.category,
+                      package=self.package.name)
+            self.assertEqual(PackageAssociation.objects.count(), 0)
+
 
 class SectionTests(SystemTestCase):
     def _check_table(self, response, items, attr=None):
@@ -134,6 +138,9 @@ class CategoriesTests(SectionTests):
 
             self._check_table(response, [category])
 
+            self.post("unfavourite_category", category=category)
+            self.assertEqual(CategoryAssociation.objects.count(), 0)
+
 
 class HerdsTests(SectionTests):
     def setUp(self):
@@ -180,6 +187,9 @@ class HerdsTests(SectionTests):
 
             self._check_table(response, [herd], attr="herd")
 
+            self.post("unfavourite_herd", herd=herd.herd)
+            self.assertEqual(HerdAssociation.objects.count(), 0)
+
 
 class MaintainersTests(SectionTests):
     def setUp(self):
@@ -225,6 +235,9 @@ class MaintainersTests(SectionTests):
             self.assertEqual(response.status_code, 200)
 
             self._check_table(response, [maintainer], attr="name")
+
+            self.post("unfavourite_maintainer", maintainer_id=maintainer.pk)
+            self.assertEqual(MaintainerAssociation.objects.count(), 0)
 
 
 class OverlayTests(SectionTests):
