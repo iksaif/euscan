@@ -234,6 +234,10 @@ th {
     border-radius: 10px;
 }
 
+.padded {
+    padding: 10px;
+}
+
 textarea {
     width: inherit;
 }

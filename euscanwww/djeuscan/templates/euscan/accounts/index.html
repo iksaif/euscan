@@ -1,5 +1,6 @@
 {% extends "_base.html" %}
 {% load url from future %}
+{% load sub %}
 
 {% block title %}
   {{ block.super }} - Welcome {{ user }}
@@ -8,4 +9,88 @@
 
 {% block content %}
   <h2>Welcome {{ user }}</h2>
+
+
+  <h3 class="padded">Summary</h3>
+
+  <div class="row-fluid padded">
+    <div class="padded span6">
+      {% with categories|length as num_categories %}
+        Watching {{ num_categories }} categor{{ num_categories|pluralize:"y,es"}}
+        <ul>
+          <li>{{ categories_upstream }} new upstream version{{ categories_upstream|pluralize:"s"}}</li>
+          {% if categories_upstream %}
+            <li>
+              Hot categories:
+              <ul>
+                {% for c in categories|slice:":3" %}
+                  <li><a href="{% url "category" c.category %}">{{ c.category }}</a> ({{ c.n_versions|sub:c.n_packaged }})</li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% endif %}
+        </ul>
+      {% endwith %}
+    </div>
+
+    <div class="padded span6">
+      {% with herds|length as num_herds %}
+        Watching {{ num_herds }} herd{{ num_herds|pluralize:"s"}}
+        <ul>
+          <li>{{ herds_upstream }} new upstream version{{ herds_upstream|pluralize:"s"}}</li>
+          {% if herds_upstream %}
+            <li>
+              Hot herds:
+              <ul>
+                {% for c in herds|slice:":3" %}
+                  <li><a href="{% url "herd" c.herds__herd %}">{{ c.herds__herd }}</a> ({{ c.n_versions|sub:c.n_packaged }})</li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% endif %}
+        </ul>
+      {% endwith %}
+    </div>
+
+  </div>
+  <div class="padded row-fluid">
+
+    <div class="padded span6">
+      {% with maintainers|length as num_maintainers %}
+        Watching {{ num_maintainers }} maintainer{{ num_maintainers|pluralize:"s"}}
+        <ul>
+          <li>{{ maintainers_upstream }} new upstream version{{ maintainers_upstream|pluralize:"s"}}</li>
+          {% if maintainers_upstream %}
+            <li>
+              Hot maintainers:
+              <ul>
+                {% for c in maintainers|slice:":3" %}
+                  <li><a href="{% url "maintainer" c.maintainers__id %}">{{ c.maintainers__name }}</a> ({{ c.n_versions|sub:c.n_packaged }})</li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% endif %}
+        </ul>
+      {% endwith %}
+    </div>
+
+    <div class="padded span6">
+      {% with packages|length as num_packages %}
+        Watching {{ num_packages }} package{{ num_packages|pluralize:"s"}}
+        <ul>
+          <li>{{ packages_upstream }} new upstream version{{ packages_upstream|pluralize:"s"}}</li>
+          {% if packages_upstream %}
+            <li>
+              Hot packages:
+              <ul>
+                {% for c in packages|slice:":3" %}
+                  <li><a href="{% url "package" c.category c.name %}">{{ c }}</a> ({{ c.n_versions|sub:c.n_packaged }})</li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% endif %}
+        </ul>
+      {% endwith %}
+    </div>
+  </div>
 {% endblock %}

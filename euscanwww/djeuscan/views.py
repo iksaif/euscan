@@ -8,7 +8,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
-from djeuscan.helpers import version_key, packages_from_names
+from djeuscan.helpers import version_key, packages_from_names, \
+    get_account_categories, get_account_herds, get_account_maintainers, \
+    get_account_packages
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog, RefreshPackageQuery, HerdAssociation, MaintainerAssociation, \
     CategoryAssociation, PackageAssociation, OverlayAssociation, ProblemReport
@@ -359,43 +361,50 @@ def refresh_package(request, category, package):
 @login_required
 @render_to('euscan/accounts/index.html')
 def accounts_index(request):
-    return {}
+    upstream_k = lambda c: c["n_versions"] - c["n_packaged"]
+
+    categories = sorted(get_account_categories(request.user),
+                        key=upstream_k, reverse=True)
+    c_upstream = sum([c["n_versions"] - c["n_packaged"] for c in categories])
+    herds = sorted(get_account_herds(request.user),
+                   key=upstream_k, reverse=True)
+    h_upstream = sum([c["n_versions"] - c["n_packaged"] for c in herds])
+    maintainers = sorted(get_account_maintainers(request.user),
+                         key=upstream_k, reverse=True)
+    m_upstream = sum([c["n_versions"] - c["n_packaged"] for c in maintainers])
+    packages = sorted(get_account_packages(request.user),
+                      key=lambda p: p.n_versions - p.n_packaged, reverse=True)
+    p_upstream = sum([c.n_versions - c.n_packaged for c in packages])
+    return {
+        "categories": categories, "categories_upstream": c_upstream,
+        "herds": herds, "herds_upstream": h_upstream,
+        "maintainers": maintainers, "maintainers_upstream": m_upstream,
+        "packages": packages, "packages_upstream": p_upstream,
+    }
 
 
 @login_required
 @render_to('euscan/accounts/categories.html')
 def accounts_categories(request):
-    category_names = [obj.category for obj in
-                      CategoryAssociation.objects.filter(user=request.user)]
-    categories = [c for c in Package.objects.categories()
-                  if c["category"] in category_names]
-    return {"categories": categories}
+    return {"categories": get_account_categories(request.user)}
 
 
 @login_required
 @render_to('euscan/accounts/herds.html')
 def accounts_herds(request):
-    ids = [obj.herd.pk for obj in
-           HerdAssociation.objects.filter(user=request.user)]
-    herds = Package.objects.herds(ids=ids)
-    return {"herds": herds}
+    return {"herds": get_account_herds(request.user)}
 
 
 @login_required
 @render_to('euscan/accounts/maintainers.html')
 def accounts_maintainers(request):
-    ids = [obj.maintainer.pk for obj in
-           MaintainerAssociation.objects.filter(user=request.user)]
-    maintainers = Package.objects.maintainers(ids=ids)
-    return {"maintainers": maintainers}
+    return {"maintainers": get_account_maintainers(request.user)}
 
 
 @login_required
 @render_to('euscan/accounts/packages.html')
 def accounts_packages(request):
-    packages = [obj.package for obj in
-                PackageAssociation.objects.filter(user=request.user)]
-    return {"packages": packages}
+    return {"packages": get_account_packages(request.user)}
 
 
 @login_required

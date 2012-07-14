@@ -74,3 +74,35 @@ class catch_and_return(object):
             except self.err:
                 return self.response
         return wrapper
+
+
+def get_account_categories(user):
+    from djeuscan.models import Package, CategoryAssociation
+
+    # TODO: This is quite ugly
+    category_names = [obj.category for obj in
+                      CategoryAssociation.objects.filter(user=user)]
+    return [c for c in Package.objects.categories()
+            if c["category"] in category_names]
+
+
+def get_account_herds(user):
+    from djeuscan.models import Package, HerdAssociation
+
+    ids = [obj.herd.pk for obj in
+           HerdAssociation.objects.filter(user=user)]
+    return Package.objects.herds(ids=ids)
+
+
+def get_account_maintainers(user):
+    from djeuscan.models import Package, MaintainerAssociation
+
+    ids = [obj.maintainer.pk for obj in
+           MaintainerAssociation.objects.filter(user=user)]
+    return Package.objects.maintainers(ids=ids)
+
+
+def get_account_packages(user):
+    from djeuscan.models import PackageAssociation
+    return [obj.package for obj in
+            PackageAssociation.objects.filter(user=user)]
