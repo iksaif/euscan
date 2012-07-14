@@ -90,7 +90,7 @@ setup(
     install_requires=[
         'Django==1.4', 'django-annoying==0.7.6', 'South==0.7.4',
         'django-piston==0.2.3', 'BeautifulSoup==3.2.1', 'matplotlib==1.1.0',
-        'django-celery==3.0.0', 'django-registration==0.8',
+        'django-celery==3.0.1', 'django-registration==0.8',
         'python-ldap==2.4.10', 'django-auth-ldap==1.1',
     ],
     package_dir={'': 'pym'},

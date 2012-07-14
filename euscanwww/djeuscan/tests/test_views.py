@@ -9,7 +9,8 @@ from djeuscan.tests import SystemTestCase
 from djeuscan.tests.euscan_factory import PackageFactory, setup_maintainers, \
     setup_herds, setup_categories, setup_overlays
 
-from djeuscan.models import CategoryAssociation
+from djeuscan.models import PackageAssociation, CategoryAssociation, \
+    HerdAssociation, MaintainerAssociation
 
 
 class PagesTest(SystemTestCase):
@@ -47,6 +48,30 @@ class PackageTests(SystemTestCase):
         response = self.get("package", category=self.package.category,
                             package=self.package.name)
         self.assertEqual(response.status_code, 200)
+
+    def test_favourite(self):
+        self.assertEqual(PackageAssociation.objects.count(), 0)
+
+        response = self.get("package", category=self.package.category,
+                            package=self.package.name)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Watch", response.content)
+
+        with self.login():
+            response = self.get("package", category=self.package.category,
+                                package=self.package.name)
+            self.assertEqual(response.status_code, 200)
+
+            self.assertIn("Watch", response.content)
+            self.post("favourite_package", category=self.package.category,
+                      package=self.package.name)
+
+            self.assertEqual(PackageAssociation.objects.count(), 1)
+
+            response = self.get("accounts_packages")
+            self.assertEqual(response.status_code, 200)
+
+            self.assertIn(self.package.name, response.content)
 
 
 class SectionTests(SystemTestCase):
@@ -87,20 +112,27 @@ class CategoriesTests(SectionTests):
         response = self.get("category_feed", category=category)
         self.assertEqual(response.status_code, 200)
 
-    def dont_test_favourite(self):
-        # TODO: understand why login fails
+    def test_favourite(self):
         category = self.categories[0]
         self.assertEqual(CategoryAssociation.objects.count(), 0)
 
         response = self.get("category", category=category)
+        self.assertEqual(response.status_code, 200)
         self.assertNotIn("Watch", response.content)
 
         with self.login():
             response = self.get("category", category=category)
+            self.assertEqual(response.status_code, 200)
+
             self.assertIn("Watch", response.content)
             self.post("favourite_category", category=category)
 
             self.assertEqual(CategoryAssociation.objects.count(), 1)
+
+            response = self.get("accounts_categories")
+            self.assertEqual(response.status_code, 200)
+
+            self._check_table(response, [category])
 
 
 class HerdsTests(SectionTests):
@@ -126,6 +158,28 @@ class HerdsTests(SectionTests):
         response = self.get("herd_feed", herd=herd.herd)
         self.assertEqual(response.status_code, 200)
 
+    def test_favourite(self):
+        herd = self.herds[0]
+        self.assertEqual(HerdAssociation.objects.count(), 0)
+
+        response = self.get("herd", herd=herd.herd)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Watch", response.content)
+
+        with self.login():
+            response = self.get("herd", herd=herd.herd)
+            self.assertEqual(response.status_code, 200)
+
+            self.assertIn("Watch", response.content)
+            self.post("favourite_herd", herd=herd.herd)
+
+            self.assertEqual(HerdAssociation.objects.count(), 1)
+
+            response = self.get("accounts_herds")
+            self.assertEqual(response.status_code, 200)
+
+            self._check_table(response, [herd], attr="herd")
+
 
 class MaintainersTests(SectionTests):
     def setUp(self):
@@ -149,6 +203,28 @@ class MaintainersTests(SectionTests):
         maintainer = self.maintainers[0]
         response = self.get("maintainer_feed", maintainer_id=maintainer.pk)
         self.assertEqual(response.status_code, 200)
+
+    def test_favourite(self):
+        maintainer = self.maintainers[0]
+        self.assertEqual(MaintainerAssociation.objects.count(), 0)
+
+        response = self.get("maintainer", maintainer_id=maintainer.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Watch", response.content)
+
+        with self.login():
+            response = self.get("maintainer", maintainer_id=maintainer.pk)
+            self.assertEqual(response.status_code, 200)
+
+            self.assertIn("Watch", response.content)
+            self.post("favourite_maintainer", maintainer_id=maintainer.pk)
+
+            self.assertEqual(MaintainerAssociation.objects.count(), 1)
+
+            response = self.get("accounts_maintainers")
+            self.assertEqual(response.status_code, 200)
+
+            self._check_table(response, [maintainer], attr="name")
 
 
 class OverlayTests(SectionTests):

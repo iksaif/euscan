@@ -13,8 +13,16 @@ settings.configure(
     DATABASES={
         'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}
     },
-    INSTALLED_APPS=['euscanwww.euscanwww', 'djeuscan', 'django.contrib.auth',
-                    'django.contrib.contenttypes'],
+    INSTALLED_APPS=[
+        'euscanwww.euscanwww',
+        'djeuscan',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.admin',
+        'django.contrib.sessions',
+        'django.contrib.sites',
+    ],
+    SITE_ID=1,
     ROOT_URLCONF='euscanwww.euscanwww.urls',
     EUSCAN_ROOT=EUSCAN_ROOT,
     RRD_ROOT=os.path.join(EUSCAN_ROOT, 'var', 'rrd'),
