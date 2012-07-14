@@ -3,9 +3,17 @@ from string import letters
 from datetime import datetime
 from collections import defaultdict
 
+from django.contrib.auth.models import User
+
 import factory
 
 from djeuscan.models import Herd, Maintainer, Package, Version, EuscanResult
+
+
+class UserFactory(factory.Factory):
+    FACTORY_FOR = User
+
+    username = factory.Sequence(lambda n: 'user' + n)
 
 
 def random_string(length=None):

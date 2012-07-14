@@ -9,6 +9,8 @@ from djeuscan.tests import SystemTestCase
 from djeuscan.tests.euscan_factory import PackageFactory, setup_maintainers, \
     setup_herds, setup_categories, setup_overlays
 
+from djeuscan.models import CategoryAssociation
+
 
 class PagesTest(SystemTestCase):
     """
@@ -29,6 +31,10 @@ class PagesTest(SystemTestCase):
 
     def test_global_feed(self):
         response = self.get("global_feed")
+        self.assertEqual(response.status_code, 200)
+
+    def test_api(self):
+        response = self.get("api")
         self.assertEqual(response.status_code, 200)
 
 
@@ -80,6 +86,21 @@ class CategoriesTests(SectionTests):
         category = self.categories[0]
         response = self.get("category_feed", category=category)
         self.assertEqual(response.status_code, 200)
+
+    def dont_test_favourite(self):
+        # TODO: understand why login fails
+        category = self.categories[0]
+        self.assertEqual(CategoryAssociation.objects.count(), 0)
+
+        response = self.get("category", category=category)
+        self.assertNotIn("Watch", response.content)
+
+        with self.login():
+            response = self.get("category", category=category)
+            self.assertIn("Watch", response.content)
+            self.post("favourite_category", category=category)
+
+            self.assertEqual(CategoryAssociation.objects.count(), 1)
 
 
 class HerdsTests(SectionTests):

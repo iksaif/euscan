@@ -70,7 +70,7 @@ packages = [
 ]
 
 tests_require = [
-  'factory_boy',
+  'factory-boy==1.1.3',
 ]
 
 setup(
