@@ -62,3 +62,8 @@ def overlays_table(overlays):
 @register.filter
 def is_stable(version_type):
     return helpers.is_version_type_stable(version_type)
+
+
+@register.filter
+def version_type(version):
+    return helpers.get_version_type(version)
