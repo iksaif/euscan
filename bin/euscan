@@ -102,34 +102,38 @@ def print_usage(_error=None, help=None):
     if _error in ('global-options',) or help:
         print("Available ", yellow("options") + ":", file=out)
         print(yellow(" -C, --nocolor") +
-            "             - turn off colors on output", file=out)
+            "                      - turn off colors on output", file=out)
         print(yellow(" -q, --quiet") +
-            "               - be as quiet as possible", file=out)
+            "                        - be as quiet as possible", file=out)
         print(yellow(" -h, --help") +
-            "                - display the help screen", file=out)
+            "                         - display the help screen", file=out)
         print(yellow(" -V, --version") +
-            "             - display version info", file=out)
+            "                      - display version info", file=out)
         print(file=out)
         print(yellow(" -1, --oneshot") +
-            "             - stop as soon as a new version is found",
+            "                      - stop as soon as a new version is found",
             file=out)
         print(yellow(" -b, --brute-force=<level>") +
-            " - define the brute force " + yellow("<level>") +
+            "          - define the brute force " + yellow("<level>") +
             " (default: 2)\n" +
-            " " * 29 + "bigger levels will generate more versions numbers\n" +
-            " " * 29 + "0 means disabled", file=out)
+            " " * 38 + "bigger levels will generate more versions numbers\n" +
+            " " * 38 + "0 means disabled", file=out)
         print(yellow(" -f, --format=<format>") +
-            "     - define the output " + yellow("<format>") +
+            "              - define the output " + yellow("<format>") +
             " (available: json)", file=out)
         print(yellow(" -p, --progress") +
-            "            - display a progress bar", file=out)
-        print(yellow(" -m, --mirror") +
-            "              - use mirror:// urls", file=out)
+            "                     - display a progress bar", file=out)
+        print(yellow(" -i, --ignore-pre-release") +
+            " " * 11 + "- Ignore non-stable versions", file=out)
+        print(yellow(" -I, --ignore-pre-release-if-stable") +
+            " - Ignore non-stable versions only if current\n" +
+            " " * 38 + "version is stable", file=out)
+
         print(file=out)
 
     if _error in ('packages',) or help:
         print(green(" package") +
-            "                   - the packages (or ebuilds) you want to scan",
+            " " * 28 + "- the packages (or ebuilds) you want to scan",
             file=out)
         print(file=out)
 
@@ -180,6 +184,10 @@ def parse_args():
                 CONFIG['progress'] = isatty
             elif o in ("-m", "--mirror"):
                 CONFIG['mirror'] = True
+            elif o in ("-i", "--ignore-pre-release"):
+                CONFIG['ignore-pre-release'] = True
+            elif o in ("-I", "--ignore-pre-release-if-stable"):
+                CONFIG['ignore-pre-release-if-stable'] = True
             else:
                 return_code = False
 
@@ -187,10 +195,11 @@ def parse_args():
 
     # here are the different allowed command line options (getopt args)
     getopt_options = {'short': {}, 'long': {}}
-    getopt_options['short']['global'] = "hVCqv1bf:pm"
+    getopt_options['short']['global'] = "hVCqv1bf:pmiI"
     getopt_options['long']['global'] = [
         "help", "version", "nocolor", "quiet", "verbose", "oneshot",
-        "brute-force=", "format=", "progress"
+        "brute-force=", "format=", "progress", "mirror", "ignore-pre-release",
+        "ignore-pre-release-if-stable",
     ]
 
     short_opts = getopt_options['short']['global']

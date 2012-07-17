@@ -34,6 +34,10 @@ _v_end = '((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)'
 _v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(' + _v_end + '*))'
 
 
+def is_version_stable(version):
+    return get_version_type(version) not in ("alpha", "beta", "pre", "rc")
+
+
 def get_version_type(version):
     types = []
     gentoo_types = ("alpha", "beta", "pre", "rc", "p")

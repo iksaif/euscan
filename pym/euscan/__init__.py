@@ -22,6 +22,8 @@ CONFIG = {
     'indent': 2,
     'progress': False,
     'mirror': False,
+    'ignore-pre-release': False,
+    'ignore-pre-release-if-stable': False,
 }
 
 BLACKLIST_VERSIONS = [

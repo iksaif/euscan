@@ -12,7 +12,8 @@ from gentoolkit.query import Query
 from gentoolkit.package import Package
 
 from euscan import CONFIG, BLACKLIST_PACKAGES
-from euscan import handlers, helpers, output
+from euscan import handlers, output
+from euscan.helpers import version_blacklisted, is_version_stable
 from euscan.ebuild import package_from_ebuild
 
 
@@ -26,7 +27,7 @@ def filter_versions(cp, versions):
             continue
 
         # Remove blacklisted versions
-        if helpers.version_blacklisted(cp, version):
+        if version_blacklisted(cp, version):
             continue
 
         filtered[version] = {
@@ -186,6 +187,10 @@ def scan_upstream(query, on_progress=None):
         output.metadata("description", pkg.environment("DESCRIPTION"))
 
     cpv = pkg.cpv
+
+    _, _, ver, _ = portage.catpkgsplit(cpv)
+    is_current_version_stable = is_version_stable(ver)
+
     metadata = {
         "EAPI": portage.settings["EAPI"],
         "SRC_URI": pkg.environment("SRC_URI", False),
@@ -220,6 +225,13 @@ def scan_upstream(query, on_progress=None):
             print("\n", file=sys.stderr)
 
         for cp, url, version, handler, confidence in result:
+            if CONFIG["ignore-pre-release"]:
+                if not is_version_stable(version):
+                    continue
+            if CONFIG["ignore-pre-release-if-stable"]:
+                if is_current_version_stable and \
+                   not is_version_stable(version):
+                    continue
             output.result(cp, version, url, handler, confidence)
 
     return result
