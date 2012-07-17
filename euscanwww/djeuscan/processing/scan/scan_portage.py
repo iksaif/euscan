@@ -1,5 +1,8 @@
 import subprocess
-import portage
+from os.path import join
+
+from portage import catpkgsplit, catsplit
+from portage.dbapi import porttree
 
 from xml.etree.ElementTree import iterparse, ParseError
 
@@ -21,6 +24,8 @@ class ScanPortage(object):
         self.purge_versions = purge_versions
 
         self.style = color_style()
+        self.portdbapi = porttree.portdbapi()
+
         self._cache = {'packages': {}, 'versions': {}}
         self._overlays = None
 
@@ -168,7 +173,7 @@ class ScanPortage(object):
         if not query:
             current_packages = Package.objects.all()
         elif '/' in query:
-            cat, pkg = portage.catsplit(query)
+            cat, pkg = catsplit(query)
             current_packages = Package.objects.filter(category=cat, name=pkg)
         else:
             current_packages = Package.objects.filter(name=query)
@@ -210,7 +215,7 @@ class ScanPortage(object):
         return obj
 
     def store_version(self, package, cpv, slot, overlay):
-        cat, pkg, ver, rev = portage.catpkgsplit(cpv)
+        cat, pkg, ver, rev = catpkgsplit(cpv)
         if not overlay:
             overlay = 'gentoo'
 
@@ -218,6 +223,12 @@ class ScanPortage(object):
         obj = self.cache_get_version(
             package.category, package.name, ver, rev, slot, overlay
         )
+
+        overlay_path = self.portdbapi.getRepositoryPath(overlay)
+        package_path = join(overlay_path, package.category, package.name)
+        ebuild_path = join(package_path, "%s.ebuild" % cpv.split("/")[-1])
+        metadata_path = join(package_path, "metadata.xml")
+
         if not obj:
             obj, created = Version.objects.get_or_create(
                 package=package, slot=slot,
@@ -228,7 +239,9 @@ class ScanPortage(object):
                     "packaged": True,
                     "version_type": get_version_type(ver),
                     "confidence": 100,
-                    "handler": "portage"
+                    "handler": "portage",
+                    "ebuild_path": ebuild_path,
+                    "metadata_path": metadata_path,
                 }
             )
         if not created:  # Created objects have defaults values
