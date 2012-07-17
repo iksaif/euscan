@@ -1,8 +1,7 @@
 import subprocess
 from os.path import join
 
-from portage import catpkgsplit, catsplit
-from portage.dbapi import porttree
+import portage
 
 from xml.etree.ElementTree import iterparse, ParseError
 
@@ -15,6 +14,9 @@ from djeuscan.processing import FakeLogger
 from djeuscan.models import Package, Version, VersionLog
 
 
+PORTDB = portage.db[portage.root]["porttree"].dbapi
+
+
 class ScanPortage(object):
     def __init__(self, logger=None, no_log=False, purge_packages=False,
                  purge_versions=False):
@@ -24,7 +26,6 @@ class ScanPortage(object):
         self.purge_versions = purge_versions
 
         self.style = color_style()
-        self.portdbapi = porttree.portdbapi()
 
         self._cache = {'packages': {}, 'versions': {}}
         self._overlays = None
@@ -137,7 +138,10 @@ class ScanPortage(object):
                     )
                     slot = elem.attrib.get("slot", "0")
                     overlay = elem.attrib.get("repository", "gentoo")
-                    package["versions"].append((cpv, slot, overlay))
+                    overlay_path = elem.attrib.get("overlay", None)
+                    package["versions"].append(
+                        (cpv, slot, overlay, overlay_path)
+                    )
 
             elif event == "end":  # on tag closing
                 if elem.tag == "package":
@@ -173,7 +177,7 @@ class ScanPortage(object):
         if not query:
             current_packages = Package.objects.all()
         elif '/' in query:
-            cat, pkg = catsplit(query)
+            cat, pkg = portage.catsplit(query)
             current_packages = Package.objects.filter(category=cat, name=pkg)
         else:
             current_packages = Package.objects.filter(name=query)
@@ -191,8 +195,8 @@ class ScanPortage(object):
                 cat, pkg, data['homepage'], data['description']
             )
             packages_alive.add("%s/%s" % (cat, pkg))
-            for cpv, slot, overlay in data['versions']:
-                self.store_version(package, cpv, slot, overlay)
+            for cpv, slot, overlay, overlay_path in data['versions']:
+                self.store_version(package, cpv, slot, overlay, overlay_path)
 
         self.purge_old_packages(current_packages, packages_alive)
         self.purge_old_versions()
@@ -214,8 +218,8 @@ class ScanPortage(object):
 
         return obj
 
-    def store_version(self, package, cpv, slot, overlay):
-        cat, pkg, ver, rev = catpkgsplit(cpv)
+    def store_version(self, package, cpv, slot, overlay, overlay_path):
+        cat, pkg, ver, rev = portage.catpkgsplit(cpv)
         if not overlay:
             overlay = 'gentoo'
 
@@ -224,7 +228,7 @@ class ScanPortage(object):
             package.category, package.name, ver, rev, slot, overlay
         )
 
-        overlay_path = self.portdbapi.getRepositoryPath(overlay)
+        overlay_path = overlay_path or PORTDB.settings["PORTDIR"]
         package_path = join(overlay_path, package.category, package.name)
         ebuild_path = join(package_path, "%s.ebuild" % cpv.split("/")[-1])
         metadata_path = join(package_path, "metadata.xml")
