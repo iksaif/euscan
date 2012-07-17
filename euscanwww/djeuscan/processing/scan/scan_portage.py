@@ -237,7 +237,7 @@ class ScanPortage(object):
                 defaults={
                     "alive": True,
                     "packaged": True,
-                    "version_type": get_version_type(ver),
+                    "vtype": get_version_type(ver),
                     "confidence": 100,
                     "handler": "portage",
                     "ebuild_path": ebuild_path,

@@ -89,7 +89,7 @@ class ScanUpstream(object):
             version=ver,
             overlay='',
             defaults={"alive": True, "urls": url, "packaged": False,
-                      "version_type": version_type, "handler": handler,
+                      "vtype": version_type, "handler": handler,
                       "confidence": confidence}
         )
         if not created:
