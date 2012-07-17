@@ -238,6 +238,10 @@ th {
     padding: 10px;
 }
 
+.cursor-pointer {
+    cursor: pointer;
+}
+
 textarea {
     width: inherit;
 }

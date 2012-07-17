@@ -168,59 +168,67 @@
 
 <hr/>
 
-<h3>Report problems</h3>
+<h3 class="report-problems-toggle cursor-pointer">Report problems</h3>
+<div class="report-problems hide">
+  <form action="." method="post" class="form-horizontal">
+    <div class="control-group {% if problem_form.version.errors %}error{% endif %}">
+      <label class="control-label" for="version">{{ problem_form.version.label }}</label>
+      <div class="controls">
+        {{ problem_form.version }}
+        <span class="help-inline">{{ problem_form.version.errors.as_text }}</span>
+      </div>
+    </div>
+    <div class="control-group {% if problem_form.subject.errors %}error{% endif %}">
+      <label class="control-label" for="subject">{{ problem_form.subject.label }}</label>
+      <div class="controls">
+        {{ problem_form.subject }}
+        <span class="help-inline">{{ problem_form.subject.errors.as_text }}</span>
+      </div>
+    </div>
+    <div class="control-group {% if problem_form.message.errors %}error{% endif %}">
+      <label class="control-label" for="message">{{ problem_form.message.label }}</label>
+      <div class="controls">
+        {{ problem_form.message }}
+        <span class="help-inline">{{ problem_form.message.errors.as_text }}</span>
+      </div>
+    </div>
 
-<form action="." method="post" class="form-horizontal">
-  <div class="control-group {% if problem_form.version.errors %}error{% endif %}">
-    <label class="control-label" for="version">{{ problem_form.version.label }}</label>
-    <div class="controls">
-      {{ problem_form.version }}
-      <span class="help-inline">{{ problem_form.version.errors.as_text }}</span>
+    <div class="control-group">
+      <div class="controls">
+        <input class="btn" type="submit" value="Submit" />
+      </div>
     </div>
-  </div>
-  <div class="control-group {% if problem_form.subject.errors %}error{% endif %}">
-    <label class="control-label" for="subject">{{ problem_form.subject.label }}</label>
-    <div class="controls">
-      {{ problem_form.subject }}
-      <span class="help-inline">{{ problem_form.subject.errors.as_text }}</span>
-    </div>
-  </div>
-  <div class="control-group {% if problem_form.message.errors %}error{% endif %}">
-    <label class="control-label" for="message">{{ problem_form.message.label }}</label>
-    <div class="controls">
-      {{ problem_form.message }}
-      <span class="help-inline">{{ problem_form.message.errors.as_text }}</span>
-    </div>
-  </div>
-
-  <div class="control-group">
-    <div class="controls">
-      <input class="btn" type="submit" value="Submit" />
-    </div>
-  </div>
-</form>
+  </form>
+</div>
 
 <script type="text/javascript">
-  $(".refresh-button").click(function() {
-    var url = "{% url "refresh_package" "XXX" "YYY" %}";
-    $.post(url.replace("XXX", $(this).data("category")).replace("YYY", $(this).data("package")),
-      function() {
-        alert("Submitted!");
+  $(document).ready(function () {
+    $(".refresh-button").click(function() {
+      var url = "{% url "refresh_package" "XXX" "YYY" %}";
+      $.post(url.replace("XXX", $(this).data("category")).replace("YYY", $(this).data("package")),
+        function() {
+          alert("Submitted!");
+        });
+    });
+
+    $(".favourite-button").click(function() {
+      $.post($(this).data("url"), function() {
+        $(".unfavourite-button").removeClass("hide");
+        $(".favourite-button").addClass("hide");
       });
-  });
-
-  $(".favourite-button").click(function() {
-    $.post($(this).data("url"), function() {
-      $(".unfavourite-button").removeClass("hide");
-      $(".favourite-button").addClass("hide");
     });
-  });
 
-  $(".unfavourite-button").click(function() {
-    $.post($(this).data("url"), function() {
-      $(".favourite-button").removeClass("hide");
-      $(".unfavourite-button").addClass("hide");
+    $(".unfavourite-button").click(function() {
+      $.post($(this).data("url"), function() {
+        $(".favourite-button").removeClass("hide");
+        $(".unfavourite-button").addClass("hide");
+      });
     });
+
+    $(".report-problems-toggle").click(function () {
+      $(".report-problems").toggle("slow");
+    });
+
   });
 </script>
 
