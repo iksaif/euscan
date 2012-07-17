@@ -35,7 +35,11 @@ _v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(' + _v_end + '*))'
 
 
 def is_version_stable(version):
-    return get_version_type(version) not in ("alpha", "beta", "pre", "rc")
+    return is_version_type_stable(get_version_type(version))
+
+
+def is_version_type_stable(version_type):
+    return version_type not in ("alpha", "beta", "pre", "rc")
 
 
 def get_version_type(version):

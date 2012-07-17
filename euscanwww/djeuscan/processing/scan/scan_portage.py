@@ -266,17 +266,16 @@ class ScanPortage(object):
         package.n_versions += 1
         package.save()
 
-        if self.no_log:
-            return
-
-        VersionLog.objects.create(
-            package=obj.package,
-            action=VersionLog.VERSION_ADDED,
-            slot=obj.slot,
-            revision=obj.revision,
-            version=obj.version,
-            overlay=obj.overlay
-        )
+        if not self.no_log:
+            VersionLog.objects.create(
+                package=obj.package,
+                action=VersionLog.VERSION_ADDED,
+                slot=obj.slot,
+                revision=obj.revision,
+                version=obj.version,
+                overlay=obj.overlay,
+                vtype=obj.vtype,
+            )
 
     def purge_old_packages(self, packages, alive):
         if not self.purge_packages:

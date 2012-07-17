@@ -165,6 +165,8 @@ class VersionLog(models.Model):
                                validators=[validate_name], blank=True)
     action = models.IntegerField(choices=VERSION_ACTIONS)
 
+    vtype = models.CharField(max_length=128, blank=True)
+
     objects = VersionLogManager()
 
     def __unicode__(self):

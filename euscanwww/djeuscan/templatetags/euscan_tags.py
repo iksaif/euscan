@@ -1,6 +1,8 @@
 from django import template
 from django.conf import settings
 
+from euscan import helpers
+
 register = template.Library()
 
 
@@ -55,3 +57,8 @@ def overlays_table(overlays):
         "overlays": overlays,
         "STATIC_URL": settings.STATIC_URL,
     }
+
+
+@register.filter
+def is_stable(version_type):
+    return helpers.is_version_type_stable(version_type)
