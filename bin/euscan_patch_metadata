@@ -1,0 +1,161 @@
+#!/usr/bin/env python
+
+import os
+import re
+import urllib
+from tempfile import mkstemp
+import tarfile
+import logging
+import shutil
+
+from gentoolkit.query import Query
+from BeautifulSoup import BeautifulSoup, SoupStrainer
+
+
+logger = logging.getLogger(__name__)
+
+
+# From portage-janitor
+def guess_indent_values(before):
+    rindent = -1
+    indent = -1
+    tab = False
+
+    def guess_for_tags(tags):
+        for tag in tags:
+            for i in [0, 2, 4, 6, 8, 12, 16]:
+                if '\n%s<%s' % (' ' * i, tag) in before:
+                    return i, False
+            for i in [0, 1, 2]:
+                if '\n%s<%s' % ('\t' * i, tag) in before:
+                    return i, True
+        return -1, False
+
+    rindent, tab = guess_for_tags(
+        ['herd', 'maintainer', 'longdescription', 'use', 'upstream']
+    )
+    if rindent == -1:
+        rindent = 2
+    rindent_str = ('\t' if tab else ' ') * rindent
+    indent, tab = guess_for_tags(['watch', 'name', 'email'])
+    if indent == -1:
+        indent = rindent * 2 if rindent else 4
+        if rindent and rindent_str == '\t':
+            tab = True
+    indent_str = ('\t' if tab else ' ') * indent
+    return rindent_str, indent_str
+
+
+def get_watch_data(package):
+    deb_url = get_deb_url(package.name)
+
+    _, temp_deb = mkstemp()
+    temp_dir = os.path.dirname(temp_deb)
+
+    logger.info("  Downloading deb %s...", deb_url)
+    urllib.urlretrieve(deb_url, temp_deb)
+    tar = tarfile.open(temp_deb)
+
+    watch_data = None
+
+    try:
+        tar.extract("debian/watch", temp_dir)
+    except KeyError:
+        pass
+    else:
+        debian_path = os.path.join(temp_dir, "debian")
+        watch_path = os.path.join(debian_path, "watch")
+        watch_data = open(os.path.join(watch_path)).read()
+        shutil.rmtree(debian_path)
+
+    os.unlink(temp_deb)
+
+    return watch_data
+
+
+def get_deb_url(name):
+    deb_url = None
+
+    while not deb_url:
+        url = "http://packages.debian.org/source/unstable/%s" % name
+        opened = urllib.urlopen(url)
+
+        content = opened.read()
+
+        for link in BeautifulSoup(content, parseOnlyThese=SoupStrainer("a")):
+            if re.match("[^\s]+\.debian\.tar\.gz", link.text):
+                deb_url = link["href"]
+                break
+
+        if not deb_url:
+            logger.error("  Cannot get package from %s" % url)
+            name = raw_input("  Package name in Debian: ")
+
+    return deb_url
+
+
+def patch_metadata(metadata_path, watch_data):
+    watch_data = watch_data.replace("\\\n", "")  # remove backslashes
+    watch_data = " ".join(watch_data.split())
+
+    with open(metadata_path) as fp:
+        original = fp.read()
+    rindent, indent = guess_indent_values(original)
+
+    data = original
+
+    logger.info("  Patching metadata file")
+
+    watch_tag = '%s<watch>%s</watch>' % (indent, watch_data)
+
+    if '<upstream>' in data:
+        data = data.replace('<upstream>', '<upstream>\n%s' % watch_tag, 1)
+    else:
+        rep = '%s<upstream>\n%s\n%s</upstream>\n</pkgmetadata>' % \
+            (rindent, watch_tag, rindent)
+        data = data.replace('</pkgmetadata>', rep, 1)
+
+    print data
+
+
+def process_package(query):
+    matches = Query(query).smart_find(
+            in_installed=True,
+            in_porttree=True,
+            in_overlay=True,
+            include_masked=True,
+            show_progress=False,
+            no_matches_fatal=False,
+    )
+
+    if not matches:
+        logger.error("  Package not found")
+
+    matches = sorted(matches)
+    package = matches.pop()
+    if '9999' in package.version and len(matches) > 0:
+        package = matches.pop()
+
+    metadata_path = package.metadata.metadata_path
+    watch_data = get_watch_data(package)
+    if watch_data is None:
+        logger.error("  No watch file found")
+    else:
+        patch_metadata(metadata_path, watch_data)
+
+
+def main():
+    import optparse
+    p = optparse.OptionParser(
+        usage="usage: %prog <package> [<package> [...]]",
+    )
+    opts, packages = p.parse_args()
+
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+
+    for package in packages:
+        logger.info("Processing %s..." % package)
+        process_package(package)
+
+if __name__ == "__main__":
+    main()
