@@ -2,18 +2,18 @@ import re
 import cgi
 
 colorcodes = {
-    'bold': ('\033[1m', '\033[22m'),
-    'cyan': ('\033[36m', '\033[39m'),
-    'blue': ('\033[34m', '\033[39m'),
-    'red': ('\033[31m', '\033[39m'),
-    'magenta': ('\033[35m', '\033[39m'),
-    'green': ('\033[32m', '\033[39m'),
-    'underline': ('\033[4m', '\033[24m'),
+    'bold': ('\\\u001b[01m|\\\u001b[36;01m', '\\\u001b[39;49;00m'),
+    'cyan': ('\\\u001b[36m', '\\\u001b[39m'),
+    'blue': ('\\\u001b[34m', '\\\u001b[39m'),
+    'red': ('\\\u001b[31m', '\\\u001b[39m'),
+    'magenta': ('\\\u001b[35m', '\\\u001b[39m'),
+    'green': ('\\\u001b[32;01m', '\\\u001b[39;49;00m'),
+    'underline': ('\\\u001b[4m', '\\\u001b[24m'),
 }
 
 
 def recolor(color, text):
-    regexp = "(?:%s)(.*?)(?:%s)" % colorcodes[color]
+    regexp = r"(?:%s)(.*?)(?:%s)" % colorcodes[color]
     regexp = regexp.replace('[', r'\[')
     return re.sub(
         regexp, r'''<span style="color: %s">\1</span>''' % color, text
@@ -76,6 +76,7 @@ def plaintext2html(text, tabstop=4):
         re.S | re.M | re.I
     )
     result = re.sub(re_string, do_sub, text)
+
     result = recolor('cyan', result)
     result = recolor('blue', result)
     result = recolor('red', result)
