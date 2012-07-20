@@ -158,8 +158,10 @@ def update_portage_trees():
 @task
 def update_portage(packages=None):
     update_portage_trees()
-    scan_portage(purge_packages=True, purge_versions=True, prefetch=True)
     (
+        group_one(scan_portage, portage.settings.categories,
+                  attr_name="category", purge_packages=True,
+                  purge_versions=True, prefetch=True) |
         group_one(scan_metadata, portage.settings.categories,
                   attr_name="category") |
         update_counters.si(fast=False)
