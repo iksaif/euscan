@@ -160,7 +160,7 @@
   <dd>
     <p>Date: {{ log.datetime }}
     <pre class="log">
-      {{ log.result }}
+      {{ log.result|ansi_to_html|safe }}
     </pre>
   </dd>
   {% endif %}

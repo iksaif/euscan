@@ -3,7 +3,10 @@ from django.conf import settings
 
 from euscan.version import is_version_type_stable, get_version_type
 
+from djeuscan.utils import plaintext2html
+
 register = template.Library()
+
 
 @register.inclusion_tag('euscan/_packages.html', takes_context=True)
 def packages(context, pkgs):
@@ -66,3 +69,8 @@ def is_stable(version_type):
 @register.filter
 def version_type(version):
     return get_version_type(version)
+
+
+@register.filter
+def ansi_to_html(text):
+    return plaintext2html(text)
