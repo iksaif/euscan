@@ -13,7 +13,8 @@ from gentoolkit.package import Package
 
 from euscan import CONFIG, BLACKLIST_PACKAGES
 from euscan import handlers, output
-from euscan.helpers import version_blacklisted, is_version_stable
+from euscan.helpers import version_blacklisted,
+from euscan.version import is_version_stable
 from euscan.ebuild import package_from_ebuild
 
 

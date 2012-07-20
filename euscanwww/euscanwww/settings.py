@@ -239,6 +239,7 @@ CELERYD_CONCURRENCY = 4
 TASKS_UPSTREAM_GROUPS = 32
 
 CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
+CELERYBEAT_SCHEDULE = {}
 
 # LDAP authentication
 # TODO: Test data - change me!

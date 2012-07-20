@@ -170,7 +170,7 @@ class EuscanOutput(object):
             raise TypeError("Invalid output format")
 
     def result(self, cp, version, urls, handler, confidence):
-        from euscan.helpers import get_version_type
+        from euscan.version import get_version_type
 
         cpv = '%s-%s' % (cp, version)
         urls = ' '.join(transform_url(self.config, cpv, url) for url in urls.split())
