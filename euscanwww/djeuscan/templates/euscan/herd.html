@@ -19,12 +19,14 @@
 <h2>
   Herd: {{ herd.herd }}
   {% if user.is_authenticated %}
-    <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_herd" herd.herd %}">
-      <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" >
-    </button>
-    <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_herd" herd.herd %}">
-      <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" >
-    </button>
+    <span class="pull-right">
+      <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_herd" herd.herd %}">
+        <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" >
+      </button>
+      <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_herd" herd.herd %}">
+        <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" >
+      </button>
+    </span>
   {% endif %}
 
 </h2>

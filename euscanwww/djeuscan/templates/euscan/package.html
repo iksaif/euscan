@@ -32,6 +32,10 @@
   </div>
 {% endif %}
 
+<div class="refresh-alert alert {% if not refreshed %}hide{% endif %}">
+  A refresh request is in progress, please wait...
+</div>
+
 <h2>
   {{ package.category }}/{{ package.name }}
 
@@ -214,6 +218,7 @@
         function() {
           $(".refresh-button").addClass("hide");
           $(".refresh-button-disabled").removeClass("hide");
+          $(".refresh-alert").show("slow");
         });
     });
 

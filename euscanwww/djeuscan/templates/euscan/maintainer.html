@@ -21,14 +21,17 @@
 <h2>
   Maintainer: {{ maintainer.name }} &lt{{ maintainer.email }}&gt
   {% if user.is_authenticated %}
-    <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_maintainer" maintainer.id %}">
-      <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" >
-    </button>
-    <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_maintainer" maintainer.id %}">
-      <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" >
-    </button>
+    <span class="pull-right">
+      <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_maintainer" maintainer.id %}">
+        <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" >
+      </button>
+      <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_maintainer" maintainer.id %}">
+        <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" >
+      </button>
+    </span>
   {% endif %}
 </h2>
+
 {% packages packages %}
 
 <h3>Statistics</h2>
