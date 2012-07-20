@@ -342,9 +342,14 @@ def scan_portage(packages=None, category=None, no_log=False,
 
     if prefetch:
         logger.info('Prefetching objects...')
-        for package in Package.objects.all():
+        ppackages = Package.objects.all()
+        pversions = Version.objects.select_related('package').all()
+        if category:
+            ppackages = ppackages.filter(category=category)
+            pversions = pversions.filter(package__category=category)
+        for package in ppackages:
             scan_handler.cache_store_package(package)
-        for version in Version.objects.select_related('package').all():
+        for version in pversions:
             scan_handler.cache_store_version(version)
         logger.info('done')
 

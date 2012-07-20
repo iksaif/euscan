@@ -159,7 +159,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 INSTALLED_APPS = (
     'euscanwww',
     'djeuscan',
-
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -237,8 +236,7 @@ CELERY_RESULT_BACKEND = "amqp"
 BROKER_CONNECTION_TIMEOUT = 3600
 CELERYD_CONCURRENCY = 4
 
-TASKS_CONCURRENTLY = 8
-TASKS_SUBTASK_PACKAGES = 32
+TASKS_UPSTREAM_GROUPS = 32
 
 CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
 

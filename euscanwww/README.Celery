@@ -9,7 +9,7 @@ or::
 
     python setup.py install  # to install euscan and requirements
 
-If you prefer to use portage just install dev-python/django-celery-2.5.5
+If you prefer to use portage just install dev-python/django-celery
 
 There's the need of having a broker for tasks. The default and reccommended
 broker is RabbitMQ.
