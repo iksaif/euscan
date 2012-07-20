@@ -130,10 +130,10 @@ class ScanMetadata(object):
             )
         return maintainer
 
-    def populate_herds_and_maintainers(self):
+    def populate_herds_and_maintainers(self, herds_xml_path=None):
         self.logger.info("Populating herds and maintainers from herds.xml...")
 
-        herds_xml_path = os.path.join(
+        herds_xml_path = herds_xml_path or os.path.join(
             PORTDB.settings["PORTDIR"], "metadata", "herds.xml"
         )
         try:
