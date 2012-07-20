@@ -24,6 +24,11 @@ class Command(BaseCommand):
             dest='category',
             default=None,
             help='Scan only this category'),
+        make_option('--populate',
+            action='store',
+            dest='populate',
+            default=None,
+            help='Populate herds and maintainers from herds.xml'),
         )
     args = '<package package ...>'
     help = 'Scans metadata and fills database'
@@ -42,5 +47,6 @@ class Command(BaseCommand):
         scan_metadata(
             packages=packages,
             category=options['category'],
-            logger=logger
+            logger=logger,
+            populate=options['populate'],
         )

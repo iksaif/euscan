@@ -164,7 +164,7 @@ class ScanMetadata(object):
 
 
 @commit_on_success
-def scan_metadata(packages=None, category=None, logger=None, populate=True):
+def scan_metadata(packages=None, category=None, logger=None, populate=False):
     scan_handler = ScanMetadata(logger=logger)
 
     if category:

@@ -15,6 +15,7 @@ from djeuscan.models import Package, Version, VersionLog
 
 PORTDB = None
 
+
 class ScanPortage(object):
     def __init__(self, logger=None, no_log=False, purge_packages=False,
                  purge_versions=False):
@@ -23,8 +24,8 @@ class ScanPortage(object):
         self.purge_packages = purge_packages
         self.purge_versions = purge_versions
 
-        if not PORTDB: # Lazy loading for portdb
-            global PORTDB
+        global PORTDB
+        if not PORTDB:  # Lazy loading for portdb
             PORTDB = portage.db[portage.root]["porttree"].dbapi
 
         self.style = color_style()

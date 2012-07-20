@@ -2,15 +2,15 @@
 Celery tasks for djeuscan
 """
 
-from itertools import islice
-
-from celery.task import task, group, chord
+from celery.task import task, group
 
 from django.conf import settings
 
+import portage
+
 from djeuscan.models import Package, RefreshPackageQuery
 from djeuscan.processing import scan, misc
-from djeuscan.utils import queryset_iterator
+
 
 class TaskFailedException(Exception):
     """
@@ -18,14 +18,22 @@ class TaskFailedException(Exception):
     """
     pass
 
+
 def group_one(task, seq, *args, **kwargs):
     """
     Create a group of tasks, each task handle one element of seq
     """
     tasks = []
-    for i in seq:
-        tasks.append(task.subtask(args=[seq[i]] + list(args), kwargs=kwargs))
+
+    for elem in seq:
+        if "attr_name" in kwargs:
+            kwargs[kwargs["attr_name"]] = elem
+            del kwargs["attr_name"]
+            tasks.append(task.subtask(args=args, kwargs=kwargs))
+        else:
+            tasks.append(task.subtask(args=[elem] + list(args), kwargs=kwargs))
     return group(tasks)
+
 
 def group_chunks(task, seq, n, *args, **kwargs):
     """
@@ -33,8 +41,11 @@ def group_chunks(task, seq, n, *args, **kwargs):
     """
     tasks = []
     for i in xrange(0, len(seq), n):
-        tasks.append(task.subtask(args=[seq[i:i+n]] + list(args), kwargs=kwargs))
+        tasks.append(
+            task.subtask(args=[seq[i:i + n]] + list(args), kwargs=kwargs)
+        )
     return group(tasks)
+
 
 @task
 def regen_rrds():
@@ -43,6 +54,7 @@ def regen_rrds():
     """
     misc.regen_rrds()
     return True
+
 
 @task
 def update_counters(fast=False):
@@ -55,8 +67,9 @@ def update_counters(fast=False):
     logger.info("Done")
     return True
 
+
 @task
-def scan_metadata(packages=[], category=None):
+def scan_metadata(packages=[], category=None, populate=False):
     """
     Scans metadata for the given set of packages
     """
@@ -75,8 +88,10 @@ def scan_metadata(packages=[], category=None):
         packages=packages,
         category=category,
         logger=logger,
+        populate=populate,
     )
     return True
+
 
 @task
 def scan_portage(packages=[], category=None,
@@ -107,6 +122,7 @@ def scan_portage(packages=[], category=None,
     )
     return True
 
+
 @task
 def scan_upstream(packages=[], purge_versions=False):
     """
@@ -128,6 +144,7 @@ def scan_upstream(packages=[], purge_versions=False):
     )
     return True
 
+
 @task
 def update_portage_trees():
     """
@@ -137,16 +154,18 @@ def update_portage_trees():
     misc.update_portage_trees(logger=logger)
     return True
 
+
 @task
 def update_portage(packages=None):
+    update_portage_trees()
+    scan_portage(purge_packages=True, purge_versions=True, prefetch=True)
     (
-        update_portage_trees.s() |
-        scan_portage.si(purge_packages=True, purge_versions=True, prefetch=True) |
-        #scan_metadata.si() |
-        group_one(scan_metadata, portage.settings.categories) |
+        group_one(scan_metadata, portage.settings.categories,
+                  attr_name="category") |
         update_counters.si(fast=False)
     )()
     return True
+
 
 @task
 def update_upstream():
@@ -165,6 +184,7 @@ def update_upstream():
     )()
     return True
 
+
 @task
 def scan_package(package):
     scan_portage([package], purge_packages=True, purge_versions=True)
@@ -172,10 +192,12 @@ def scan_package(package):
     scan_upstream([package])
     return True
 
+
 @task(rate_limit="1/m")
 def scan_package_user(package):
     scan_package(package)
     return True
+
 
 @task
 def consume_refresh_package_request():
@@ -191,6 +213,7 @@ def consume_refresh_package_request():
     query.delete()
     scan_package_user.delay(pkg)
 
+
 admin_tasks = [
     regen_rrds,
     update_counters,
@@ -203,7 +226,8 @@ admin_tasks = [
     scan_package,
 ]
 
-""" Chunk helpers (chunks can't use keyword arguments) """
+
+# Chunk helpers (chunks can't use keyword arguments)
 @task
 def scan_metadata_category(category):
     """
@@ -211,6 +235,7 @@ def scan_metadata_category(category):
     """
     scan_metadata(category=category)
     return True
+
 
 @task
 def scan_upstream_purge(*packages):
