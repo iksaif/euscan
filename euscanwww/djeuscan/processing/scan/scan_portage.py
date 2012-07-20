@@ -8,14 +8,12 @@ from xml.etree.ElementTree import iterparse, ParseError
 from django.db.transaction import commit_on_success
 from django.core.management.color import color_style
 
-from euscan.helpers import get_version_type
+from euscan.version import get_version_type
 
 from djeuscan.processing import FakeLogger
 from djeuscan.models import Package, Version, VersionLog
 
-
-PORTDB = portage.db[portage.root]["porttree"].dbapi
-
+PORTDB = None
 
 class ScanPortage(object):
     def __init__(self, logger=None, no_log=False, purge_packages=False,
@@ -24,6 +22,10 @@ class ScanPortage(object):
         self.no_log = no_log
         self.purge_packages = purge_packages
         self.purge_versions = purge_versions
+
+        if not PORTDB: # Lazy loading for portdb
+            global PORTDB
+            PORTDB = portage.db[portage.root]["porttree"].dbapi
 
         self.style = color_style()
 
@@ -342,9 +344,14 @@ def scan_portage(packages=None, category=None, no_log=False,
 
     if prefetch:
         logger.info('Prefetching objects...')
-        for package in Package.objects.all():
+        ppackages = Package.objects.all()
+        pversions = Version.objects.select_related('package').all()
+        if category:
+            ppackages = ppackages.filter(category=category)
+            pversions = pversions.filter(package__category=category)
+        for package in ppackages:
             scan_handler.cache_store_package(package)
-        for version in Version.objects.select_related('package').all():
+        for version in pversions:
             scan_handler.cache_store_version(version)
         logger.info('done')
 

@@ -24,6 +24,7 @@ CONFIG = {
     'mirror': False,
     'ignore-pre-release': False,
     'ignore-pre-release-if-stable': False,
+    'ebuild-uri': False,
 }
 
 BLACKLIST_VERSIONS = [

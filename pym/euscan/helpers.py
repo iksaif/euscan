@@ -33,27 +33,6 @@ VERSION_CMP_PACKAGE_QUIRKS = {
 _v_end = '((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)'
 _v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(' + _v_end + '*))'
 
-
-def is_version_stable(version):
-    return is_version_type_stable(get_version_type(version))
-
-
-def is_version_type_stable(version_type):
-    return version_type not in ("alpha", "beta", "pre", "rc")
-
-
-def get_version_type(version):
-    types = []
-    gentoo_types = ("alpha", "beta", "pre", "rc", "p")
-
-    for token in re.findall("[\._-]([a-zA-Z]+)", version):
-        if token in gentoo_types:
-            types.append(token)
-    if types:
-        return types[0]  # TODO: consider returning all types
-    return "release"
-
-
 # Stolen from g-pypi
 def gentoo_mangle_version(up_pv):
     """Convert PV to MY_PV if needed
@@ -416,7 +395,7 @@ def urlallowed(url):
 
         setdefaulttimeout(timeout)
 
-    return rp.can_fetch(CONFIG['user-agent'], url) if rp else False
+    return rp.can_fetch(CONFIG['user-agent'], url) if rp else True
 
 
 def urlopen(url, timeout=None, verb="GET"):

@@ -1,5 +1,22 @@
 import re
 
+def is_version_type_stable(version_type):
+    return version_type not in ("alpha", "beta", "pre", "rc")
+
+def is_version_stable(version):
+    return is_version_type_stable(get_version_type(version))
+
+def get_version_type(version):
+    types = []
+    gentoo_types = ("alpha", "beta", "pre", "rc", "p")
+
+    for token in re.findall("[\._-]([a-zA-Z]+)", version):
+        if token in gentoo_types:
+            types.append(token)
+    if types:
+        return types[0]  # TODO: consider returning all types
+    return "release"
+
 # Stolen from pkg_resources, but importing it is not a good idea
 
 component_re = re.compile(r'(\d+ | [a-z]+ | \.| -)', re.VERBOSE)

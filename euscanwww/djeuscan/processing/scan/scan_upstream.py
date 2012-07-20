@@ -153,9 +153,12 @@ def scan_upstream(packages=None, purge_versions=False,
 
     for pkg in packages:
         try:
-            scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
+            package = '%s/%s' % (pkg.category, pkg.name)
         except AttributeError:
-            scan_handler.scan(pkg)
+            package = pkg
+
+        logger.info('Scanning %s' % package)
+        scan_handler.scan(package)
 
     scan_handler.purge_old_versions()
 

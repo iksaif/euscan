@@ -1,10 +1,9 @@
 from django import template
 from django.conf import settings
 
-from euscan import helpers
+from euscan.version import is_version_type_stable, get_version_type
 
 register = template.Library()
-
 
 @register.inclusion_tag('euscan/_packages.html', takes_context=True)
 def packages(context, pkgs):
@@ -61,9 +60,9 @@ def overlays_table(overlays):
 
 @register.filter
 def is_stable(version_type):
-    return helpers.is_version_type_stable(version_type)
+    return is_version_type_stable(version_type)
 
 
 @register.filter
 def version_type(version):
-    return helpers.get_version_type(version)
+    return get_version_type(version)
