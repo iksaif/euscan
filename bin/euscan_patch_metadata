@@ -52,7 +52,7 @@ def get_watch_data(package):
     _, temp_deb = mkstemp()
     temp_dir = os.path.dirname(temp_deb)
 
-    logger.info("  Downloading deb %s...", deb_url)
+    logger.info("  Downloading debian source %s...", deb_url)
     urllib.urlretrieve(deb_url, temp_deb)
     tar = tarfile.open(temp_deb)
 
@@ -95,8 +95,16 @@ def get_deb_url(name):
 
 
 def patch_metadata(metadata_path, watch_data):
+    watch_data = "\n".join([line for line in watch_data.split("\n")
+                            if not line.startswith("#")])  # comments
     watch_data = watch_data.replace("\\\n", "")  # remove backslashes
-    watch_data = " ".join(watch_data.split())
+    watch_data = " ".join(watch_data.split())  # remove extra spaces and \n
+
+    result = re.match(
+        r'(version=\d+?) (opts=(?:"[^"]+?"|[^\s]+?) )?(.*)', watch_data
+    )
+
+    version, attrs, url = [r.strip() for r in result.groups()]
 
     with open(metadata_path) as fp:
         original = fp.read()
@@ -106,7 +114,10 @@ def patch_metadata(metadata_path, watch_data):
 
     logger.info("  Patching metadata file")
 
-    watch_tag = '%s<watch>%s</watch>' % (indent, watch_data)
+    if attrs:
+        watch_tag = '%s<watch %s %s>%s</watch>' % (indent, version, attrs, url)
+    else:
+        watch_tag = '%s<watch %s>%s</watch>' % (indent, version, url)
 
     if '<upstream>' in data:
         data = data.replace('<upstream>', '<upstream>\n%s' % watch_tag, 1)
@@ -128,8 +139,9 @@ def process_package(query):
             no_matches_fatal=False,
     )
 
-    if not matches:
+    if len(matches) == 0:
         logger.error("  Package not found")
+        return None
 
     matches = sorted(matches)
     package = matches.pop()
