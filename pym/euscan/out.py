@@ -5,10 +5,9 @@ import signal
 import time
 import re
 
-from gentoolkit import pprinter as pp
 import portage
 from portage.output import EOutput, TermProgressBar
-
+from gentoolkit import pprinter as pp
 
 class ProgressHandler(object):
     def __init__(self, progress_bar):
@@ -65,6 +64,31 @@ def clean_colors(string):
         string = re.sub(r"\x1b\[[0-9;]+m", "", string)
     return string
 
+
+def transform_url(config, cpv, url):
+    if config['mirror']:
+        url = to_mirror(url)
+    if config['ebuild-uri']:
+        url = to_ebuild_uri(cpv, url)
+    return url
+
+def to_ebuild_uri(cpv, url):
+    cat, pkg, ver, rev = portage.catpkgsplit(cpv)
+    p = '%s-%s' % (pkg, ver)
+    pvr = '%s%s' % (ver, '-%s' % rev if rev != 'r0' else '')
+    pf = '%s-%s' % (pkg, pvr)
+    evars = (
+        (p  , 'P'),
+        (pkg, 'PN'),
+        (ver, 'PV'),
+        (rev, 'PR'),
+        (pvr, 'PVR'),
+        (pf , 'PF'),
+        (cat, 'CATEGORY')
+    )
+    for src, dst in evars:
+        url = url.replace(src, '${%s}' % dst)
+    return url
 
 def to_mirror(url):
     mirrors = portage.settings.thirdpartymirrors()
@@ -148,13 +172,15 @@ class EuscanOutput(object):
     def result(self, cp, version, urls, handler, confidence):
         from euscan.helpers import get_version_type
 
-        if self.config['format']:
+        cpv = '%s-%s' % (cp, version)
+        urls = ' '.join(transform_url(self.config, cpv, url) for url in urls.split())
+
+        if self.config['format'] in ['json']:
             _curr = self.queries[self.current_query]
             _curr["result"].append(
                 {
                     "version": version,
-                    "urls": [to_mirror(url) if self.config['mirror'] else url
-                             for url in urls.split()],
+                    "urls": urls.split(),
                     "handler": handler,
                     "confidence": confidence,
                     "type": get_version_type(version)

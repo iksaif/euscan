@@ -128,7 +128,10 @@ def print_usage(_error=None, help=None):
         print(yellow(" -I, --ignore-pre-release-if-stable") +
             " - Ignore non-stable versions only if current\n" +
             " " * 38 + "version is stable", file=out)
-
+        print(yellow("     --mirror") +
+            "              - use mirror:// URIs", file=out)
+        print(yellow("     --ebuild-uri") +
+            "              - use ebuild variables in URIs", file=out)
         print(file=out)
 
     if _error in ('packages',) or help:
@@ -182,12 +185,14 @@ def parse_args():
                 pp.output.nocolor()
             elif o in ("-p", "--progress"):
                 CONFIG['progress'] = isatty
-            elif o in ("-m", "--mirror"):
+            elif o in ("--mirror"):
                 CONFIG['mirror'] = True
             elif o in ("-i", "--ignore-pre-release"):
                 CONFIG['ignore-pre-release'] = True
             elif o in ("-I", "--ignore-pre-release-if-stable"):
                 CONFIG['ignore-pre-release-if-stable'] = True
+            elif o in ("--ebuild-uri"):
+                CONFIG['ebuild-uri'] = True
             else:
                 return_code = False
 
@@ -195,11 +200,11 @@ def parse_args():
 
     # here are the different allowed command line options (getopt args)
     getopt_options = {'short': {}, 'long': {}}
-    getopt_options['short']['global'] = "hVCqv1bf:pmiI"
+    getopt_options['short']['global'] = "hVCqv1bf:piI"
     getopt_options['long']['global'] = [
         "help", "version", "nocolor", "quiet", "verbose", "oneshot",
         "brute-force=", "format=", "progress", "mirror", "ignore-pre-release",
-        "ignore-pre-release-if-stable",
+        "ignore-pre-release-if-stable", "ebuild-uri"
     ]
 
     short_opts = getopt_options['short']['global']
