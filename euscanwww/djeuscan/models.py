@@ -23,6 +23,7 @@ class Herd(models.Model):
                             validators=[validate_name])
     email = models.CharField(max_length=128, blank=True, null=True,
                              validators=[validate_email])
+    maintainers = models.ManyToManyField("Maintainer")
 
     def __unicode__(self):
         if self.email:

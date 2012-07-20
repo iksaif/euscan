@@ -1,4 +1,9 @@
+import os
+
 from gentoolkit.query import Query
+from gentoolkit.dbapi import PORTDB
+
+import xml.etree.cElementTree as etree
 
 from django.db.transaction import commit_on_success
 from django.core.management.color import color_style
@@ -87,7 +92,7 @@ class ScanMetadata(object):
                 self.logger.error(
                     self.style.ERROR("Bad maintainer: '%s' '%s'" % \
                                          (maintainer.name, maintainer.email))
-                    )
+                )
         obj.save()
 
     def store_herd(self, name, email):
@@ -125,15 +130,50 @@ class ScanMetadata(object):
             )
         return maintainer
 
+    def populate_herds_and_maintainers(self):
+        self.logger.info("Populating herds and maintainers from herds.xml...")
+
+        herds_xml_path = os.path.join(
+            PORTDB.settings["PORTDIR"], "metadata", "herds.xml"
+        )
+        try:
+            self._herdstree = etree.parse(herds_xml_path)
+        except IOError:
+            return None
+
+        for herd_node in self._herdstree.getiterator('herd'):
+            herd_name = herd_node.findtext('name')
+            herd_email = herd_node.findtext('email')
+
+            try:
+                herd = self.store_herd(herd_name, herd_email)
+            except ValidationError:  # just skip invalid data
+                continue
+
+            herd.maintainers.clear()  # clear previous data
+
+            for maintainer_node in herd_node:
+                if maintainer_node.tag == "maintainer":
+                    maintainer_name = maintainer_node.findtext('name')
+                    maintainer_email = maintainer_node.findtext('email')
+
+                    maintainer = self.store_maintainer(
+                        maintainer_name, maintainer_email
+                    )
+                    herd.maintainers.add(maintainer)
+
 
 @commit_on_success
-def scan_metadata(packages=None, category=None, logger=None):
+def scan_metadata(packages=None, category=None, logger=None, populate=True):
     scan_handler = ScanMetadata(logger=logger)
 
     if category:
         packages = Package.objects.filter(category=category)
     elif not packages:
         packages = Package.objects.all()
+
+    if populate:
+        scan_handler.populate_herds_and_maintainers()
 
     for pkg in packages:
         if isinstance(pkg, Package):
