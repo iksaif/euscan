@@ -216,6 +216,12 @@ def package(request, category, package):
         else:
             favourited = True
 
+    try:
+        refreshed = request.user in \
+            RefreshPackageQuery.objects.get(package=package).users.all()
+    except RefreshPackageQuery.DoesNotExist:
+        refreshed = False
+
     thanks_for_reporting = False
     if request.method == "POST":
         problem_form = ProblemReportForm(package, request.POST)
@@ -238,6 +244,7 @@ def package(request, category, package):
         'vlog': vlog,
         'last_scan': last_scan,
         'favourited': favourited,
+        'refreshed': refreshed,
         'problem_form': problem_form,
         'thanks_for_reporting': thanks_for_reporting
     }
@@ -352,6 +359,12 @@ def refresh_package(request, category, package):
     pkg = get_object_or_404(Package, category=category, name=package)
 
     obj, created = RefreshPackageQuery.objects.get_or_create(package=pkg)
+
+    if request.user in \
+       RefreshPackageQuery.objects.get(package=pkg).users.all():
+        return {"result": "failure"}
+
+    obj.users.add(request.user)
     if not created:
         obj.priority += 1
         obj.save()

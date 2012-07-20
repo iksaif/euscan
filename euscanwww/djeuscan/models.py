@@ -277,6 +277,7 @@ class MaintainerLog(Log):
 class RefreshPackageQuery(models.Model):
     package = models.ForeignKey(Package)
     priority = models.IntegerField(default=0)
+    users = models.ManyToManyField(User)
 
     def __unicode__(self):
         return u'[%d] %s' % (self.priority, self.package)

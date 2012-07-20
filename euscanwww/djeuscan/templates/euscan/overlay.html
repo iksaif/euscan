@@ -12,10 +12,10 @@
   Overlay: {{ overlay }}
   {% if user.is_authenticated %}
     <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_overlay" overlay %}">
-      Watch
+      <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" >
     </button>
     <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_overlay" overlay %}">
-      Unwatch
+      <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" >
     </button>
   {% endif %}
 

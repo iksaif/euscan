@@ -68,7 +68,7 @@ def plaintext2html(text, tabstop=4):
                 prefix = ''
             last = m.groups()[-1]
             if last in ['\n', '\r', '\r\n']:
-                last = '<br>'
+                last = '<br/>'
             return '%s%s' % (prefix, url)
     re_string = re.compile(
         r'(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\r\n|\r|\n)|'
@@ -76,6 +76,8 @@ def plaintext2html(text, tabstop=4):
         re.S | re.M | re.I
     )
     result = re.sub(re_string, do_sub, text)
+
+    result = re.sub(r"\\n", "<br/>", result)
 
     result = recolor('cyan', result)
     result = recolor('blue', result)
