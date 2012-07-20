@@ -416,7 +416,7 @@ def urlallowed(url):
 
         setdefaulttimeout(timeout)
 
-    return rp.can_fetch(CONFIG['user-agent'], url) if rp else False
+    return rp.can_fetch(CONFIG['user-agent'], url) if rp else True
 
 
 def urlopen(url, timeout=None, verb="GET"):
