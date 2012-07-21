@@ -5,6 +5,7 @@ import re
 import urllib
 from tempfile import mkstemp
 import tarfile
+import gzip
 import logging
 import shutil
 
@@ -47,8 +48,37 @@ def guess_indent_values(before):
 
 
 def get_watch_data(package):
-    deb_url = get_deb_url(package.name)
+    deb_url, deb_type = get_deb_url(package.name)
+    if deb_type == "source":
+        return handle_source(deb_url)
+    if deb_type == "diff":
+        return handle_diff(deb_url)
 
+
+def handle_diff(deb_url):
+    _, temp_deb = mkstemp()
+
+    logger.info("  Downloading debian diff %s...", deb_url)
+    urllib.urlretrieve(deb_url, temp_deb)
+
+    watch_data = ""
+
+    fp = gzip.open(temp_deb, 'rb')
+    for line in fp:
+        if re.match(r"\+\+\+ .+?/debian/watch", line):
+            fp.readline()  # diff lines, don't care
+            cur_line = fp.readline()
+            while cur_line.startswith("+"):
+                watch_data += cur_line[1:]
+                cur_line = fp.readline()
+    fp.close()
+
+    os.unlink(temp_deb)
+
+    return watch_data
+
+
+def handle_source(deb_url):
     _, temp_deb = mkstemp()
     temp_dir = os.path.dirname(temp_deb)
 
@@ -75,6 +105,7 @@ def get_watch_data(package):
 
 def get_deb_url(name):
     deb_url = None
+    deb_type = None
 
     while not deb_url:
         url = "http://packages.debian.org/source/unstable/%s" % name
@@ -85,13 +116,18 @@ def get_deb_url(name):
         for link in BeautifulSoup(content, parseOnlyThese=SoupStrainer("a")):
             if re.match("[^\s]+\.debian\.tar\.gz", link.text):
                 deb_url = link["href"]
+                deb_type = "source"
+                break
+            if re.match("[^\s]+\.diff\.gz", link.text):
+                deb_url = link["href"]
+                deb_type = "diff"
                 break
 
         if not deb_url:
             logger.error("  Cannot get package from %s" % url)
             name = raw_input("  Package name in Debian: ")
 
-    return deb_url
+    return deb_url, deb_type
 
 
 def patch_metadata(metadata_path, watch_data):
@@ -101,10 +137,15 @@ def patch_metadata(metadata_path, watch_data):
     watch_data = " ".join(watch_data.split())  # remove extra spaces and \n
 
     result = re.match(
-        r'(version=\d+?) (opts=(?:"[^"]+?"|[^\s]+?) )?(.*)', watch_data
+        r'(version=\d+?) (?:opts=(?:"([^"]+?)"|([^\s]+?)) )?(.*)', watch_data
     )
 
-    version, attrs, url = [r.strip() for r in result.groups()]
+    version, attrs_quote, attrs, url = result.groups()
+    attrs = attrs_quote or attrs
+
+    if attrs:
+        attrs = [x.replace('=', '="') + '"' for x in attrs.split(",")]
+        attrs = " ".join(attrs)
 
     with open(metadata_path) as fp:
         original = fp.read()
