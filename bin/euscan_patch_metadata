@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import re
 import urllib
 from tempfile import mkstemp
@@ -8,6 +9,7 @@ import tarfile
 import gzip
 import logging
 import shutil
+import subprocess
 
 from gentoolkit.query import Query
 from BeautifulSoup import BeautifulSoup, SoupStrainer
@@ -130,7 +132,7 @@ def get_deb_url(name):
     return deb_url, deb_type
 
 
-def patch_metadata(metadata_path, watch_data):
+def patch_metadata(metadata_path, watch_data, diff=False):
     watch_data = "\n".join([line for line in watch_data.split("\n")
                             if not line.startswith("#")])  # comments
     watch_data = watch_data.replace("\\\n", "")  # remove backslashes
@@ -167,10 +169,20 @@ def patch_metadata(metadata_path, watch_data):
             (rindent, watch_tag, rindent)
         data = data.replace('</pkgmetadata>', rep, 1)
 
-    print data
+    if not diff:
+        return data
+    else:
+        _, data_path = mkstemp()
+        with open(data_path, "w") as f:
+            f.write(data)
+        sub = subprocess.Popen(["diff", metadata_path, data_path],
+                               stdout=subprocess.PIPE)
+        content = sub.stdout.read()
+        os.unlink(data_path)
+        return content
 
 
-def process_package(query):
+def process_package(query, diff=False):
     matches = Query(query).smart_find(
             in_installed=True,
             in_porttree=True,
@@ -194,7 +206,7 @@ def process_package(query):
     if watch_data is None:
         logger.error("  No watch file found")
     else:
-        patch_metadata(metadata_path, watch_data)
+        return patch_metadata(metadata_path, watch_data, diff=diff)
 
 
 def main():
@@ -202,13 +214,17 @@ def main():
     p = optparse.OptionParser(
         usage="usage: %prog <package> [<package> [...]]",
     )
+    p.add_option('-d', '--diff', action="store_true", dest="diff",
+                 default=False,
+                 help="Outputs a diff")
     opts, packages = p.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format='%(message)s')
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO,
+                        format='%(message)s')
 
     for package in packages:
         logger.info("Processing %s..." % package)
-        process_package(package)
+        print process_package(package, opts.diff)
 
 if __name__ == "__main__":
     main()
