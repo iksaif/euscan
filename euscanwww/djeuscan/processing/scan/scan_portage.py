@@ -13,9 +13,6 @@ from euscan.version import get_version_type
 from djeuscan.processing import FakeLogger
 from djeuscan.models import Package, Version, VersionLog
 
-PORTDB = None
-
-
 class ScanPortage(object):
     def __init__(self, logger=None, no_log=False, purge_packages=False,
                  purge_versions=False):
@@ -23,10 +20,6 @@ class ScanPortage(object):
         self.no_log = no_log
         self.purge_packages = purge_packages
         self.purge_versions = purge_versions
-
-        global PORTDB
-        if not PORTDB:  # Lazy loading for portdb
-            PORTDB = portage.db[portage.root]["porttree"].dbapi
 
         self.style = color_style()
 
@@ -231,7 +224,7 @@ class ScanPortage(object):
             package.category, package.name, ver, rev, slot, overlay
         )
 
-        overlay_path = overlay_path or PORTDB.settings["PORTDIR"]
+        overlay_path = overlay_path or portage.settings["PORTDIR"]
         package_path = join(overlay_path, package.category, package.name)
         ebuild_path = join(package_path, "%s.ebuild" % cpv.split("/")[-1])
         metadata_path = join(package_path, "metadata.xml")
