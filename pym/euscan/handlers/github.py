@@ -11,7 +11,7 @@ CONFIDENCE = 100.0
 PRIORITY = 100
 
 
-def can_handle(cpv, url):
+def can_handle(pkg, url):
     return url.startswith('mirror://github/')
 
 
@@ -22,13 +22,13 @@ def guess_package(cp, url):
     return (match.group(1), match.group(2), match.group(3))
 
 
-def scan(cpv, url):
+def scan(pkg, url):
     'http://developer.github.com/v3/repos/downloads/'
 
-    user, project, filename = guess_package(cpv, url)
+    user, project, filename = guess_package(pkg.cpv, url)
 
     # find out where version is expected to be found
-    cp, ver, rev = portage.pkgsplit(cpv)
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
     if ver not in filename:
         return
 
@@ -54,5 +54,5 @@ def scan(cpv, url):
             yield (dl['html_url'], pv, HANDLER_NAME, CONFIDENCE)
 
 
-def brute_force(cpv, url):
+def brute_force(pkg, url):
     return []

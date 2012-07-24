@@ -44,7 +44,7 @@ def filter_versions(cp, versions):
     ]
 
 
-def scan_upstream_urls(cpv, urls, on_progress):
+def scan_upstream_urls(pkg, urls, on_progress):
     versions = []
 
     if on_progress:
@@ -73,7 +73,7 @@ def scan_upstream_urls(cpv, urls, on_progress):
             # Try normal scan
             if CONFIG["scan-dir"]:
                 try:
-                    versions.extend(handlers.scan(cpv, url))
+                    versions.extend(handlers.scan(pkg, url))
                 except Exception as e:
                     output.ewarn("Handler failed: [%s] %s"
                             % (e.__class__.__name__, e.message))
@@ -83,12 +83,12 @@ def scan_upstream_urls(cpv, urls, on_progress):
 
             # Brute Force
             if CONFIG["brute-force"] > 0:
-                versions.extend(handlers.brute_force(cpv, url))
+                versions.extend(handlers.brute_force(pkg, url))
 
             if versions and CONFIG['oneshot']:
                 break
 
-    cp, ver, rev = portage.pkgsplit(cpv)
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
     result = filter_versions(cp, versions)
 
@@ -216,7 +216,7 @@ def scan_upstream(query, on_progress=None):
     scan_time = (datetime.now() - start_time).total_seconds()
     output.metadata("scan_time", scan_time, show=False)
 
-    result = scan_upstream_urls(pkg.cpv, urls, on_progress)
+    result = scan_upstream_urls(pkg, urls, on_progress)
 
     if on_progress:
         on_progress(increment=10)

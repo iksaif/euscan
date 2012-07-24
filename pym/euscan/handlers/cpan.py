@@ -12,7 +12,7 @@ PRIORITY = 100
 _cpan_package_name_re = re.compile("mirror://cpan/authors/.*/([^/.]*).*")
 
 
-def can_handle(cpv, url):
+def can_handle(pkg, url):
     return url.startswith('mirror://cpan/')
 
 
@@ -79,8 +79,8 @@ def cpan_vercmp(cp, a, b):
             return 1
 
 
-def scan(cpv, url):
-    cp, ver, rev = portage.pkgsplit(cpv)
+def scan(pkg, url):
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
     pkg = guess_package(cp, url)
 
     orig_url = url
@@ -133,5 +133,5 @@ def scan(cpv, url):
     return ret
 
 
-def brute_force(cpv, url):
+def brute_force(pkg, url):
     return []
