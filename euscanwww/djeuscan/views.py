@@ -1,6 +1,7 @@
 """ Views """
 
 import inspect
+import json
 from annoying.decorators import render_to, ajax_request
 
 from django.http import Http404
@@ -202,6 +203,13 @@ def package(request, category, package):
     log = log[0] if log else None
     vlog = VersionLog.objects.for_package(package, order=True)
 
+    result = json.loads(log.result) if log else None
+
+    if result and package.cp() in result:
+        msg = result[package.cp()]['messages']
+    else:
+        msg = ""
+
     try:
         last_scan = EuscanResult.objects.for_package(package).latest().datetime
     except EuscanResult.DoesNotExist:
@@ -242,6 +250,7 @@ def package(request, category, package):
         'upstream': upstream,
         'log': log,
         'vlog': vlog,
+        'msg' : msg,
         'last_scan': last_scan,
         'favourited': favourited,
         'refreshed': refreshed,

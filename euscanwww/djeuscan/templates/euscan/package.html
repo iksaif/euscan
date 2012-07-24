@@ -132,6 +132,7 @@
         {% endif %}
 
         {{ version.version }} - {{ version.urls }}
+	  {% if confidence < 100 %}({{ version.confidence }}%){% endif %}
       </li>
       {% endfor %}
      </ul>
@@ -168,9 +169,7 @@
   <dt>euscan log</dt>
   <dd>
     <p>Date: {{ log.datetime }}
-    <pre class="log">
-      {{ log.result|ansi_to_html|safe }}
-    </pre>
+    <pre class="log">{{ msg|ansi_to_html|safe }}</pre>
   </dd>
   {% endif %}
 </dl>

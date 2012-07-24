@@ -31,8 +31,11 @@ class ScanUpstream(object):
             ebuild = out[package]["metadata"]["ebuild"]
         except KeyError:
             self.logger.error(
-                "Error while scanning upstream for package %s!\n%s",
-                package,
+                "Error while scanning upstream for package %s!",
+                package
+            )
+            self.logger.debug(
+                "Error %s",
                 out_json
             )
             return {}

@@ -3,8 +3,6 @@ from django.conf import settings
 
 from euscan.version import is_version_type_stable, get_version_type
 
-from djeuscan.utils import plaintext2html
-
 register = template.Library()
 
 
@@ -73,4 +71,6 @@ def version_type(version):
 
 @register.filter
 def ansi_to_html(text):
-    return plaintext2html(text)
+    from ansi2html import Ansi2HTMLConverter
+    conv = Ansi2HTMLConverter(inline=True, linkify=True)
+    return conv.convert(text, full=False)

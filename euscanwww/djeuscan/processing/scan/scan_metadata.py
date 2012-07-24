@@ -160,6 +160,7 @@ class ScanMetadata(object):
                     maintainer = self.store_maintainer(
                         maintainer_name, maintainer_email
                     )
+
                     herd.maintainers.add(maintainer)
 
 
@@ -169,7 +170,7 @@ def scan_metadata(packages=None, category=None, logger=None, populate=False):
 
     if category:
         packages = Package.objects.filter(category=category)
-    elif not packages:
+    elif packages == None:
         packages = Package.objects.all()
 
     if populate:
