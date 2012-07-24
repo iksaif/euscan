@@ -5,21 +5,26 @@ Distributed under the terms of the GNU General Public License v2
 """
 
 from __future__ import print_function
-
+import os
 
 # Meta
 
 __author__ = "Corentin Chary (iksaif)"
 __email__ = "corentin.chary@gmail.com"
-__version__ = "git"
 __productname__ = "euscan"
 __description__ = "A tool to detect new upstream releases."
+
+if os.path.exists(os.path.join(os.path.dirname(__file__), "..", ".git")):
+    import git
+    repo = git.Repo(os.path.join(os.path.dirname(__file__)))
+    __version__ = "git-%s" % repo.head.commit
+else:
+    __version__ = "git"
 
 
 # Imports
 
 import sys
-import os
 import getopt
 from errno import EINTR, EINVAL
 from httplib import HTTPConnection
