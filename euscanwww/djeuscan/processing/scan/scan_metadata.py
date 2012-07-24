@@ -170,7 +170,7 @@ def scan_metadata(packages=None, category=None, logger=None, populate=False):
 
     if category:
         packages = Package.objects.filter(category=category)
-    elif packages == None:
+    elif packages is None:
         packages = Package.objects.all()
 
     if populate:
