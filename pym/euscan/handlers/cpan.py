@@ -7,7 +7,7 @@ from euscan import helpers, output
 
 HANDLER_NAME = "cpan"
 CONFIDENCE = 100.0
-PRIORITY = 100
+PRIORITY = 90
 
 _cpan_package_name_re = re.compile("mirror://cpan/authors/.*/([^/.]*).*")
 

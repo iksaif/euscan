@@ -250,7 +250,7 @@ def package(request, category, package):
         'upstream': upstream,
         'log': log,
         'vlog': vlog,
-        'msg' : msg,
+        'msg': msg,
         'last_scan': last_scan,
         'favourited': favourited,
         'refreshed': refreshed,
