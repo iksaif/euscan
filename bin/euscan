@@ -35,6 +35,7 @@ from euscan import CONFIG, output
 
 # Globals
 isatty = os.environ.get('TERM') != 'dumb' and sys.stdout.isatty()
+isatty_stderr = os.environ.get('TERM') != 'dumb' and sys.stderr.isatty()
 
 
 def exit_helper(status):
@@ -183,7 +184,7 @@ def parse_args():
                 CONFIG['nocolor'] = True
                 pp.output.nocolor()
             elif o in ("-p", "--progress"):
-                CONFIG['progress'] = isatty
+                CONFIG['progress'] = isatty_stderr
             elif o in ("--mirror"):
                 CONFIG['mirror'] = True
             elif o in ("-i", "--ignore-pre-release"):

@@ -3,7 +3,6 @@ from urllib import urlencode
 from django.test import TestCase
 from django.test.client import Client
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
 
 from djeuscan.tests.euscan_factory import UserFactory
 
