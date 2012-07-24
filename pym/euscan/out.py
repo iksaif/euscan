@@ -1,3 +1,4 @@
+import sys
 from io import StringIO
 from collections import defaultdict
 import json
@@ -37,6 +38,7 @@ class ProgressHandler(object):
 def progress_bar():
     on_progress = None
     progress_bar = TermProgressBar(title="euscan")
+    progress_bar.file = sys.stderr
 
     progress_handler = ProgressHandler(progress_bar)
     on_progress = progress_handler.on_progress
