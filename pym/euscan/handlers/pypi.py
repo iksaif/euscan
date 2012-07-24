@@ -10,7 +10,7 @@ CONFIDENCE = 100.0
 PRIORITY = 100
 
 
-def can_handle(cpv, url):
+def can_handle(pkg, url):
     return url.startswith('mirror://pypi/')
 
 
@@ -24,10 +24,10 @@ def guess_package(cp, url):
     return pkg
 
 
-def scan(cpv, url):
+def scan(pkg, url):
     'http://wiki.python.org/moin/PyPiXmlRpc'
 
-    package = guess_package(cpv, url)
+    package = guess_package(pkg.cpv, url)
 
     output.einfo("Using PyPi XMLRPC: " + package)
 
@@ -39,7 +39,7 @@ def scan(cpv, url):
 
     versions.reverse()
 
-    cp, ver, rev = portage.pkgsplit(cpv)
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
     ret = []
 
@@ -54,5 +54,5 @@ def scan(cpv, url):
     return ret
 
 
-def brute_force(cpv, url):
+def brute_force(pkg, url):
     return []

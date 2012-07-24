@@ -104,7 +104,7 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
     return versions
 
 
-def scan(cpv, url):
+def scan(pkg, url):
     for bu in SCANDIR_BLACKLIST_URLS:
         if re.match(bu, url):
             output.einfo("%s is blacklisted by rule %s" % (url, bu))
@@ -114,7 +114,7 @@ def scan(cpv, url):
     if not resolved_url:
         return []
 
-    cp, ver, rev = portage.pkgsplit(cpv)
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
     # 'Hack' for _beta/_rc versions where _ is used instead of -
     if ver not in resolved_url:
@@ -141,8 +141,8 @@ def scan(cpv, url):
     return ret
 
 
-def brute_force(cpv, url):
-    cp, ver, rev = portage.pkgsplit(cpv)
+def brute_force(pkg, url):
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
     url = helpers.parse_mirror(url)
     if not url:
@@ -226,5 +226,5 @@ def brute_force(cpv, url):
     return result
 
 
-def can_handle(cpv, url):
+def can_handle(pkg, url):
     return True

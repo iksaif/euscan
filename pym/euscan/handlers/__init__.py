@@ -14,22 +14,22 @@ handlers = sorted(
 )
 
 
-def find_best_handler(cpv, url):
+def find_best_handler(pkg, url):
     for handler in handlers:
-        if handler.can_handle(cpv, url):
+        if handler.can_handle(pkg, url):
             return handler
     return None
 
 
-def scan(cpv, url):
-    handler = find_best_handler(cpv, url)
+def scan(pkg, url):
+    handler = find_best_handler(pkg, url)
     if handler:
-        return handler.scan(cpv, url)
+        return handler.scan(pkg, url)
     return []
 
 
-def brute_force(cpv, url):
-    handler = find_best_handler(cpv, url)
+def brute_force(pkg, url):
+    handler = find_best_handler(pkg, url)
     if handler:
-        return handler.brute_force(cpv, url)
+        return handler.brute_force(pkg, url)
     return []

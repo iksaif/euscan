@@ -10,7 +10,7 @@ CONFIDENCE = 100.0
 PRIORITY = 100
 
 
-def can_handle(cpv, url):
+def can_handle(pkg, url):
     return url.startswith('mirror://rubygems/')
 
 
@@ -29,13 +29,13 @@ def guess_gem(cpv, url):
     return pkg
 
 
-def scan(cpv, url):
+def scan(pkg, url):
     'http://guides.rubygems.org/rubygems-org-api/#gemversion'
 
-    gem = guess_gem(cpv, url)
+    gem = guess_gem(pkg.cpv, url)
     if not gem:
         output.eerror("Can't guess gem name using %s and %s" % \
-            (cpv, url))
+            (pkg.cpv, url))
         return []
 
     url = 'http://rubygems.org/api/v1/versions/%s.json' % gem
@@ -58,7 +58,7 @@ def scan(cpv, url):
     if not versions:
         return []
 
-    cp, ver, rev = portage.pkgsplit(cpv)
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
     ret = []
 
@@ -73,5 +73,5 @@ def scan(cpv, url):
     return ret
 
 
-def brute_force(cpv, url):
+def brute_force(pkg, url):
     return []

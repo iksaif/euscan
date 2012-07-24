@@ -10,7 +10,7 @@ CONFIDENCE = 100.0
 PRIORITY = 100
 
 
-def can_handle(cpv, url):
+def can_handle(pkg, url):
     if url.startswith('http://pear.php.net/get/'):
         return True
     if url.startswith('http://pecl.php.net/get/'):
@@ -30,12 +30,12 @@ def guess_package_and_channel(cp, url):
     return pkg, host
 
 
-def scan(cpv, url):
-    cp, ver, rev = portage.pkgsplit(cpv)
-    pkg, channel = guess_package_and_channel(cp, url)
+def scan(pkg, url):
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
+    package, channel = guess_package_and_channel(cp, url)
 
     orig_url = url
-    url = 'http://%s/rest/r/%s/allreleases.xml' % (channel, pkg.lower())
+    url = 'http://%s/rest/r/%s/allreleases.xml' % (channel, package.lower())
 
     output.einfo("Using: " + url)
 
@@ -62,7 +62,7 @@ def scan(cpv, url):
         if helpers.version_filtered(cp, ver, pv):
             continue
 
-        url = 'http://%s/get/%s-%s.tgz' % (channel, pkg, up_pv)
+        url = 'http://%s/get/%s-%s.tgz' % (channel, package, up_pv)
 
         if url == orig_url:
             continue
@@ -72,5 +72,5 @@ def scan(cpv, url):
     return ret
 
 
-def brute_force(cpv, url):
+def brute_force(pkg, url):
     return []
