@@ -1,3 +1,4 @@
+from urlparse import urljoin
 import urllib2
 import re
 import StringIO
@@ -34,8 +35,7 @@ def scan_html(data, url, pattern):
 
         match = re.match(pattern, href, re.I)
         if match:
-            results.append((match.group(1), match.group(0)))
-
+            results.append((".".join(match.groups()), match.group(0)))
     return results
 
 
@@ -47,7 +47,7 @@ def scan_ftp(data, url, pattern):
         line = line.replace("\n", "").replace("\r", "")
         match = re.search(pattern, line, re.I)
         if match:
-            results.append((match.group(1), match.group(0)))
+            results.append((".".join(match.groups()), match.group(0)))
 
     return results
 
@@ -77,7 +77,7 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
 
     results = []
 
-    if re.search("<\s*a\s+[^>]*href", data):
+    if re.search("<\s*a\s+[^>]*href", data, re.I):
         results.extend(scan_html(data, url, pattern))
     elif url.startswith('ftp://'):
         results.extend(scan_ftp(data, url, pattern))
@@ -88,11 +88,7 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
         pv = helpers.gentoo_mangle_version(up_pv)
         if helpers.version_filtered(cp, ver, pv):
             continue
-
-        if not url.endswith('/') and not path.startswith('/'):
-            path = url + '/' + path
-        else:
-            path = url + path
+        path = urljoin(url, path)
 
         if not steps and path not in orig_url:
             versions.append((path, pv, HANDLER_NAME, CONFIDENCE))

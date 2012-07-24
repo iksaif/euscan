@@ -33,6 +33,7 @@ VERSION_CMP_PACKAGE_QUIRKS = {
 _v_end = '((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)'
 _v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(' + _v_end + '*))'
 
+
 # Stolen from g-pypi
 def gentoo_mangle_version(up_pv):
     """Convert PV to MY_PV if needed
@@ -536,6 +537,7 @@ def generate_scan_paths(url):
             path += chunk
 
     return steps
+
 
 def parse_mirror(uri):
     from random import shuffle

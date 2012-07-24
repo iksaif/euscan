@@ -11,6 +11,7 @@ import logging
 import shutil
 import subprocess
 
+from portage.exception import AmbiguousPackageName
 from gentoolkit.query import Query
 from BeautifulSoup import BeautifulSoup, SoupStrainer
 
@@ -133,40 +134,60 @@ def get_deb_url(name):
 
 
 def patch_metadata(metadata_path, watch_data, diff=False):
-    watch_data = "\n".join([line for line in watch_data.split("\n")
-                            if not line.startswith("#")])  # comments
-    watch_data = watch_data.replace("\\\n", "")  # remove backslashes
-    watch_data = " ".join(watch_data.split())  # remove extra spaces and \n
-
-    result = re.match(
-        r'(version=\d+?) (?:opts=(?:"([^"]+?)"|([^\s]+?)) )?(.*)', watch_data
-    )
-
-    version, attrs_quote, attrs, url = result.groups()
-    attrs = attrs_quote or attrs
-
-    if attrs:
-        attrs = [x.replace('=', '="') + '"' for x in attrs.split(",")]
-        attrs = " ".join(attrs)
+    logger.info("  Patching metadata file")
 
     with open(metadata_path) as fp:
         original = fp.read()
     rindent, indent = guess_indent_values(original)
-
     data = original
 
-    logger.info("  Patching metadata file")
+    # clean watch_data
+    watch_data = "\n".join([line for line in watch_data.split("\n")
+                            if not line.startswith("#")])  # comments
 
-    if attrs:
-        watch_tag = '%s<watch %s %s>%s</watch>' % (indent, version, attrs, url)
-    else:
-        watch_tag = '%s<watch %s>%s</watch>' % (indent, version, url)
+    watch_data = watch_data.replace("\\\n", "")  # remove backslashes
+
+    watch_tags = []
+
+    for watch_line in watch_data.split("\n"):  # there can be multiple lines
+        watch_line = " ".join(watch_line.split())  # remove extra spaces and \n
+
+        version_parse = re.match("version=(\d+?)", watch_line)
+        if version_parse:
+            version = version_parse.group(1)
+            continue
+
+        if not watch_line:  # skip empty lines
+            continue
+
+        # parse watch_line
+        result = re.match(
+            r'(?:opts=(?:"([^"]+?)"|([^\s]+?)) )?(.*)',
+            watch_line
+        )
+
+        attrs_quote, attrs, url = result.groups()
+        attrs = attrs_quote or attrs
+
+        if attrs:
+            attrs = [x.replace('=', '="') + '"' for x in attrs.split(",")]
+            attrs = " ".join(attrs)
+
+        if attrs:
+            watch_tag = '%s<watch version="%s" %s>%s</watch>' % \
+                (indent, version, attrs, url)
+        else:
+            watch_tag = '%s<watch version="%s">%s</watch>' % \
+                (indent, version, url)
+        watch_tags.append(watch_tag)
+
+    watch_tags = "\n".join(watch_tags)
 
     if '<upstream>' in data:
-        data = data.replace('<upstream>', '<upstream>\n%s' % watch_tag, 1)
+        data = data.replace('<upstream>', '<upstream>\n%s' % watch_tags, 1)
     else:
         rep = '%s<upstream>\n%s\n%s</upstream>\n</pkgmetadata>' % \
-            (rindent, watch_tag, rindent)
+            (rindent, watch_tags, rindent)
         data = data.replace('</pkgmetadata>', rep, 1)
 
     if not diff:
@@ -183,14 +204,18 @@ def patch_metadata(metadata_path, watch_data, diff=False):
 
 
 def process_package(query, diff=False):
-    matches = Query(query).smart_find(
-            in_installed=True,
-            in_porttree=True,
-            in_overlay=True,
-            include_masked=True,
-            show_progress=False,
-            no_matches_fatal=False,
-    )
+    try:
+        matches = Query(query).smart_find(
+                in_installed=True,
+                in_porttree=True,
+                in_overlay=True,
+                include_masked=True,
+                show_progress=False,
+                no_matches_fatal=False,
+        )
+    except AmbiguousPackageName:
+        logger.error("  Ambiguous package name")
+        return None
 
     if len(matches) == 0:
         logger.error("  Package not found")
@@ -224,7 +249,9 @@ def main():
 
     for package in packages:
         logger.info("Processing %s..." % package)
-        print process_package(package, opts.diff)
+        result = process_package(package, opts.diff)
+        if result:
+            print result
 
 if __name__ == "__main__":
     main()

@@ -8,7 +8,7 @@ from euscan import helpers, output
 
 HANDLER_NAME = "github"
 CONFIDENCE = 100.0
-PRIORITY = 100
+PRIORITY = 90
 
 
 def can_handle(pkg, url):

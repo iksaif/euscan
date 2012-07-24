@@ -7,7 +7,7 @@ from euscan import helpers, output
 
 HANDLER_NAME = "php"
 CONFIDENCE = 100.0
-PRIORITY = 100
+PRIORITY = 90
 
 
 def can_handle(pkg, url):

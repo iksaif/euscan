@@ -1,6 +1,6 @@
 from euscan.handlers import generic
 
-PRIORITY = 100
+PRIORITY = 90
 
 HANDLER_NAME = "kde"
 
@@ -14,7 +14,7 @@ def can_handle(pkg, url):
 def clean_results(results):
     ret = []
 
-    for path, version, confidence in results:
+    for path, version, _, confidence in results:
         if version == '5SUMS':
             continue
         ret.append((path, version, HANDLER_NAME, confidence))
