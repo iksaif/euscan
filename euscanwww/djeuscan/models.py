@@ -88,8 +88,11 @@ class Package(models.Model):
     class Meta:
         unique_together = ['category', 'name']
 
-    def __unicode__(self):
+    def cp(self):
         return '%s/%s' % (self.category, self.name)
+
+    def __unicode__(self):
+        return self.cp()
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -137,10 +140,17 @@ class Version(models.Model):
     class Meta:
         unique_together = ['package', 'slot', 'revision', 'version', 'overlay']
 
+    def cpv(self):
+        return '%s/%s-%s-%s' % (
+            self.package.category, self.package.name, self.version,
+            self.revision if self.revision != 'r0' else ''
+        )
+
     def __unicode__(self):
         return '%s/%s-%s-%s:%s [%s]' % (
             self.package.category, self.package.name, self.version,
-            self.revision, self.slot, self.overlay or "<upstream>"
+            self.revision if self.revision != 'r0' else '',
+            self.slot, self.overlay or "<upstream>"
         )
 
     def save(self, *args, **kwargs):
