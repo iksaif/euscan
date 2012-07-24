@@ -158,6 +158,7 @@ def update_portage_trees():
 @task
 def update_portage(packages=None):
     update_portage_trees()
+    scan_metadata(packages=None, populate=True)
     (
         group_one(scan_portage, portage.settings.categories,
                   attr_name="category", purge_packages=True,
