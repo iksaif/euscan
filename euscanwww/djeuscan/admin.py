@@ -7,7 +7,7 @@ from django.contrib import admin
 
 class EuscanResultAdmin(admin.ModelAdmin):
     search_fields = ('package__name', 'package__category')
-    list_filter = ('datetime', )
+    list_filter = ('datetime', 'package__category')
     ordering = ["-datetime"]
 
 
@@ -31,6 +31,12 @@ class VersionAdmin(admin.ModelAdmin):
     list_filter = ('overlay', 'packaged', 'alive')
 
 
+class ProblemReportAdmin(admin.ModelAdmin):
+    list_display = ('package', 'subject', 'datetime')
+    search_fields = ('package__name', 'package__category')
+    list_filter = ('datetime', 'package__category')
+    ordering = ["-datetime"]
+
 admin.site.register(Package, PackageAdmin)
 
 admin.site.register(Herd, HerdAdmin)
@@ -52,4 +58,5 @@ admin.site.register(HerdAssociation)
 admin.site.register(CategoryAssociation)
 admin.site.register(MaintainerAssociation)
 admin.site.register(PackageAssociation)
-admin.site.register(ProblemReport)
+
+admin.site.register(ProblemReport, ProblemReportAdmin)
