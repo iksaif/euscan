@@ -26,7 +26,11 @@ def can_handle(pkg, url):
 def parse_mangles(mangles, string):
     for mangle in mangles:
         # convert regex from perl format to python format
+        # there are some regex in this format: s/pattern/replacement/
         m = re.match(r"s/(.*[^\\])/(.*)/", mangle)
+        if not m:
+            # or in this format s|pattern|replacement|
+            m = re.match(r"s\|(.*[^\\])\|(.*)\|", mangle)
         pattern, repl = m.groups()
         repl = re.sub(r"\$(\d+)", r"\\\1", repl)
         string = re.sub(pattern, repl, string)
