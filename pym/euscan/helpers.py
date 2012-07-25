@@ -30,8 +30,8 @@ VERSION_CMP_PACKAGE_QUIRKS = {
     'sys-process/htop': htop_vercmp
 }
 
-_v_end = '((-|_)(pre|p|beta|b|alpha|a|rc|r)\d*)'
-_v = r'((\d+)((\.\d+)*)([a-zA-Z]*?)(' + _v_end + '*))'
+_v_end = r'(?:(?:-|_)(?:pre|p|beta|b|alpha|a|rc|r)\d*)'
+_v = r'((?:\d+)(?:(?:\.\d+)*)(?:[a-zA-Z]*?)(?:' + _v_end + '*))'
 
 
 # Stolen from g-pypi
