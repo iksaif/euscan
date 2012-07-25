@@ -1,7 +1,6 @@
 {% extends "euscan/_datatable.html" %}
 
 {% load sub %}
-{% load djeuscan_helpers %}
 {% load url from future %}
 
 {% block meta %}
@@ -25,12 +24,6 @@
 {% endblock %}
 
 {% block content %}
-
-{% if thanks_for_reporting %}
-  <div class="alert alert-success">
-    <strong>Thanks!</strong> Your report has been sent to admins
-  </div>
-{% endif %}
 
 <div class="refresh-alert alert {% if not refreshed %}hide{% endif %}">
   A refresh request is in progress, please wait...
@@ -56,158 +49,18 @@
     </span>
   {% endif %}
 </h2>
-<dl>
-  {% if package.description %}
-  <dt>Description</dt>
-  <dd>{{ package.description }}</dd>
-  {% endif %}
-  {% if package.homepage %}
-  <dt>Homepage</dt>
-  <dd>
-    {% for homepage in package.homepages %}
-    <a href="{{ homepage }}">{{ homepage }}</a><br />
-    {% endfor %}
-  </dd>
-  {% endif %}
-  {% if package.herds.all %}
-  <dt>Herds</dt>
-  <dd>
-    {% for herd in package.herds.all %}
-    <a href="{% url "herd" herd.herd %}">
-      {{ herd.herd }}
-    </a>
-    &lt;{{ herd.email }}&gt;
-    {% endfor %}
-  </dd>
-  {% endif %}
-  {% if package.maintainers.all %}
-  <dt>Maintainers</dt>
-  <dd>
-    {% for maintainer in package.maintainers.all %}
-      {% if maintainer.name != maintainer.email %}
-       <a href="{% url "maintainer" maintainer.id %}">
-         {{ maintainer.name }}
-       </a>
-       &lt;{{ maintainer.email }}&gt;
-      {% else %}
-       <a href="{% url "maintainer" maintainer.id %}">
-       {{ maintainer.email }}
-       </a>
-      {% endif %}
-    {% endfor %}
-  </dd>
-  {% endif %}
-  {% if packaged %}
-  <dt>Packaged Versions</dt>
-  <dd>
-    <ul>
-      {% for version in packaged %}
-      <li id="{{ version.version }}-{{version.revision }}:{{ version.slot }}-[{{ version.overlay }}]">
-        {% if version.overlay == "gentoo" %}
-          <img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
-        {% else %}
-          <img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
-        {% endif %}
 
-        {% if version.vtype and not version.vtype|is_stable %}
-          <img src="{{ STATIC_URL }}img/unstable-icon.png" alt="unstable" title="{{ version.vtype }}" />
-        {% endif %}
-
-        {{ version.version }}-{{ version.revision }} :{{ version.slot }} [{{ version.overlay }}]
-      </li>
-      {% endfor %}
-    </ul>
-  </dd>
-  {% endif %}
-  {% if upstream %}
-  <dt>Upstream versions</dt>
-  <dd>
-    <ul>
-      {% for version in upstream %}
-      <li>
-        <img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
-
-        {% if version.vtype and not version.vtype|is_stable %}
-          <img src="{{ STATIC_URL }}img/unstable-icon.png" alt="unstable" title="{{ version.vtype }}" />
-        {% endif %}
-
-        {{ version.version }} - {{ version.urls }}
-	  {% if confidence < 100 %}({{ version.confidence }}%){% endif %}
-      </li>
-      {% endfor %}
-     </ul>
-  </dd>
-  {% endif %}
-  <dt>Version history</dt>
-  <dd>
-    <ul class="log">
-      {% for version in vlog %}
-      {% if version.action == version.VERSION_ADDED %}
-      <li class="added">
-      {% else %}
-      <li class="removed">
-      {% endif %}
-        {% if version.overlay == "gentoo" %}
-          <img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
-        {% elif version.overlay %}
-          <img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
-        {% else %}
-          <img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
-        {% endif %}
-
-        {% if version.vtype and not version.vtype|is_stable %}
-          <img src="{{ STATIC_URL }}img/unstable-icon.png" alt="unstable" title="{{ version.vtype }}" />
-        {% endif %}
-
-        {{ version }} - {{ version.datetime }}
-
-      </li>
-      {% endfor %}
-    </ul>
-  </dt>
-  {% if log %}
-  <dt>euscan log</dt>
-  <dd>
-    <p>Date: {{ log.datetime }}
-    <pre class="log">{{ msg|ansi_to_html|safe }}</pre>
-  </dd>
-  {% endif %}
-</dl>
+{% include "euscan/_package_details.html" %}
 
 <hr/>
 
-<h3 class="report-problems-toggle cursor-pointer">Report problems</h3>
-<div class="report-problems hide">
-  <form action="." method="post" class="form-horizontal">
-    <div class="control-group {% if problem_form.version.errors %}error{% endif %}">
-      <label class="control-label" for="version">{{ problem_form.version.label }}</label>
-      <div class="controls">
-        {{ problem_form.version }}
-        <span class="help-inline">{{ problem_form.version.errors.as_text }}</span>
-      </div>
-    </div>
-    <div class="control-group {% if problem_form.subject.errors %}error{% endif %}">
-      <label class="control-label" for="subject">{{ problem_form.subject.label }}</label>
-      <div class="controls">
-        {{ problem_form.subject }}
-        <span class="help-inline">{{ problem_form.subject.errors.as_text }}</span>
-      </div>
-    </div>
-    <div class="control-group {% if problem_form.message.errors %}error{% endif %}">
-      <label class="control-label" for="message">{{ problem_form.message.label }}</label>
-      <div class="controls">
-        {{ problem_form.message }}
-        <span class="help-inline">{{ problem_form.message.errors.as_text }}</span>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <div class="controls">
-        <input class="btn" type="submit" value="Submit" />
-      </div>
-    </div>
-  </form>
-</div>
+{% if user.is_authenticated %}
+    <form class="pull-right" action="{% url "problem" package.category package.name %}" method="get">
+      <button class="btn bug-button">
+        <img src="{{ STATIC_URL}}/img/bug.png" alt="Report problems" >
+      </button>
+    </form>
+{% endif %}
 
 <script type="text/javascript">
   $(document).ready(function () {
@@ -233,10 +86,6 @@
         $(".favourite-button").removeClass("hide");
         $(".unfavourite-button").addClass("hide");
       });
-    });
-
-    $(".report-problems-toggle").click(function () {
-      $(".report-problems").toggle("slow");
     });
 
   });

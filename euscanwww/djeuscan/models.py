@@ -1,3 +1,5 @@
+import json
+
 from django.db import models
 from django.core.validators import RegexValidator, validate_email, URLValidator
 from django.core.exceptions import ValidationError
@@ -214,6 +216,14 @@ class EuscanResult(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(EuscanResult, self).save(*args, **kwargs)
+
+    def messages(self):
+        result = json.loads(self.result)
+
+        if result and self.package.cp() in result:
+            return result[self.package.cp()]['messages']
+        else:
+            return ""
 
     def __unicode__(self):
         return '[%s] %s/%s' % (
