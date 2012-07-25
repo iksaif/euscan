@@ -166,16 +166,26 @@ def patch_metadata(metadata_path, watch_data, diff=False):
             watch_line
         )
 
-        attrs_quote, attrs, url = result.groups()
-        attrs = attrs_quote or attrs
+        opts_quote, opts, url = result.groups()
+        opts = opts_quote or opts
 
-        if attrs:
-            attrs = [x.replace('=', '="') + '"' for x in attrs.split(",")]
-            attrs = " ".join(attrs)
+        if opts:
+            # clean opts, skip useless ones
+            valid = ("uversionmangle", "versionmangle", "downloadurlmangle")
+            cleaned_opts = []
+            for opt in opts.split(","):
+                opt_name, opt_value = opt.split("=")
+                if opt_name in valid:
+                    cleaned_opts.append('%s="%s"' % (opt_name, opt_value))
+            opts = " ".join(cleaned_opts)
 
-        if attrs:
+        # clean url from useless stuff. Just keep <base> [<filepattern>]
+        url_search = re.search(r"^([^\s]+)(?: ([^\s]*\([^\s]+\)[^\s]*))?", url)
+        url = " ".join([x for x in url_search.groups() if x is not None])
+
+        if opts:
             watch_tag = '%s<watch version="%s" %s>%s</watch>' % \
-                (indent, version, attrs, url)
+                (indent, version, opts, url)
         else:
             watch_tag = '%s<watch version="%s">%s</watch>' % \
                 (indent, version, url)
