@@ -1,0 +1,57 @@
+{% extends "euscan/_datatable.html" %}
+
+{% load sub %}
+{% load djeuscan_helpers %}
+{% load url from future %}
+
+{% block title %}
+{{ block.super }} - Report Problem: {{ package.category }}/{{ package.name }}
+{% endblock %}
+
+{% block content %}
+
+{% if thanks_for_reporting %}
+  <div class="alert alert-success">
+    <strong>Thanks!</strong> Your report has been sent to admins
+  </div>
+{% endif %}
+
+<h2>
+  Report Problem: {{ package.category }}/{{ package.name }}
+</h2>
+
+{% include "euscan/_package_details.html" %}
+<hr/>
+<div class="report-problems">
+  <form action="{% url "problem" package.category package.name %}" method="post" class="form-horizontal">
+    <div class="control-group {% if form.version.errors %}error{% endif %}">
+      <label class="control-label" for="version">{{ form.version.label }}</label>
+      <div class="controls">
+        {{ form.version }}
+        <span class="help-inline">{{ form.version.errors.as_text }}</span>
+      </div>
+    </div>
+    <div class="control-group {% if form.subject.errors %}error{% endif %}">
+      <label class="control-label" for="subject">{{ form.subject.label }}</label>
+      <div class="controls">
+        {{ form.subject }}
+        <span class="help-inline">{{ form.subject.errors.as_text }}</span>
+      </div>
+    </div>
+    <div class="control-group {% if form.message.errors %}error{% endif %}">
+      <label class="control-label" for="message">{{ form.message.label }}</label>
+      <div class="controls">
+        {{ form.message }}
+        <span class="help-inline">{{ form.message.errors.as_text }}</span>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <div class="controls">
+        <input class="btn" type="submit" value="Submit" />
+      </div>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

@@ -5,7 +5,7 @@ Distributed under the terms of the GNU General Public License v2
 """
 
 from __future__ import print_function
-
+import os
 
 # Meta
 
@@ -19,7 +19,6 @@ __description__ = "A tool to detect new upstream releases."
 # Imports
 
 import sys
-import os
 import getopt
 from errno import EINTR, EINVAL
 from httplib import HTTPConnection

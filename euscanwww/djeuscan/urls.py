@@ -22,6 +22,8 @@ package_patterns = patterns('djeuscan.views',
          'unfavourite/$'), 'unfavourite_package', name="unfavourite_package"),
     url((r'^(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/'
          'refresh$'), "refresh_package", name="refresh_package"),
+    url(r'^(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/problem$',
+        'problem', name="problem"),
 )
 
 categories_patterns = patterns('djeuscan.views',

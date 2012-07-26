@@ -1,7 +1,6 @@
 """ Views """
 
 import inspect
-import json
 from annoying.decorators import render_to, ajax_request
 
 from django.http import Http404
@@ -203,13 +202,6 @@ def package(request, category, package):
     log = log[0] if log else None
     vlog = VersionLog.objects.for_package(package, order=True)
 
-    result = json.loads(log.result) if log else None
-
-    if result and package.cp() in result:
-        msg = result[package.cp()]['messages']
-    else:
-        msg = ""
-
     try:
         last_scan = EuscanResult.objects.for_package(package).latest().datetime
     except EuscanResult.DoesNotExist:
@@ -230,32 +222,52 @@ def package(request, category, package):
     except RefreshPackageQuery.DoesNotExist:
         refreshed = False
 
-    thanks_for_reporting = False
-    if request.method == "POST":
-        problem_form = ProblemReportForm(package, request.POST)
-        if problem_form.is_valid():
-            ProblemReport(
-                package=package,
-                version=problem_form.cleaned_data["version"],
-                subject=problem_form.cleaned_data["subject"],
-                message=problem_form.cleaned_data["message"],
-            ).save()
-            thanks_for_reporting = True
-    else:
-        problem_form = ProblemReportForm(package)
-
     return {
         'package': package,
         'packaged': packaged,
         'upstream': upstream,
-        'log': log,
+        'log': log.messages(),
         'vlog': vlog,
-        'msg': msg,
+        'msg': log.messages() if log else "",
         'last_scan': last_scan,
         'favourited': favourited,
         'refreshed': refreshed,
-        'problem_form': problem_form,
-        'thanks_for_reporting': thanks_for_reporting
+    }
+
+
+@login_required
+@render_to('euscan/problem.html')
+def problem(request, category, package):
+    package = get_object_or_404(Package, category=category, name=package)
+    packaged = Version.objects.filter(package=package, packaged=True)
+    upstream = Version.objects.filter(package=package, packaged=False)
+
+    log = EuscanResult.objects.filter(package=package).\
+                               order_by('-datetime')[:1]
+    log = log[0] if log else None
+
+    thanks_for_reporting = False
+
+    if request.method == "POST":
+        form = ProblemReportForm(package, request.POST)
+        if form.is_valid():
+            ProblemReport(
+                package=package,
+                version=form.cleaned_data["version"],
+                subject=form.cleaned_data["subject"],
+                message=form.cleaned_data["message"],
+            ).save()
+            thanks_for_reporting = True
+    else:
+        form = ProblemReportForm(package)
+
+    return {
+        'form': form,
+        'thanks_for_reporting': thanks_for_reporting,
+        'package': package,
+        'packaged': packaged,
+        'upstream': upstream,
+        'msg': log.messages() if log else "",
     }
 
 
@@ -264,8 +276,10 @@ def world(request):
     world_form = WorldForm()
     packages_form = PackagesForm()
 
-    return {'world_form': world_form,
-            'packages_form': packages_form}
+    return {
+        'world_form': world_form,
+        'packages_form': packages_form
+    }
 
 
 @render_to('euscan/world_scan.html')
