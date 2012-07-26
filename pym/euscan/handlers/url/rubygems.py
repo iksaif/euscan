@@ -5,7 +5,7 @@ import urllib2
 
 from euscan import helpers, output
 
-HANDLER_NAME = "rubygem"
+HANDLER_NAME = "rubygems"
 CONFIDENCE = 100.0
 PRIORITY = 90
 
@@ -33,14 +33,23 @@ def scan(pkg, url):
     'http://guides.rubygems.org/rubygems-org-api/#gemversion'
 
     gem = guess_gem(pkg.cpv, url)
+
     if not gem:
         output.eerror("Can't guess gem name using %s and %s" % \
             (pkg.cpv, url))
         return []
 
-    url = 'http://rubygems.org/api/v1/versions/%s.json' % gem
+    output.einfo("Using RubyGem API: %s" % gem)
 
-    output.einfo("Using: " + url)
+    ret = []
+    for url, pv in scan_remote(pkg, [gem]):
+        ret.append(url, pv, HANDLER_NAME, CONFIDENCE)
+    return ret
+
+
+def scan_remote(pkg, remote_data):
+    gem = remote_data[0]
+    url = 'http://rubygems.org/api/v1/versions/%s.json' % gem
 
     try:
         fp = helpers.urlopen(url)
@@ -55,23 +64,14 @@ def scan(pkg, url):
     data = fp.read()
     versions = json.loads(data)
 
-    if not versions:
-        return []
-
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
     ret = []
-
     for version in versions:
         up_pv = version['number']
         pv = helpers.gentoo_mangle_version(up_pv)
         if helpers.version_filtered(cp, ver, pv):
             continue
         url = 'http://rubygems.org/gems/%s-%s.gem' % (gem, up_pv)
-        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
-
+        ret.append((url, pv))
     return ret
-
-
-def brute_force(pkg, url):
-    return []

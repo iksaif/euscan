@@ -129,9 +129,9 @@ def print_usage(_error=None, help=None):
             " - Ignore non-stable versions only if current\n" +
             " " * 38 + "version is stable", file=out)
         print(yellow("     --mirror") +
-            "              - use mirror:// URIs", file=out)
+            "                       - use mirror:// URIs", file=out)
         print(yellow("     --ebuild-uri") +
-            "              - use ebuild variables in URIs", file=out)
+            "                   - use ebuild variables in URIs", file=out)
         print(file=out)
 
     if _error in ('packages',) or help:

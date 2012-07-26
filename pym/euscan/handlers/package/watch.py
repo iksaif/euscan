@@ -3,7 +3,7 @@ import urllib2
 
 import portage
 
-from euscan.handlers import generic
+from euscan.handlers.url import generic
 from euscan import output, helpers
 
 PRIORITY = 100
@@ -15,7 +15,7 @@ CONFIDENCE = 100.0
 is_pattern = r"\([^\/]+\)"
 
 
-def can_handle(pkg, url):
+def can_handle(pkg):
     try:
         return pkg.metadata._xml_tree.find("upstream").find("watch") \
                is not None
@@ -116,7 +116,7 @@ def handle_directory_patterns(base, file_pattern):
             for _, path in scan_data]
 
 
-def scan(pkg, url):
+def scan(pkg):
     output.einfo("Using watch data")
 
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
@@ -126,18 +126,14 @@ def scan(pkg, url):
         if not re.search(is_pattern, base):
             steps = [(base, file_pattern)]
             res = generic.scan_directory_recursive(
-                cp, ver, rev, "", steps, url
+                cp, ver, rev, "", steps, base
             )
         else:
             res = []
             for step in handle_directory_patterns(base, file_pattern):
                 res += generic.scan_directory_recursive(
-                    cp, ver, rev, "", [step], url
+                    cp, ver, rev, "", [step], base
                 )
 
         results += clean_results(res, versionmangle, urlmangle)
     return results
-
-
-def brute_force(pkg, url):
-    return []

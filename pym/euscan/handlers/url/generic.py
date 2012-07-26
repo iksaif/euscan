@@ -108,43 +108,50 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
 
 
 def scan(pkg, url):
-    for bu in SCANDIR_BLACKLIST_URLS:
-        if re.match(bu, url):
-            output.einfo("%s is blacklisted by rule %s" % (url, bu))
+    if CONFIG["scan-dir"]:
+        for bu in SCANDIR_BLACKLIST_URLS:
+            if re.match(bu, url):
+                output.einfo("%s is blacklisted by rule %s" % (url, bu))
+                return []
+
+        resolved_url = helpers.parse_mirror(url)
+        if not resolved_url:
             return []
 
-    resolved_url = helpers.parse_mirror(url)
-    if not resolved_url:
-        return []
+        cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
-    cp, ver, rev = portage.pkgsplit(pkg.cpv)
+        # 'Hack' for _beta/_rc versions where _ is used instead of -
+        if ver not in resolved_url:
+            newver = helpers.version_change_end_sep(ver)
+            if newver and newver in resolved_url:
+                output.einfo(
+                    "Version: using %s instead of %s" % (newver, ver)
+                )
+                ver = newver
 
-    # 'Hack' for _beta/_rc versions where _ is used instead of -
-    if ver not in resolved_url:
-        newver = helpers.version_change_end_sep(ver)
-        if newver and newver in resolved_url:
+        template = helpers.template_from_url(resolved_url, ver)
+        if '${' not in template:
             output.einfo(
-                "Version: using %s instead of %s" % (newver, ver)
+                "Url doesn't seems to depend on version: %s not found in %s" %
+                (ver, resolved_url)
             )
-            ver = newver
+            return []
+        else:
+            output.einfo("Scanning: %s" % template)
 
-    template = helpers.template_from_url(resolved_url, ver)
-    if '${' not in template:
-        output.einfo(
-            "Url doesn't seems to depend on version: %s not found in %s" %
-            (ver, resolved_url)
-        )
-        return []
-    else:
-        output.einfo("Scanning: %s" % template)
+        steps = helpers.generate_scan_paths(template)
+        ret = scan_directory_recursive(cp, ver, rev, "", steps, url)
 
-    steps = helpers.generate_scan_paths(template)
-    ret = scan_directory_recursive(cp, ver, rev, "", steps, url)
+    if not ret:
+        ret = brute_force(pkg, url)
 
     return ret
 
 
 def brute_force(pkg, url):
+    if CONFIG["brute-force"] == 0:
+        return []
+
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
     url = helpers.parse_mirror(url)

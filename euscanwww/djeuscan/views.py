@@ -8,12 +8,10 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
-from djeuscan.helpers import version_key, packages_from_names, \
-    get_account_categories, get_account_herds, get_account_maintainers, \
-    get_account_packages
+from djeuscan.helpers import version_key, packages_from_names, get_profile, \
+    get_account_categories, get_account_herds, get_account_maintainers
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
-    VersionLog, RefreshPackageQuery, HerdAssociation, MaintainerAssociation, \
-    CategoryAssociation, PackageAssociation, OverlayAssociation, ProblemReport
+    VersionLog, RefreshPackageQuery, ProblemReport, Category, Overlay
 from djeuscan.forms import WorldForm, PackagesForm, ProblemReportForm
 from djeuscan.tasks import admin_tasks
 from djeuscan import charts
@@ -68,12 +66,8 @@ def category(request, category):
 
     favourited = False
     if request.user.is_authenticated():
-        try:
-            CategoryAssociation.objects.get(user=request.user,
-                                            category=category)
-        except CategoryAssociation.DoesNotExist:
-            pass
-        else:
+        if Category.objects.get(name=category) in \
+           get_profile(request.user).categories.all():
             favourited = True
 
     return {'category': category, 'packages': packages, 'last_scan': last_scan,
@@ -104,11 +98,7 @@ def herd(request, herd):
 
     favourited = False
     if request.user.is_authenticated():
-        try:
-            HerdAssociation.objects.get(user=request.user, herd=herd)
-        except HerdAssociation.DoesNotExist:
-            pass
-        else:
+        if herd in get_profile(request.user).herds.all():
             favourited = True
 
     return {'herd': herd, 'packages': packages, "last_scan": last_scan,
@@ -140,12 +130,7 @@ def maintainer(request, maintainer_id):
 
     favourited = False
     if request.user.is_authenticated():
-        try:
-            MaintainerAssociation.objects.get(user=request.user,
-                                              maintainer=maintainer)
-        except MaintainerAssociation.DoesNotExist:
-            pass
-        else:
+        if maintainer in get_profile(request.user).maintainers.all():
             favourited = True
 
     return {'maintainer': maintainer, 'packages': packages,
@@ -177,15 +162,13 @@ def overlay(request, overlay):
 
     favourited = False
     if request.user.is_authenticated():
-        try:
-            OverlayAssociation.objects.get(user=request.user, overlay=overlay)
-        except OverlayAssociation.DoesNotExist:
-            pass
-        else:
+        if Overlay.objects.get(name=overlay) in \
+           get_profile(request.user).overlays.all():
             favourited = True
 
     return {'overlay': overlay, 'packages': packages, 'last_scan': last_scan,
             'favourited': favourited}
+
 
 @render_to('euscan/package.html')
 def package(request, category, package):
@@ -208,11 +191,7 @@ def package(request, category, package):
 
     favourited = False
     if request.user.is_authenticated():
-        try:
-            PackageAssociation.objects.get(user=request.user, package=package)
-        except PackageAssociation.DoesNotExist:
-            pass
-        else:
+        if package in get_profile(request.user).packages.all():
             favourited = True
 
     try:
@@ -225,13 +204,14 @@ def package(request, category, package):
         'package': package,
         'packaged': packaged,
         'upstream': upstream,
-        'log': log.messages(),
         'vlog': vlog,
-        'msg' : log.messages() if log else "",
+        'log': log,
+        'msg': log.messages() if log else "",
         'last_scan': last_scan,
         'favourited': favourited,
         'refreshed': refreshed,
     }
+
 
 @login_required
 @render_to('euscan/problem.html')
@@ -265,8 +245,9 @@ def problem(request, category, package):
         'package': package,
         'packaged': packaged,
         'upstream': upstream,
-        'msg' : log.messages() if log else "",
-        }
+        'msg': log.messages() if log else "",
+    }
+
 
 @render_to('euscan/world.html')
 def world(request):
@@ -276,7 +257,7 @@ def world(request):
     return {
         'world_form': world_form,
         'packages_form': packages_form
-        }
+    }
 
 
 @render_to('euscan/world_scan.html')
@@ -394,9 +375,10 @@ def refresh_package(request, category, package):
 @login_required
 @render_to('euscan/accounts/index.html')
 def accounts_index(request):
+    user = request.user
     upstream_k = lambda c: c["n_versions"] - c["n_packaged"]
 
-    categories = sorted(get_account_categories(request.user),
+    categories = sorted(get_account_categories(user),
                         key=upstream_k, reverse=True)
     c_upstream = sum([c["n_versions"] - c["n_packaged"] for c in categories])
     herds = sorted(get_account_herds(request.user),
@@ -405,7 +387,7 @@ def accounts_index(request):
     maintainers = sorted(get_account_maintainers(request.user),
                          key=upstream_k, reverse=True)
     m_upstream = sum([c["n_versions"] - c["n_packaged"] for c in maintainers])
-    packages = sorted(get_account_packages(request.user),
+    packages = sorted(get_profile(user).packages.all(),
                       key=lambda p: p.n_versions - p.n_packaged, reverse=True)
     p_upstream = sum([c.n_versions - c.n_packaged for c in packages])
     return {
@@ -437,14 +419,13 @@ def accounts_maintainers(request):
 @login_required
 @render_to('euscan/accounts/packages.html')
 def accounts_packages(request):
-    return {"packages": get_account_packages(request.user)}
+    return {"packages": get_profile(request.user).packages.all()}
 
 
 @login_required
 @render_to('euscan/accounts/overlays.html')
 def accounts_overlays(request):
-    overlays = [obj.overlay for obj in
-                OverlayAssociation.objects.filter(user=request.user)]
+    overlays = [obj.name for obj in get_profile(request.user).overlays.all()]
     return {"overlays": overlays}
 
 
@@ -453,10 +434,8 @@ def accounts_overlays(request):
 @ajax_request
 def favourite_package(request, category, package):
     obj = get_object_or_404(Package, category=category, name=package)
-    _, created = PackageAssociation.objects.get_or_create(
-        user=request.user, package=obj
-    )
-    return {"success": created}
+    get_profile(request.user).packages.add(obj)
+    return {"success": True}
 
 
 @login_required
@@ -464,10 +443,7 @@ def favourite_package(request, category, package):
 @ajax_request
 def unfavourite_package(request, category, package):
     package = get_object_or_404(Package, category=category, name=package)
-    obj = get_object_or_404(
-        PackageAssociation, package=package, user=request.user
-    )
-    obj.delete()
+    get_profile(request.user).packages.remove(package)
     return {"success": True}
 
 
@@ -476,10 +452,8 @@ def unfavourite_package(request, category, package):
 @ajax_request
 def favourite_herd(request, herd):
     obj = get_object_or_404(Herd, herd=herd)
-    _, created = HerdAssociation.objects.get_or_create(
-        user=request.user, herd=obj
-    )
-    return {"success": created}
+    get_profile(request.user).herds.add(obj)
+    return {"success": True}
 
 
 @login_required
@@ -487,10 +461,7 @@ def favourite_herd(request, herd):
 @ajax_request
 def unfavourite_herd(request, herd):
     herd = get_object_or_404(Herd, herd=herd)
-    obj = get_object_or_404(
-        HerdAssociation, herd=herd, user=request.user
-    )
-    obj.delete()
+    get_profile(request.user).herds.remove(herd)
     return {"success": True}
 
 
@@ -499,10 +470,8 @@ def unfavourite_herd(request, herd):
 @ajax_request
 def favourite_maintainer(request, maintainer_id):
     obj = get_object_or_404(Maintainer, pk=maintainer_id)
-    _, created = MaintainerAssociation.objects.get_or_create(
-        user=request.user, maintainer=obj
-    )
-    return {"success": created}
+    get_profile(request.user).maintainers.add(obj)
+    return {"success": True}
 
 
 @login_required
@@ -510,10 +479,7 @@ def favourite_maintainer(request, maintainer_id):
 @ajax_request
 def unfavourite_maintainer(request, maintainer_id):
     maintainer = get_object_or_404(Maintainer, pk=maintainer_id)
-    obj = get_object_or_404(
-        MaintainerAssociation, maintainer=maintainer, user=request.user
-    )
-    obj.delete()
+    get_profile(request.user).maintainers.remove(maintainer)
     return {"success": True}
 
 
@@ -521,25 +487,17 @@ def unfavourite_maintainer(request, maintainer_id):
 @require_POST
 @ajax_request
 def favourite_category(request, category):
-    packages = Package.objects.for_category(category, last_versions=True)
-
-    if not packages:
-        raise Http404
-
-    _, created = CategoryAssociation.objects.get_or_create(
-        user=request.user, category=category
-    )
-    return {"success": created}
+    obj = Category.objects.get(name=category)
+    get_profile(request.user).categories.add(obj)
+    return {"success": True}
 
 
 @login_required
 @require_POST
 @ajax_request
 def unfavourite_category(request, category):
-    obj = get_object_or_404(
-        CategoryAssociation, user=request.user, category=category
-    )
-    obj.delete()
+    obj = Category.objects.get(name=category)
+    get_profile(request.user).categories.remove(obj)
     return {"success": True}
 
 
@@ -547,22 +505,15 @@ def unfavourite_category(request, category):
 @require_POST
 @ajax_request
 def favourite_overlay(request, overlay):
-    packages = Package.objects.for_overlay(overlay)
-    if not packages:
-        raise Http404
-
-    _, created = OverlayAssociation.objects.get_or_create(
-        user=request.user, overlay=overlay
-    )
-    return {"success": created}
+    obj = Category.objects.get(name=overlay)
+    get_profile(request.user).overlays.add(obj)
+    return {"success": True}
 
 
 @login_required
 @require_POST
 @ajax_request
 def unfavourite_overlay(request, overlay):
-    obj = get_object_or_404(
-        OverlayAssociation, user=request.user, overlay=overlay
-    )
-    obj.delete()
+    obj = Category.objects.get(name=overlay)
+    get_profile(request.user).overlays.remove(obj)
     return {"success": True}

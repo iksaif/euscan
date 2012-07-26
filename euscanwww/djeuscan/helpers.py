@@ -76,33 +76,33 @@ class catch_and_return(object):
         return wrapper
 
 
-def get_account_categories(user):
-    from djeuscan.models import Package, CategoryAssociation
+def get_profile(user):
+    from djeuscan.models import UserProfile
+    try:
+        return user.get_profile()
+    except UserProfile.DoesNotExist:
+        UserProfile.objects.create(user=user)
+        return user.get_profile()
 
+
+def get_account_categories(user):
+    from djeuscan.models import Package
     # TODO: This is quite ugly
-    category_names = [obj.category for obj in
-                      CategoryAssociation.objects.filter(user=user)]
+    category_names = [obj.name for obj in get_profile(user).categories.all()]
     return [c for c in Package.objects.categories()
             if c["category"] in category_names]
 
 
 def get_account_herds(user):
-    from djeuscan.models import Package, HerdAssociation
+    from djeuscan.models import Package
 
-    ids = [obj.herd.pk for obj in
-           HerdAssociation.objects.filter(user=user)]
+    ids = [herd.pk for herd in get_profile(user).herds.all()]
     return Package.objects.herds(ids=ids)
 
 
 def get_account_maintainers(user):
-    from djeuscan.models import Package, MaintainerAssociation
+    from djeuscan.models import Package
 
-    ids = [obj.maintainer.pk for obj in
-           MaintainerAssociation.objects.filter(user=user)]
+    ids = [obj.pk for obj in get_profile(user).maintainers.all()]
     return Package.objects.maintainers(ids=ids)
 
-
-def get_account_packages(user):
-    from djeuscan.models import PackageAssociation
-    return [obj.package for obj in
-            PackageAssociation.objects.filter(user=user)]

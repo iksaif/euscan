@@ -9,7 +9,7 @@ import tarfile
 import gzip
 import logging
 import shutil
-import subprocess
+from difflib import unified_diff
 
 from portage.exception import AmbiguousPackageName
 from gentoolkit.query import Query
@@ -117,7 +117,7 @@ def get_deb_url(name):
         content = opened.read()
 
         for link in BeautifulSoup(content, parseOnlyThese=SoupStrainer("a")):
-            if re.match("[^\s]+\.debian\.tar\.gz", link.text):
+            if re.match("[^\s]+\.debian\.tar\.(?:gz|bz2)", link.text):
                 deb_url = link["href"]
                 deb_type = "source"
                 break
@@ -133,8 +133,10 @@ def get_deb_url(name):
     return deb_url, deb_type
 
 
-def patch_metadata(metadata_path, watch_data, diff=False):
+def patch_metadata(package, watch_data, diff=False):
     logger.info("  Patching metadata file")
+
+    metadata_path = package.metadata.metadata_path
 
     with open(metadata_path) as fp:
         original = fp.read()
@@ -203,14 +205,17 @@ def patch_metadata(metadata_path, watch_data, diff=False):
     if not diff:
         return data
     else:
-        _, data_path = mkstemp()
-        with open(data_path, "w") as f:
-            f.write(data)
-        sub = subprocess.Popen(["diff", metadata_path, data_path],
-                               stdout=subprocess.PIPE)
-        content = sub.stdout.read()
-        os.unlink(data_path)
-        return content
+        # Generate clean a/category/package/metadata.xml path
+        n = metadata_path.find(package.category)
+        if n != -1:
+            metadata_path = metadata_path[n:]
+        res = unified_diff(
+            original.splitlines(True),
+            data.splitlines(True),
+            fromfile=os.path.join('a/', metadata_path),
+            tofile=os.path.join('b/', metadata_path),
+        )
+        return "".join([x for x in res])
 
 
 def process_package(query, diff=False):
@@ -236,12 +241,11 @@ def process_package(query, diff=False):
     if '9999' in package.version and len(matches) > 0:
         package = matches.pop()
 
-    metadata_path = package.metadata.metadata_path
     watch_data = get_watch_data(package)
     if watch_data is None:
         logger.error("  No watch file found")
     else:
-        return patch_metadata(metadata_path, watch_data, diff=diff)
+        return patch_metadata(package, watch_data, diff=diff)
 
 
 def main():
@@ -261,7 +265,7 @@ def main():
         logger.info("Processing %s..." % package)
         result = process_package(package, opts.diff)
         if result:
-            print result
+            sys.stdout.write(result)
 
 if __name__ == "__main__":
     main()
