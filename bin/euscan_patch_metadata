@@ -117,7 +117,7 @@ def get_deb_url(name):
         content = opened.read()
 
         for link in BeautifulSoup(content, parseOnlyThese=SoupStrainer("a")):
-            if re.match("[^\s]+\.debian\.tar\.gz", link.text):
+            if re.match("[^\s]+\.debian\.tar\.(?:gz|bz2)", link.text):
                 deb_url = link["href"]
                 deb_type = "source"
                 break
