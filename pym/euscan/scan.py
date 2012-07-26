@@ -169,8 +169,7 @@ def scan_upstream(query, on_progress=None):
     is_current_version_stable = is_version_stable(ver)
     if len(result) > 0:
         if not (CONFIG['format'] or CONFIG['quiet']):
-            print("\n", file=sys.stderr)
-
+            print("")
         for cp, url, version, handler, confidence in result:
             if CONFIG["ignore-pre-release"]:
                 if not is_version_stable(version):
@@ -179,6 +178,8 @@ def scan_upstream(query, on_progress=None):
                 if is_current_version_stable and \
                    not is_version_stable(version):
                     continue
+            if CONFIG['progress']:
+               print ("", file=sys.stderr)
             output.result(cp, version, url, handler, confidence)
 
     return result
