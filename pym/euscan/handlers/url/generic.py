@@ -143,7 +143,7 @@ def scan(pkg, url):
         ret = scan_directory_recursive(cp, ver, rev, "", steps, url)
 
     if not ret:
-        brute_force(pkg, url)
+        ret = brute_force(pkg, url)
 
     return ret
 
