@@ -49,7 +49,13 @@ class ScanMetadata(object):
         if created:
             self.logger.info('+ [p] %s/%s' % (pkg.category, pkg.name))
 
-        if not pkg.metadata:
+        try:
+            if not pkg.metadata:
+                return
+        except Exception as e:
+            self.logger.error(
+                self.style.ERROR('%s/%s: %s' % (pkg.category, pkg.name, str(e)))
+            )
             return
 
         herds = dict(
