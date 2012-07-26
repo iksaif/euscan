@@ -1,8 +1,8 @@
 from django.db.transaction import commit_on_success
 from django.utils import timezone
 
-from djeuscan.models import Package, Herd, Maintainer, Version
-from djeuscan.models import HerdLog, MaintainerLog, CategoryLog, WorldLog
+from djeuscan.models import Package, Herd, Maintainer, Version, HerdLog, \
+    MaintainerLog, CategoryLog, WorldLog, Category, Overlay
 from djeuscan import charts
 from djeuscan.processing import FakeLogger
 
@@ -47,6 +47,19 @@ def update_counters(fast=False, nolog=False, logger=None):
     maintainers = {}
 
     wlog = None
+
+    # Populate Category and Overlay
+    for cat in Package.objects.values('category').distinct():
+        obj, created = Category.objects.get_or_create(name=cat["category"])
+        if created:
+            logger.info("+ [c] %s", cat["category"])
+
+    for overlay in Version.objects.values('overlay').distinct():
+        if not overlay["overlay"]:
+            continue
+        obj, created = Overlay.objects.get_or_create(name=overlay["overlay"])
+        if created:
+            logger.info("+ [o] %s", overlay["overlay"])
 
     if not nolog:
         wlog = WorldLog()
@@ -157,17 +170,17 @@ def update_counters(fast=False, nolog=False, logger=None):
         return
 
     for clog in categories.values():
-        logger.info('+ [cl] %s' % clog)
+        logger.info('+ [cl] %s', clog)
         charts.rrd_update('category-%s' % clog.category, now, clog)
         clog.save()
 
     for hlog in herds.values():
-        logger.info('+ [hl] %s' % hlog)
+        logger.info('+ [hl] %s', hlog)
         charts.rrd_update('herd-%d' % hlog.herd.id, now, hlog)
         hlog.save()
 
     for mlog in maintainers.values():
-        logger.info('+ [ml] %s' % mlog)
+        logger.info('+ [ml] %s', mlog)
         charts.rrd_update('maintainer-%d' % mlog.maintainer.id, now, mlog)
         mlog.save()
 

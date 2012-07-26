@@ -5,12 +5,11 @@ try:
 except ImportError:
     from bs4 import BeautifulSoup
 
+from djeuscan.helpers import get_profile
+
 from djeuscan.tests import SystemTestCase
 from djeuscan.tests.euscan_factory import PackageFactory, setup_maintainers, \
     setup_herds, setup_categories, setup_overlays
-
-from djeuscan.models import PackageAssociation, CategoryAssociation, \
-    HerdAssociation, MaintainerAssociation
 
 
 class PagesTest(SystemTestCase):
@@ -50,11 +49,10 @@ class PackageTests(SystemTestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_favourite(self):
-        self.assertEqual(PackageAssociation.objects.count(), 0)
-
         response = self.get("package", category=self.package.category,
                             package=self.package.name)
         self.assertEqual(response.status_code, 200)
+
         self.assertNotIn("Watch", response.content)
 
         with self.login():
@@ -62,11 +60,14 @@ class PackageTests(SystemTestCase):
                                 package=self.package.name)
             self.assertEqual(response.status_code, 200)
 
+            user = response.context["user"]
+            self.assertEquals(get_profile(user).categories.count(), 0)
+
             self.assertIn("Watch", response.content)
             self.post("favourite_package", category=self.package.category,
                       package=self.package.name)
 
-            self.assertEqual(PackageAssociation.objects.count(), 1)
+            self.assertEquals(get_profile(user).packages.count(), 1)
 
             response = self.get("accounts_packages")
             self.assertEqual(response.status_code, 200)
@@ -75,7 +76,7 @@ class PackageTests(SystemTestCase):
 
             self.post("unfavourite_package", category=self.package.category,
                       package=self.package.name)
-            self.assertEqual(PackageAssociation.objects.count(), 0)
+            self.assertEquals(get_profile(user).packages.count(), 0)
 
 
 class SectionTests(SystemTestCase):
@@ -118,9 +119,9 @@ class CategoriesTests(SectionTests):
 
     def test_favourite(self):
         category = self.categories[0]
-        self.assertEqual(CategoryAssociation.objects.count(), 0)
 
         response = self.get("category", category=category)
+
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("Watch", response.content)
 
@@ -128,10 +129,13 @@ class CategoriesTests(SectionTests):
             response = self.get("category", category=category)
             self.assertEqual(response.status_code, 200)
 
+            user = response.context["user"]
+            self.assertEquals(get_profile(user).categories.count(), 0)
+
             self.assertIn("Watch", response.content)
             self.post("favourite_category", category=category)
 
-            self.assertEqual(CategoryAssociation.objects.count(), 1)
+            self.assertEquals(get_profile(user).categories.count(), 1)
 
             response = self.get("accounts_categories")
             self.assertEqual(response.status_code, 200)
@@ -139,7 +143,8 @@ class CategoriesTests(SectionTests):
             self._check_table(response, [category])
 
             self.post("unfavourite_category", category=category)
-            self.assertEqual(CategoryAssociation.objects.count(), 0)
+
+            self.assertEquals(get_profile(user).categories.count(), 0)
 
 
 class HerdsTests(SectionTests):
@@ -167,7 +172,6 @@ class HerdsTests(SectionTests):
 
     def test_favourite(self):
         herd = self.herds[0]
-        self.assertEqual(HerdAssociation.objects.count(), 0)
 
         response = self.get("herd", herd=herd.herd)
         self.assertEqual(response.status_code, 200)
@@ -177,10 +181,13 @@ class HerdsTests(SectionTests):
             response = self.get("herd", herd=herd.herd)
             self.assertEqual(response.status_code, 200)
 
+            user = response.context["user"]
+            self.assertEquals(get_profile(user).herds.count(), 0)
+
             self.assertIn("Watch", response.content)
             self.post("favourite_herd", herd=herd.herd)
 
-            self.assertEqual(HerdAssociation.objects.count(), 1)
+            self.assertEquals(get_profile(user).herds.count(), 1)
 
             response = self.get("accounts_herds")
             self.assertEqual(response.status_code, 200)
@@ -188,7 +195,7 @@ class HerdsTests(SectionTests):
             self._check_table(response, [herd], attr="herd")
 
             self.post("unfavourite_herd", herd=herd.herd)
-            self.assertEqual(HerdAssociation.objects.count(), 0)
+            self.assertEquals(get_profile(user).herds.count(), 0)
 
 
 class MaintainersTests(SectionTests):
@@ -216,7 +223,6 @@ class MaintainersTests(SectionTests):
 
     def test_favourite(self):
         maintainer = self.maintainers[0]
-        self.assertEqual(MaintainerAssociation.objects.count(), 0)
 
         response = self.get("maintainer", maintainer_id=maintainer.pk)
         self.assertEqual(response.status_code, 200)
@@ -226,10 +232,13 @@ class MaintainersTests(SectionTests):
             response = self.get("maintainer", maintainer_id=maintainer.pk)
             self.assertEqual(response.status_code, 200)
 
+            user = response.context["user"]
+            self.assertEquals(get_profile(user).maintainers.count(), 0)
+
             self.assertIn("Watch", response.content)
             self.post("favourite_maintainer", maintainer_id=maintainer.pk)
 
-            self.assertEqual(MaintainerAssociation.objects.count(), 1)
+            self.assertEquals(get_profile(user).maintainers.count(), 1)
 
             response = self.get("accounts_maintainers")
             self.assertEqual(response.status_code, 200)
@@ -237,7 +246,8 @@ class MaintainersTests(SectionTests):
             self._check_table(response, [maintainer], attr="name")
 
             self.post("unfavourite_maintainer", maintainer_id=maintainer.pk)
-            self.assertEqual(MaintainerAssociation.objects.count(), 0)
+
+            self.assertEquals(get_profile(user).maintainers.count(), 0)
 
 
 class OverlayTests(SectionTests):

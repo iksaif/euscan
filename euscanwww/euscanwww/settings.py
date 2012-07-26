@@ -261,3 +261,5 @@ except ImportError, ex:
 os.environ['ROOT'] = PORTAGE_ROOT
 os.environ['PORTAGE_CONFIGROOT'] = PORTAGE_CONFIGROOT
 os.environ['EIX_CACHEFILE'] = EIX_CACHEFILE
+
+AUTH_PROFILE_MODULE = 'djeuscan.UserProfile'

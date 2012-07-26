@@ -4,10 +4,12 @@ from datetime import datetime
 from collections import defaultdict
 
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 
 import factory
 
-from djeuscan.models import Herd, Maintainer, Package, Version, EuscanResult
+from djeuscan.models import Herd, Maintainer, Package, Version, EuscanResult, \
+    Category, Overlay
 
 
 class UserFactory(factory.Factory):
@@ -36,6 +38,18 @@ class MaintainerFactory(factory.Factory):
     email = factory.LazyAttribute(lambda a: "%s@example.com" % a.name)
 
 
+class CategoryFactory(factory.Factory):
+    FACTORY_FOR = Category
+
+    name = factory.LazyAttribute(lambda a: random_string())
+
+
+class OverlayFactory(factory.Factory):
+    FACTORY_FOR = Overlay
+
+    name = factory.LazyAttribute(lambda a: random_string())
+
+
 class PackageFactory(factory.Factory):
     FACTORY_FOR = Package
 
@@ -45,6 +59,16 @@ class PackageFactory(factory.Factory):
     name = factory.LazyAttribute(lambda a: random_string())
     description = "This is a test package"
     homepage = "http://testpackage.com"
+
+    @classmethod
+    def _prepare(cls, create, **kwargs):
+        package = super(PackageFactory, cls)._prepare(create, **kwargs)
+        category = kwargs.pop('category', None)
+        if create:
+            CategoryFactory.create(name=category)
+        else:
+            CategoryFactory.build(name=category)
+        return package
 
 
 class VersionFactory(factory.Factory):
@@ -58,6 +82,19 @@ class VersionFactory(factory.Factory):
     overlay = "gentoo"
     urls = "http://packageurl.com"
     alive = True
+
+    @classmethod
+    def _prepare(cls, create, **kwargs):
+        version = super(VersionFactory, cls)._prepare(create, **kwargs)
+        overlay = kwargs.pop('overlay', None)
+        try:
+            if create:
+                OverlayFactory.create(name=overlay)
+            else:
+                OverlayFactory.build(name=overlay)
+        except IntegrityError:
+            pass
+        return version
 
 
 class EuscanResultFactory(factory.Factory):

@@ -231,6 +231,31 @@ class EuscanResult(models.Model):
         )
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=128, validators=[validate_category],
+                            unique=True)
+
+    def __unicode__(self):
+        return self.name
+
+
+class Overlay(models.Model):
+    name = models.CharField(max_length=128, validators=[validate_name],
+                            unique=True)
+
+    def __unicode__(self):
+        return self.name
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
+    herds = models.ManyToManyField(Herd)
+    maintainers = models.ManyToManyField(Maintainer)
+    packages = models.ManyToManyField(Package)
+    categories = models.ManyToManyField(Category)
+    overlays = models.ManyToManyField(Overlay)
+
+
 class Log(models.Model):
     """
     Model used for keeping data for charts
@@ -301,61 +326,6 @@ class RefreshPackageQuery(models.Model):
 
     def __unicode__(self):
         return u'[%d] %s' % (self.priority, self.package)
-
-
-class HerdAssociation(models.Model):
-    user = models.ForeignKey(User)
-    herd = models.ForeignKey(Herd)
-
-    class Meta:
-        unique_together = ['user', 'herd']
-
-    def __unicode__(self):
-        return u'[%s] %s' % (self.user, self.herd)
-
-
-class MaintainerAssociation(models.Model):
-    user = models.ForeignKey(User)
-    maintainer = models.ForeignKey(Maintainer)
-
-    class Meta:
-        unique_together = ['user', 'maintainer']
-
-    def __unicode__(self):
-        return u'[%s] %s' % (self.user, self.maintainer)
-
-
-class PackageAssociation(models.Model):
-    user = models.ForeignKey(User)
-    package = models.ForeignKey(Package)
-
-    class Meta:
-        unique_together = ['user', 'package']
-
-    def __unicode__(self):
-        return u'[%s] %s' % (self.user, self.package)
-
-
-class CategoryAssociation(models.Model):
-    user = models.ForeignKey(User)
-    category = models.CharField(max_length=128, validators=[validate_category])
-
-    class Meta:
-        unique_together = ['user', 'category']
-
-    def __unicode__(self):
-        return u'[%s] %s' % (self.user, self.category)
-
-
-class OverlayAssociation(models.Model):
-    user = models.ForeignKey(User)
-    overlay = models.CharField(max_length=128, validators=[validate_name])
-
-    class Meta:
-        unique_together = ['user', 'overlay']
-
-    def __unicode__(self):
-        return u'[%s] %s' % (self.user, self.category)
 
 
 class ProblemReport(models.Model):
