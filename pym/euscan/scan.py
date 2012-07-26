@@ -44,60 +44,6 @@ def filter_versions(cp, versions):
     ]
 
 
-def scan_upstream_urls(pkg, urls, on_progress):
-    versions = []
-
-    if on_progress:
-        progress_available = 70
-        num_urls = sum([len(urls[fn]) for fn in urls])
-        if num_urls > 0:
-            progress_increment = progress_available / num_urls
-        else:
-            progress_increment = 0
-
-    for filename in urls:
-        for url in urls[filename]:
-
-            if on_progress and progress_available > 0:
-                on_progress(increment=progress_increment)
-                progress_available -= progress_increment
-
-            if not CONFIG['quiet'] and not CONFIG['format']:
-                pp.uprint()
-            output.einfo("SRC_URI is '%s'" % url)
-
-            if '://' not in url:
-                output.einfo("Invalid url '%s'" % url)
-                continue
-
-            # Try normal scan
-            if CONFIG["scan-dir"]:
-                try:
-                    versions.extend(handlers.scan(pkg, url))
-                except Exception as e:
-                    output.ewarn("Handler failed: [%s] %s"
-                            % (e.__class__.__name__, e.message))
-
-            if versions and CONFIG['oneshot']:
-                break
-
-            # Brute Force
-            if CONFIG["brute-force"] > 0:
-                versions.extend(handlers.brute_force(pkg, url))
-
-            if versions and CONFIG['oneshot']:
-                break
-
-    cp, ver, rev = portage.pkgsplit(pkg.cpv)
-
-    result = filter_versions(cp, versions)
-
-    if on_progress and progress_available > 0:
-        on_progress(increment=progress_available)
-
-    return result
-
-
 # gentoolkit stores PORTDB, so even if we modify it to add an overlay
 # it will still use the old dbapi
 def reload_gentoolkit():
@@ -120,7 +66,6 @@ def scan_upstream(query, on_progress=None):
     """
     Scans the upstream searching new versions for the given query
     """
-
     matches = []
 
     if query.endswith(".ebuild"):
@@ -188,10 +133,6 @@ def scan_upstream(query, on_progress=None):
         output.metadata("description", pkg.environment("DESCRIPTION"))
 
     cpv = pkg.cpv
-
-    _, _, ver, _ = portage.catpkgsplit(cpv)
-    is_current_version_stable = is_version_stable(ver)
-
     metadata = {
         "EAPI": portage.settings["EAPI"],
         "SRC_URI": pkg.environment("SRC_URI", False),
@@ -212,15 +153,20 @@ def scan_upstream(query, on_progress=None):
     else:
         urls = alist
 
-    # output scan time for formatted output
-    scan_time = (datetime.now() - start_time).total_seconds()
-    output.metadata("scan_time", scan_time, show=False)
+    versions = handlers.scan(pkg, urls, on_progress)
 
-    result = scan_upstream_urls(pkg, urls, on_progress)
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
+
+    result = filter_versions(cp, versions)
 
     if on_progress:
         on_progress(increment=10)
 
+    # output scan time for formatted output
+    scan_time = (datetime.now() - start_time).total_seconds()
+    output.metadata("scan_time", scan_time, show=False)
+
+    is_current_version_stable = is_version_stable(ver)
     if len(result) > 0:
         if not (CONFIG['format'] or CONFIG['quiet']):
             print("\n", file=sys.stderr)

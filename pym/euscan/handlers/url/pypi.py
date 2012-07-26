@@ -52,7 +52,3 @@ def scan(pkg, url):
         ret.append((urls, pv, HANDLER_NAME, CONFIDENCE))
 
     return ret
-
-
-def brute_force(pkg, url):
-    return []

@@ -52,7 +52,3 @@ def scan(pkg, url):
             if helpers.version_filtered(cp, ver, pv):
                 continue
             yield (dl['html_url'], pv, HANDLER_NAME, CONFIDENCE)
-
-
-def brute_force(pkg, url):
-    return []
