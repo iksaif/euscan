@@ -81,12 +81,22 @@ def cpan_vercmp(cp, a, b):
 
 def scan(pkg, url):
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
-    pkg = guess_package(cp, url)
+    remote_pkg = guess_package(cp, url)
 
-    orig_url = url
-    url = 'http://search.cpan.org/api/dist/%s' % pkg
+    output.einfo("Using CPAN API: %s", remote_pkg)
 
-    output.einfo("Using: " + url)
+    result = scan_remote(pkg, [remote_pkg])
+
+    ret = []
+    for url, pv in result:
+        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
+    return ret
+
+
+def scan_remote(pkg, remote_data):
+    remote_pkg = remote_data[0]
+    url = 'http://search.cpan.org/api/dist/%s' % remote_pkg
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
     try:
         fp = helpers.urlopen(url)
@@ -125,9 +135,6 @@ def scan(pkg, url):
             version['archive']
         )
 
-        if url == orig_url:
-            continue
-
-        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
+        ret.append((url, pv))
 
     return ret

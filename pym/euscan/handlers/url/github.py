@@ -44,6 +44,7 @@ def scan(pkg, url):
                             (user, project))
     dls = json.load(dlreq)
 
+    ret = []
     for dl in dls:
         m = fnre.match(dl['name'])
 
@@ -51,4 +52,6 @@ def scan(pkg, url):
             pv = helpers.gentoo_mangle_version(m.group(1))
             if helpers.version_filtered(cp, ver, pv):
                 continue
-            yield (dl['html_url'], pv, HANDLER_NAME, CONFIDENCE)
+
+            ret.append((dl['html_url'], pv, HANDLER_NAME, CONFIDENCE))
+    return ret

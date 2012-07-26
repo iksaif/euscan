@@ -29,6 +29,15 @@ def scan(pkg, url):
 
     package = guess_package(pkg.cpv, url)
 
+    ret = []
+    for urls, pv in scan_remote(pkg, [package]):
+        ret.append((urls, pv, HANDLER_NAME, CONFIDENCE))
+    return ret
+
+
+def scan_remote(pkg, remote_data):
+    package = remote_data[0]
+
     output.einfo("Using PyPi XMLRPC: " + package)
 
     client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
@@ -42,13 +51,11 @@ def scan(pkg, url):
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
     ret = []
-
     for up_pv in versions:
         pv = helpers.gentoo_mangle_version(up_pv)
         if helpers.version_filtered(cp, ver, pv):
             continue
         urls = client.release_urls(package, up_pv)
         urls = " ".join([infos['url'] for infos in urls])
-        ret.append((urls, pv, HANDLER_NAME, CONFIDENCE))
-
+        ret.append((urls, pv))
     return ret
