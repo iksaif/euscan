@@ -179,7 +179,7 @@ def scan_upstream(query, on_progress=None):
                    not is_version_stable(version):
                     continue
             if CONFIG['progress']:
-               print ("", file=sys.stderr)
+                print("", file=sys.stderr)
             output.result(cp, version, url, handler, confidence)
 
     return result

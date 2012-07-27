@@ -54,7 +54,8 @@ class ScanMetadata(object):
                 return
         except Exception as e:
             self.logger.error(
-                self.style.ERROR('%s/%s: %s' % (pkg.category, pkg.name, str(e)))
+                self.style.ERROR('%s/%s: %s' %
+                                 (pkg.category, pkg.name, str(e)))
             )
             return
 
