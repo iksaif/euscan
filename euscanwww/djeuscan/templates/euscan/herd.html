@@ -11,7 +11,9 @@
 {{ block.super }}
 <li>
   <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
-  <a title="{{ herd.herd }} Feed" href="{% url "herd_feed" herd.herd %}">{{ herd.herd }}</a>
+  <a title="{{ herd.herd }} Feed" href="{% url "herd_feed" herd.herd %}">
+    {{ herd.herd|truncatechars:15 }}
+  </a>
 </li>
 {% endblock %}
 

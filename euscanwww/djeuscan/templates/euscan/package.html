@@ -14,7 +14,7 @@
 <li>
   <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
   <a title="{{ package }} Feed" href="{% url "package_feed" package.category package.name %}">
-    {{ package }}
+    {{ package|truncatechars:15 }}
   </a>
 </li>
 {% endblock %}
