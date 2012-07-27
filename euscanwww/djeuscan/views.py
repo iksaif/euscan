@@ -209,7 +209,7 @@ def package(request, category, package):
         'upstream': upstream,
         'vlog': vlog,
         'log': log,
-        'msg': log.messages() if log else "",
+        'msg': log.messages if log else "",
         'last_scan': last_scan,
         'favourited': favourited,
         'refresh_requested': refresh_requested,
@@ -249,7 +249,7 @@ def problem(request, category, package):
         'package': package,
         'packaged': packaged,
         'upstream': upstream,
-        'msg': log.messages() if log else "",
+        'msg': log.messages if log else "",
     }
 
 

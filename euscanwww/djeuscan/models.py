@@ -217,6 +217,7 @@ class EuscanResult(models.Model):
         self.full_clean()
         super(EuscanResult, self).save(*args, **kwargs)
 
+    @property
     def messages(self):
         result = json.loads(self.result)
 
