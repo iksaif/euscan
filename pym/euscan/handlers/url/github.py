@@ -7,7 +7,7 @@ import portage
 from euscan import helpers, output
 
 HANDLER_NAME = "github"
-CONFIDENCE = 100.0
+CONFIDENCE = 100
 PRIORITY = 90
 
 
