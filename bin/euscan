@@ -308,6 +308,9 @@ def main():
                 "for more informations"
             )
 
+        if not (CONFIG['format'] or CONFIG['quiet']) and len(queries) > 1:
+            print("")
+
     if CONFIG['progress']:
         on_progress_gen.next()
         print("\n", file=sys.stderr)

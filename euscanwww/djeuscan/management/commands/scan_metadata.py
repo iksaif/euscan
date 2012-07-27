@@ -25,9 +25,9 @@ class Command(BaseCommand):
             default=None,
             help='Scan only this category'),
         make_option('--populate',
-            action='store',
+            action='store_true',
             dest='populate',
-            default=None,
+            default=False,
             help='Populate herds and maintainers from herds.xml'),
         )
     args = '<package package ...>'

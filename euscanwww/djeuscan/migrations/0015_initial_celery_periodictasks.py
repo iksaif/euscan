@@ -4,34 +4,38 @@ from south.v2 import DataMigration
 
 class Migration(DataMigration):
 
+    depends_on = (
+        ("djcelery", "0001_initial"),
+    )
+
     def forwards(self, orm):
-        every_minute = orm["djcelery.IntervalSchedule"].objects.create(
-            every=1, period="minutes"
+        every_day = orm["djcelery.CrontabSchedule"].objects.create(
+            minute = "00",
+            hour = "01",
+            day_of_week = "*",
+            day_of_month = "*",
+            month_of_year = "*"
         )
-        every_day = orm["djcelery.IntervalSchedule"].objects.create(
-            every=1, period="days"
-        )
-        every_week = orm["djcelery.IntervalSchedule"].objects.create(
-            every=7, period="days"
-        )
-        orm["djcelery.PeriodicTask"].objects.create(
-            name="Refresh package queries",
-            task="djeuscan.tasks.consume_refresh_package_request",
-            interval=every_minute
+        every_week = orm["djcelery.CrontabSchedule"].objects.create(
+            minute = "00",
+            hour = "03",
+            day_of_week = "1",
+            day_of_month = "*",
+            month_of_year = "*"
         )
         orm["djcelery.PeriodicTask"].objects.create(
             name="Daily portage update",
             task="djeuscan.tasks.update_portage",
-            interval=every_day
+            crontab=every_day
         )
         orm["djcelery.PeriodicTask"].objects.create(
             name="Weekly upstream update",
             task="djeuscan.tasks.update_upstream",
-            interval=every_week
+            crontab=every_week
         )
 
     def backwards(self, orm):
-        orm["djcelery.IntervalSchedule"].objects.all().delete()
+        orm["djcelery.CrontabSchedule"].objects.all().delete()
         orm["djcelery.PeriodicTask"].objects.all().delete()
 
 
