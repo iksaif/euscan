@@ -324,6 +324,13 @@ class RefreshPackageQuery(models.Model):
     priority = models.IntegerField(default=0)
     users = models.ManyToManyField(User)
 
+    @property
+    def position(self):
+        ordered = RefreshPackageQuery.objects.all().order_by("-priority")
+        for pos, obj in enumerate(ordered, start=1):
+            if obj == self:
+                return pos
+
     def __unicode__(self):
         return u'[%d] %s' % (self.priority, self.package)
 

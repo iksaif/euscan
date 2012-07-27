@@ -195,10 +195,13 @@ def package(request, category, package):
             favourited = True
 
     try:
-        refreshed = request.user in \
-            RefreshPackageQuery.objects.get(package=package).users.all()
+        refresh_query = RefreshPackageQuery.objects.get(package=package)
     except RefreshPackageQuery.DoesNotExist:
-        refreshed = False
+        refresh_requested = False
+        refresh_pos = None
+    else:
+        refresh_requested = request.user in refresh_query.users.all()
+        refresh_pos = refresh_query.position
 
     return {
         'package': package,
@@ -209,7 +212,8 @@ def package(request, category, package):
         'msg': log.messages() if log else "",
         'last_scan': last_scan,
         'favourited': favourited,
-        'refreshed': refreshed,
+        'refresh_requested': refresh_requested,
+        'refresh_pos': refresh_pos,
     }
 
 
@@ -369,7 +373,8 @@ def refresh_package(request, category, package):
     if not created:
         obj.priority += 1
         obj.save()
-    return {"result": "success"}
+
+    return {"result": "success", "position": obj.position}
 
 
 @login_required
