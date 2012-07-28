@@ -66,9 +66,11 @@ def category(request, category):
 
     favourited = False
     if request.user.is_authenticated():
-        if Category.objects.get(name=category) in \
-           get_profile(request.user).categories.all():
-            favourited = True
+        try:
+            category = Category.objects.get(name=category)
+            favourited = category in get_profile(request.user).categories.all()
+        except Category.DoesNotExist:
+            pass
 
     return {'category': category, 'packages': packages, 'last_scan': last_scan,
             'favourited': favourited}
@@ -162,9 +164,11 @@ def overlay(request, overlay):
 
     favourited = False
     if request.user.is_authenticated():
-        if Overlay.objects.get(name=overlay) in \
-           get_profile(request.user).overlays.all():
-            favourited = True
+        try:
+            overlay = Overlay.objects.get(name=overlay)
+            favourited = overlay in get_profile(request.user).overlays.all()
+        except Overlay.DoesNotExist:
+            pass
 
     return {'overlay': overlay, 'packages': packages, 'last_scan': last_scan,
             'favourited': favourited}

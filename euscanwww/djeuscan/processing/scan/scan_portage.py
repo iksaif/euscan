@@ -11,8 +11,7 @@ from django.core.management.color import color_style
 from euscan.version import get_version_type
 
 from djeuscan.processing import FakeLogger
-from djeuscan.models import Package, Version, VersionLog
-
+from djeuscan.models import Package, Version, VersionLog, Category, Overlay
 
 class ScanPortage(object):
     def __init__(self, logger=None, no_log=False, purge_packages=False,
@@ -358,5 +357,21 @@ def scan_portage(packages=None, category=None, no_log=False,
                 scan_handler.scan('%s/%s' % (pkg.category, pkg.name))
             else:
                 scan_handler.scan(pkg)
+
+    # Populate Category and Overlay
+    # TODO: - use portage.settings.categories()
+    #       - read metadata.xml to add description
+    for cat in Package.objects.values('category').distinct():
+        obj, created = Category.objects.get_or_create(name=cat["category"])
+        if created:
+            logger.info("+ [c] %s", cat["category"])
+
+    # TODO: - get informations from layman and portage (path, url)
+    for overlay in Version.objects.values('overlay').distinct():
+        if not overlay["overlay"]:
+            continue
+        obj, created = Overlay.objects.get_or_create(name=overlay["overlay"])
+        if created:
+            logger.info("+ [o] %s", overlay["overlay"])
 
     logger.info('Done.')
