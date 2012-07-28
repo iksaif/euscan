@@ -14,7 +14,7 @@
 <li>
   <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
   <a title="{{ package }} Feed" href="{% url "package_feed" package.category package.name %}">
-    {{ package }}
+    {{ package|truncatechars:15 }}
   </a>
 </li>
 {% endblock %}
@@ -25,8 +25,9 @@
 
 {% block content %}
 
-<div class="refresh-alert alert {% if not refreshed %}hide{% endif %}">
-  A refresh request is in progress, please wait...
+<div class="refresh-alert alert {% if not refresh_pos %}hide{% endif %}">
+  <p>A refresh request is in progress, please wait...</p>
+  <p>Queue position: <span id="refresh-pos">{{ refresh_pos }}</span></p>
 </div>
 
 <h2>
@@ -34,10 +35,10 @@
 
   {% if user.is_authenticated %}
     <span class="pull-right">
-      <button class="btn refresh-button {% if refreshed %}hide{% endif %}" data-category="{{ package.category }}" data-package="{{ package.name }}">
+      <button class="btn refresh-button {% if refresh_requested %}hide{% endif %}" data-category="{{ package.category }}" data-package="{{ package.name }}">
         <img src="{{ STATIC_URL}}/img/refresh-active.png" alt="Refresh" >
       </button>
-      <button class="btn refresh-button-disabled disabled {% if not refreshed %}hide{% endif %}">
+      <button class="btn refresh-button-disabled disabled {% if not refresh_requested %}hide{% endif %}">
         <img src="{{ STATIC_URL}}/img/refresh-inactive.png" alt="Refresh" >
       </button>
       <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_package" package.category package.name %}">
@@ -67,9 +68,10 @@
     $(".refresh-button").click(function() {
       var url = "{% url "refresh_package" "XXX" "YYY" %}";
       $.post(url.replace("XXX", $(this).data("category")).replace("YYY", $(this).data("package")),
-        function() {
+        function(data) {
           $(".refresh-button").addClass("hide");
           $(".refresh-button-disabled").removeClass("hide");
+          $("#refresh-pos").text(data.position);
           $(".refresh-alert").show("slow");
         });
     });

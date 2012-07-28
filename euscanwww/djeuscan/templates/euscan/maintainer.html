@@ -12,7 +12,7 @@
 <li>
   <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
   <a title="{{ maintainer.name }} Feed" href="{% url "maintainer_feed" maintainer.id %}">
-    {{ maintainer.name }}
+    {{ maintainer.name|truncatechars:15 }}
   </a>
 </li>
 {% endblock %}

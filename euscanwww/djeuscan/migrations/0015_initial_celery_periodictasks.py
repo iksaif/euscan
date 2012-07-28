@@ -10,18 +10,18 @@ class Migration(DataMigration):
 
     def forwards(self, orm):
         every_day = orm["djcelery.CrontabSchedule"].objects.create(
-            minute = "00",
-            hour = "01",
-            day_of_week = "*",
-            day_of_month = "*",
-            month_of_year = "*"
+            minute="00",
+            hour="01",
+            day_of_week="*",
+            day_of_month="*",
+            month_of_year="*"
         )
         every_week = orm["djcelery.CrontabSchedule"].objects.create(
-            minute = "00",
-            hour = "03",
-            day_of_week = "1",
-            day_of_month = "*",
-            month_of_year = "*"
+            minute="00",
+            hour="03",
+            day_of_week="1",
+            day_of_month="*",
+            month_of_year="*"
         )
         orm["djcelery.PeriodicTask"].objects.create(
             name="Daily portage update",

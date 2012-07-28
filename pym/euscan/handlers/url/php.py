@@ -6,7 +6,7 @@ import xml.dom.minidom
 from euscan import helpers, output
 
 HANDLER_NAME = "php"
-CONFIDENCE = 100.0
+CONFIDENCE = 100
 PRIORITY = 90
 
 

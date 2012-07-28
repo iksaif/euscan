@@ -33,7 +33,7 @@
         {% endif %}
       {% endwith %}
 
-      {{ package.last_version_gentoo.version }}
+      {{ package.last_version_gentoo.version|truncatechars:15 }}
     </td>
     <td>{{ package.last_version_overlay.version }}</td>
     <td>{{ package.last_version_upstream.version }}</td>

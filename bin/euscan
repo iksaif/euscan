@@ -23,14 +23,15 @@ import getopt
 from errno import EINTR, EINVAL
 from httplib import HTTPConnection
 
+from portage import settings
 from portage.output import white, yellow, turquoise, green
 from portage.exception import AmbiguousPackageName
 
 from gentoolkit import pprinter as pp
-from gentoolkit.eclean.search import port_settings
 from gentoolkit.errors import GentoolkitException
 
 from euscan import CONFIG, output
+from euscan.out import progress_bar
 
 
 # Globals
@@ -228,9 +229,8 @@ def parse_args():
 
 def main():
     """Parse command line and execute all actions."""
-
     CONFIG['nocolor'] = (
-        port_settings["NOCOLOR"] in ('yes', 'true') or not isatty
+        settings["NOCOLOR"] in ('yes', 'true') or not isatty
     )
     if CONFIG['nocolor']:
         pp.output.nocolor()
@@ -255,10 +255,6 @@ def main():
             print_usage(e.value)
             exit_helper(EINVAL)
 
-    # Importing stuff here for performance reasons
-    from euscan.scan import scan_upstream
-    from euscan.out import progress_bar
-
     if CONFIG['verbose'] > 2:
         HTTPConnection.debuglevel = 1
 
@@ -270,6 +266,9 @@ def main():
         on_progress_gen = progress_bar()
         on_progress = on_progress_gen.next()
         on_progress(maxval=len(queries) * 100, increment=0, label="Working...")
+
+    # Importing stuff here for performance reasons
+    from euscan.scan import scan_upstream
 
     for query in queries:
         if CONFIG["progress"]:

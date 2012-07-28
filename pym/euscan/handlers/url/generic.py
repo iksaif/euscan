@@ -1,7 +1,8 @@
-from urlparse import urljoin
+from urlparse import urljoin, urlparse
 import urllib2
 import re
 import StringIO
+import difflib
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -14,11 +15,40 @@ from euscan import CONFIG, SCANDIR_BLACKLIST_URLS, \
     BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS, output, helpers
 
 HANDLER_NAME = "generic"
-CONFIDENCE = 50.0
+CONFIDENCE = 45
 PRIORITY = 0
 
 BRUTEFORCE_HANDLER_NAME = "brute_force"
-BRUTEFORCE_CONFIDENCE = 30.0
+BRUTEFORCE_CONFIDENCE = 30
+
+
+def confidence_score(found, original, minimum=CONFIDENCE):
+    found_p = urlparse(found)
+    original_p = urlparse(original)
+
+    # check if the base url is the same
+    if found_p.netloc != original_p.netloc:
+        return minimum
+
+    # check if the directory depth is the same
+    if len(found_p.path.split("/")) != len(original_p.path.split("/")):
+        return minimum
+
+    # strip numbers
+    found_path = re.sub(r"[\d+\.]?", "", found_p.path)
+    original_path = re.sub(r"[\d+\.]?", "", original_p.path)
+
+    # strip the first equal part of the path
+    i = 0
+    max_i = len(found_path)
+    while i < max_i and found_path[i] == original_path[i]:
+        i += 1
+    found_path = found_path[i:]
+    original_path = original_path[i:]
+
+    # calculate difference ratio
+    diff = difflib.SequenceMatcher(None, found_path, original_path).ratio()
+    return int(minimum + minimum * diff)  # maximum score is minimum * 2
 
 
 def scan_html(data, url, pattern):
@@ -98,7 +128,8 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
         path = urljoin(url, path)
 
         if not steps and path not in orig_url:
-            versions.append((path, pv, HANDLER_NAME, CONFIDENCE))
+            confidence = confidence_score(path, orig_url)
+            versions.append((path, pv, HANDLER_NAME, confidence))
 
         if steps:
             ret = scan_directory_recursive(cp, ver, rev, path, steps, orig_url)
@@ -209,14 +240,14 @@ def brute_force(pkg, url):
         if helpers.version_filtered(cp, ver, version):
             continue
 
-        url = helpers.url_from_template(template, version)
-        infos = helpers.tryurl(url, template)
+        try_url = helpers.url_from_template(template, version)
+        infos = helpers.tryurl(try_url, template)
 
         if not infos:
             continue
-
-        result.append([url, version, BRUTEFORCE_HANDLER_NAME,
-                       BRUTEFORCE_CONFIDENCE])
+        confidence = confidence_score(try_url, url,
+                                      minimum=BRUTEFORCE_CONFIDENCE)
+        result.append([try_url, version, BRUTEFORCE_HANDLER_NAME, confidence])
 
         if len(result) > CONFIG['brute-force-false-watermark']:
             output.einfo(

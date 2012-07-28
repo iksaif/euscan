@@ -6,7 +6,7 @@ import urllib2
 from euscan import helpers, output
 
 HANDLER_NAME = "rubygems"
-CONFIDENCE = 100.0
+CONFIDENCE = 100
 PRIORITY = 90
 
 

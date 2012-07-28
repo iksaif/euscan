@@ -173,7 +173,7 @@ def update_portage(packages=None):
 @task
 def update_upstream():
     if settings.TASKS_UPSTREAM_GROUPS >= 1:
-        packages = Package.objects.all()
+        packages = Package.objects.all().order_by("pk")
 
         scan_upstream_sub = group_chunks(scan_upstream, packages,
                                          settings.TASKS_UPSTREAM_GROUPS,
