@@ -39,5 +39,6 @@ def scan(pkg):
             )
             if scan_remote:
                 for url, pv in scan_remote(pkg, remote_data):
-                    ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
+                    name = "%s, %s" % (HANDLER_NAME, remote_type)
+                    ret.append((url, pv, name, CONFIDENCE))
     return ret
