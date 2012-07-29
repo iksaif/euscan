@@ -35,8 +35,24 @@
 
       {{ package.last_version_gentoo.version|truncatechars:15 }}
     </td>
-    <td>{{ package.last_version_overlay.version }}</td>
-    <td>{{ package.last_version_upstream.version }}</td>
+    <td>
+      {% with vtype=package.last_version_overlay.version|version_type %}
+        {% if not vtype|is_stable %}
+          <img src="{{ STATIC_URL }}img/unstable-icon.png" alt="unstable" title="{{ vtype }}" />
+        {% endif %}
+      {% endwith %}
+
+      {{ package.last_version_overlay.version|truncatechars:15 }}
+    </td>
+    <td>
+      {% with vtype=package.last_version_upstream.version|version_type %}
+        {% if not vtype|is_stable %}
+          <img src="{{ STATIC_URL }}img/unstable-icon.png" alt="unstable" title="{{ vtype }}" />
+        {% endif %}
+      {% endwith %}
+
+      {{ package.last_version_upstream.version|truncatechars:15 }}
+    </td>
     {% package_cols package %}
   </tr>
   {% endfor %}
