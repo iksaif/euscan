@@ -13,6 +13,7 @@ from euscan.version import get_version_type
 from djeuscan.processing import FakeLogger
 from djeuscan.models import Package, Version, VersionLog, Category, Overlay
 
+
 class ScanPortage(object):
     def __init__(self, logger=None, no_log=False, purge_packages=False,
                  purge_versions=False):
