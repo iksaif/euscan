@@ -143,15 +143,15 @@ class Version(models.Model):
         unique_together = ['package', 'slot', 'revision', 'version', 'overlay']
 
     def cpv(self):
-        return '%s/%s-%s-%s' % (
+        return '%s/%s-%s%s' % (
             self.package.category, self.package.name, self.version,
-            self.revision if self.revision != 'r0' else ''
+            self.revision if self.revision != '-r0' else ''
         )
 
     def __unicode__(self):
-        return '%s/%s-%s-%s:%s [%s]' % (
+        return '%s/%s-%s%s:%s [%s]' % (
             self.package.category, self.package.name, self.version,
-            self.revision if self.revision != 'r0' else '',
+            self.revision if self.revision != '-r0' else '',
             self.slot, self.overlay or "<upstream>"
         )
 
@@ -219,7 +219,10 @@ class EuscanResult(models.Model):
 
     @property
     def messages(self):
-        result = json.loads(self.result)
+        try:
+            result = json.loads(self.result)
+        except ValueError:
+            return self.result
 
         if result and self.package.cp() in result:
             return result[self.package.cp()]['messages']
