@@ -34,21 +34,39 @@ def guess_package(cp, url):
 
 
 def gentoo_mangle_version(up_pv):
-    pv = ""
+    # clean
+    up_pv = up_pv.replace("._", "_")  # e.g.: 0.999._002 -> 0.999_002
+    up_pv = up_pv.replace("_0.", "_")  # e.g.: 0.30_0.1 -> 0.30_1
 
-    if up_pv.count('.') == 1:
-        digits = 0
-        for i in range(len(up_pv)):
-            if digits == 3:
-                pv += "."
-                digits = 0
-            c = up_pv[i]
-            pv += c
-            digits += int(c.isdigit())
-            if c == '.':
-                digits = 0
+    # Detect _rc versions
+    rc_part = ""
+    if up_pv.count("_") == 1:
+        up_pv, rc_part = up_pv.split("_")
+
+    # Gentoo creates groups of 3 digits, except for the first digit,
+    # or when last digit is 0.  e.g.: 4.11 -> 4.110.0
+    splitted = up_pv.split(".")
+    if rc_part:
+        splitted.append(rc_part)
+
+    if len(splitted) == 2:  # add last group if it's missing
+        splitted.append("0")
+
+    groups = [splitted[0]]
+    for part in splitted[1:-1]:
+        groups.append(part.ljust(3, "0"))
+    if splitted[-1] == "0":
+        groups.append(splitted[-1])
     else:
-        pv = up_pv
+        groups.append(splitted[-1].ljust(3, "0"))
+
+    # if there's a group with leading zeros strip it.  e.g.: 002 -> 2
+    groups = [g.lstrip("0") if g != "0" else g for g in groups]
+
+    pv = ".".join(groups)
+
+    if rc_part:
+        pv = "%s_rc" % pv
 
     return helpers.gentoo_mangle_version(pv)
 
