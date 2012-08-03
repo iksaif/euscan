@@ -170,6 +170,7 @@ INSTALLED_APPS = (
     'south',
     'djcelery',
     'registration',
+    'captcha'
 )
 
 # A sample logging configuration. The only tangible logging
@@ -218,6 +219,8 @@ LOGGING = {
 
 # django-registration
 ACCOUNT_ACTIVATION_DAYS = 7
+RECAPTCHA_PUBLIC_KEY = ""
+RECAPTCHA_PRIVATE_KEY = ""
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # djeuscan tasks
