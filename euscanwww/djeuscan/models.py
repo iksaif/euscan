@@ -145,13 +145,13 @@ class Version(models.Model):
     def cpv(self):
         return '%s/%s-%s%s' % (
             self.package.category, self.package.name, self.version,
-            self.revision if self.revision != '-r0' else ''
+            '-' + self.revision if self.revision != '-r0' else ''
         )
 
     def __unicode__(self):
         return '%s/%s-%s%s:%s [%s]' % (
             self.package.category, self.package.name, self.version,
-            self.revision if self.revision != '-r0' else '',
+            '-' + self.revision if self.revision != '-r0' else '',
             self.slot, self.overlay or "<upstream>"
         )
 

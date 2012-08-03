@@ -377,28 +377,31 @@ def refresh_package(request, category, package):
     if not created:
         obj.priority += 1
         obj.save()
-
+    if created:
+        from djeuscan.tasks import consume_refresh_queue
+        consume_refresh_queue.delay()
     return {"result": "success", "position": obj.position}
 
 
 @login_required
 @render_to('euscan/accounts/index.html')
 def accounts_index(request):
+
     user = request.user
-    upstream_k = lambda c: c["n_versions"] - c["n_packaged"]
+    upstream_k = lambda c: c["n_versions"] - c["n_packaged"] - c["n_overlay"]
 
     categories = sorted(get_account_categories(user),
                         key=upstream_k, reverse=True)
-    c_upstream = sum([c["n_versions"] - c["n_packaged"] for c in categories])
+    c_upstream = sum([upstream_k(c) for c in categories])
     herds = sorted(get_account_herds(request.user),
                    key=upstream_k, reverse=True)
-    h_upstream = sum([c["n_versions"] - c["n_packaged"] for c in herds])
+    h_upstream = sum([upstream_k(c) for c in herds])
     maintainers = sorted(get_account_maintainers(request.user),
                          key=upstream_k, reverse=True)
-    m_upstream = sum([c["n_versions"] - c["n_packaged"] for c in maintainers])
+    m_upstream = sum([upstream_k(c) for c in maintainers])
     packages = sorted(get_profile(user).packages.all(),
-                      key=lambda p: p.n_versions - p.n_packaged, reverse=True)
-    p_upstream = sum([c.n_versions - c.n_packaged for c in packages])
+                      key=lambda p: p.n_versions - p.n_packaged - p.n_overlay, reverse=True)
+    p_upstream = sum([c.n_versions - c.n_packaged - c.n_overlay for c in packages])
     return {
         "categories": categories, "categories_upstream": c_upstream,
         "herds": herds, "herds_upstream": h_upstream,

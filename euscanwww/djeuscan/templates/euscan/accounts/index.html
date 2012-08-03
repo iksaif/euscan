@@ -24,7 +24,7 @@
               Hot categories:
               <ul>
                 {% for c in categories|slice:":3" %}
-                  <li><a href="{% url "category" c.category %}">{{ c.category }}</a> ({{ c.n_versions|sub:c.n_packaged }})</li>
+                  <li><a href="{% url "category" c.category %}">{{ c.category }}</a> ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})</li>
                 {% endfor %}
               </ul>
             </li>
@@ -43,7 +43,7 @@
               Hot herds:
               <ul>
                 {% for c in herds|slice:":3" %}
-                  <li><a href="{% url "herd" c.herds__herd %}">{{ c.herds__herd }}</a> ({{ c.n_versions|sub:c.n_packaged }})</li>
+                  <li><a href="{% url "herd" c.herds__herd %}">{{ c.herds__herd }}</a> ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})</li>
                 {% endfor %}
               </ul>
             </li>
@@ -65,7 +65,7 @@
               Hot maintainers:
               <ul>
                 {% for c in maintainers|slice:":3" %}
-                  <li><a href="{% url "maintainer" c.maintainers__id %}">{{ c.maintainers__name }}</a> ({{ c.n_versions|sub:c.n_packaged }})</li>
+                  <li><a href="{% url "maintainer" c.maintainers__id %}">{{ c.maintainers__name }}</a> ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})</li>
                 {% endfor %}
               </ul>
             </li>
@@ -84,7 +84,7 @@
               Hot packages:
               <ul>
                 {% for c in packages|slice:":3" %}
-                  <li><a href="{% url "package" c.category c.name %}">{{ c }}</a> ({{ c.n_versions|sub:c.n_packaged }})</li>
+                  <li><a href="{% url "package" c.category c.name %}">{{ c }}</a> ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})</li>
                 {% endfor %}
               </ul>
             </li>
