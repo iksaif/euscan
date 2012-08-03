@@ -1,4 +1,6 @@
 import subprocess
+
+import os
 from os.path import join
 
 import portage
@@ -95,12 +97,14 @@ class ScanPortage(object):
 
     def scan_eix_xml(self, query, category=None):
         cmd = ['eix', '--xml']
+        env = os.environ
+        env['XML_OVERLAY'] = 'true'
         if query:
             cmd.extend(['--exact', query])
         if category:
             cmd.extend(['-C', category])
 
-        sub = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        sub = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE)
         output = sub.stdout
 
         try:

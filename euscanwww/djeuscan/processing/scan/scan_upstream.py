@@ -52,7 +52,7 @@ class ScanUpstream(object):
                 res["confidence"],
             )
 
-            self.store_result(obj, out_json, scan_time, ebuild)
+        self.store_result(obj, out_json, scan_time, ebuild)
 
     def store_result(self, package, formatted_log, scan_time, ebuild):
         # Remove previous logs

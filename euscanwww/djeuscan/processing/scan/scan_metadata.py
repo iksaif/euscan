@@ -1,7 +1,7 @@
 import os
 
-from gentoolkit.query import Query
-from gentoolkit.dbapi import PORTDB
+import portage
+from gentoolkit.metadata import MetaData
 
 import xml.etree.cElementTree as etree
 
@@ -9,7 +9,7 @@ from django.db.transaction import commit_on_success
 from django.core.management.color import color_style
 from django.core.exceptions import ValidationError
 
-from djeuscan.models import Package, Herd, Maintainer
+from djeuscan.models import Package, Version, Herd, Maintainer
 from djeuscan.processing import FakeLogger
 
 
@@ -18,7 +18,43 @@ class ScanMetadata(object):
         self.style = color_style()
         self.logger = logger or FakeLogger()
 
-    def scan(self, query=None, obj=None):
+    def get_package(self, query):
+        try:
+            return Package.objects.get(name=query)
+        except Package.DoesNotExist:
+            pass
+
+        try:
+            category, package = portage.catsplit(query)
+            return Package.objects.get(category=package, name=package)
+        except Package.DoesNotExist:
+            pass
+
+        try:
+            category, package, ver, rev = portage.catpkgsplit(query)
+            return Package.objects.get(category=category, name=package)
+        except Package.DoesNotExist:
+            pass
+
+        return None
+
+    def metadata_from_db(self, query, pkg=None):
+        if not pkg:
+            pkg = self.get_package(query)
+
+        try:
+            version = Version.objects.filter(package=pkg).values('metadata_path')\
+                                .order_by('version', 'revision')[0]
+        except IndexError:
+            return pkg, None
+
+        if not version['metadata_path']:
+            return pkg, None
+        return pkg, MetaData(version['metadata_path'])
+
+    def metadata_from_portage(self, query, pkg=None):
+        from gentoolkit.query import Query
+
         matches = Query(query).smart_find(
                 in_installed=True,
                 in_porttree=True,
@@ -32,16 +68,16 @@ class ScanMetadata(object):
             self.logger.error(
                 self.style.ERROR("Unknown package '%s'" % query)
             )
-            return
+            return pkg, None
 
         matches = sorted(matches)
-        pkg = matches.pop()
-        if '9999' in pkg.version and len(matches):
-            pkg = matches.pop()
+        package = matches.pop()
+        if '9999' in package.version and len(matches):
+            package = matches.pop()
 
-        if not obj:
-            obj, created = Package.objects.get_or_create(
-                category=pkg.category, name=pkg.name
+        if not pkg:
+            pkg, created = Package.objects.get_or_create(
+                category=package.category, name=package.name
             )
         else:
             created = False
@@ -49,44 +85,57 @@ class ScanMetadata(object):
         if created:
             self.logger.info('+ [p] %s/%s' % (pkg.category, pkg.name))
 
+        return pkg, package.metadata
+
+    def scan(self, query=None, pkg=None):
+
         try:
-            if not pkg.metadata:
+            metadata = None
+            pkg, metadata = self.metadata_from_db(query, pkg)
+            if not metadata:
+                pkg, metadata = self.metadata_from_portage(query, pkg)
+            if not metadata:
                 return
         except Exception as e:
-            self.logger.error(
-                self.style.ERROR('%s/%s: %s' %
-                                 (pkg.category, pkg.name, str(e)))
-            )
+            if pkg:
+                self.logger.error(
+                    self.style.ERROR('%s/%s: %s' %
+                                     (pkg.category, pkg.name, str(e)))
+                )
+            else:
+                self.logger.error(
+                    self.style.ERROR('%s: %s' % (query, str(e)))
+                )
             return
 
         herds = dict(
-            [(herd[0], herd) for herd in pkg.metadata.herds(True)]
+            [(herd[0], herd) for herd in metadata.herds(True)]
         )
         maintainers = dict(
-            [(m.email, m) for m in pkg.metadata.maintainers()]
+            [(m.email, m) for m in metadata.maintainers()]
         )
 
-        existing_herds = [h.herd for h in obj.herds.all()]
+        existing_herds = [h.herd for h in pkg.herds.all()]
         new_herds = set(herds.keys()).difference(existing_herds)
         old_herds = set(existing_herds).difference(herds.keys())
 
-        existing_maintainers = [m.email for m in obj.maintainers.all()]
+        existing_maintainers = [m.email for m in pkg.maintainers.all()]
         new_maintainers = set(maintainers.keys()).\
                           difference(existing_maintainers)
         old_maintainers = set(existing_maintainers).\
                           difference(maintainers.keys())
 
-        for herd in obj.herds.all():
+        for herd in pkg.herds.all():
             if herd.herd in old_herds:
-                obj.herds.remove(herd)
+                pkg.herds.remove(herd)
 
         for herd in new_herds:
             herd = self.store_herd(*herds[herd])
-            obj.herds.add(herd)
+            pkg.herds.add(herd)
 
-        for maintainer in obj.maintainers.all():
+        for maintainer in pkg.maintainers.all():
             if maintainer.email in old_maintainers:
-                obj.maintainers.remove(maintainer)
+                pkg.maintainers.remove(maintainer)
 
         for maintainer in new_maintainers:
             maintainer = maintainers[maintainer]
@@ -94,13 +143,13 @@ class ScanMetadata(object):
                 maintainer = self.store_maintainer(
                     maintainer.name, maintainer.email
                     )
-                obj.maintainers.add(maintainer)
+                pkg.maintainers.add(maintainer)
             except ValidationError:
                 self.logger.error(
                     self.style.ERROR("Bad maintainer: '%s' '%s'" % \
                                          (maintainer.name, maintainer.email))
                 )
-        obj.save()
+        pkg.save()
 
     def store_herd(self, name, email):
         if not name:
@@ -141,7 +190,7 @@ class ScanMetadata(object):
         self.logger.info("Populating herds and maintainers from herds.xml...")
 
         herds_xml_path = herds_xml_path or os.path.join(
-            PORTDB.settings["PORTDIR"], "metadata", "herds.xml"
+            portage.settings["PORTDIR"], "metadata", "herds.xml"
         )
         try:
             self._herdstree = etree.parse(herds_xml_path)
