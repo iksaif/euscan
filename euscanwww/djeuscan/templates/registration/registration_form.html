@@ -5,15 +5,15 @@
 {% endblock %}
 
 {% block content %}
+<form method='post' action=''>{% csrf_token %}
   <table>
-    <form method='post' action=''>{% csrf_token %}
-      {{ form }}
-      <tr>
-        <td></td>
-        <td>
-          <input class="btn pull-right" type="submit" value="Send activation email" />
-        </td>
-      </tr>
-    </form>
+    {{ form }}
+    <tr>
+      <td></td>
+      <td>
+        <input class="btn pull-right" type="submit" value="Send activation email" />
+      </td>
+    </tr>
   </table>
+</form>
 {% endblock %}
