@@ -3,15 +3,15 @@ import portage
 import json
 import urllib2
 
-from euscan import helpers, output
+from euscan import helpers, output, mangling
 
 HANDLER_NAME = "rubygems"
 CONFIDENCE = 100
 PRIORITY = 90
 
 
-def can_handle(pkg, url):
-    return url.startswith('mirror://rubygems/')
+def can_handle(pkg, url=None):
+    return url and url.startswith('mirror://rubygems/')
 
 
 def guess_gem(cpv, url):
@@ -29,7 +29,7 @@ def guess_gem(cpv, url):
     return pkg
 
 
-def scan(pkg, url):
+def scan_url(pkg, url, options):
     'http://guides.rubygems.org/rubygems-org-api/#gemversion'
 
     gem = guess_gem(pkg.cpv, url)
@@ -41,14 +41,11 @@ def scan(pkg, url):
 
     output.einfo("Using RubyGem API: %s" % gem)
 
-    ret = []
-    for url, pv in scan_remote(pkg, [gem]):
-        ret.append(url, pv, HANDLER_NAME, CONFIDENCE)
-    return ret
+    return scan_pkg(pkg, {'data' : gem})
 
 
-def scan_remote(pkg, remote_data):
-    gem = remote_data[0]
+def scan_pkg(pkg, options):
+    gem = options['data']
     url = 'http://rubygems.org/api/v1/versions/%s.json' % gem
 
     try:
@@ -69,9 +66,10 @@ def scan_remote(pkg, remote_data):
     ret = []
     for version in versions:
         up_pv = version['number']
-        pv = helpers.gentoo_mangle_version(up_pv)
+        pv = mangling.mangle_version(up_pv, options)
         if helpers.version_filtered(cp, ver, pv):
             continue
         url = 'http://rubygems.org/gems/%s-%s.gem' % (gem, up_pv)
-        ret.append((url, pv))
+        url = mangling.mangle_url(url, options)
+        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
     return ret

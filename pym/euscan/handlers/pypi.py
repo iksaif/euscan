@@ -3,15 +3,15 @@ import re
 
 import portage
 
-from euscan import helpers, output
+from euscan import mangling, helpers, output
 
 HANDLER_NAME = "pypi"
 CONFIDENCE = 100
 PRIORITY = 90
 
 
-def can_handle(pkg, url):
-    return url.startswith('mirror://pypi/')
+def can_handle(pkg, url=None):
+    return url and url.startswith('mirror://pypi/')
 
 
 def guess_package(cp, url):
@@ -24,19 +24,15 @@ def guess_package(cp, url):
     return pkg
 
 
-def scan(pkg, url):
+def scan_url(pkg, url, options):
     'http://wiki.python.org/moin/PyPiXmlRpc'
 
     package = guess_package(pkg.cpv, url)
-
-    ret = []
-    for urls, pv in scan_remote(pkg, [package]):
-        ret.append((urls, pv, HANDLER_NAME, CONFIDENCE))
-    return ret
+    return scan_kg(pkg, [package])
 
 
-def scan_remote(pkg, remote_data):
-    package = remote_data[0]
+def scan_pkg(pkg, options):
+    package = options['data']
 
     output.einfo("Using PyPi XMLRPC: " + package)
 
@@ -52,10 +48,10 @@ def scan_remote(pkg, remote_data):
 
     ret = []
     for up_pv in versions:
-        pv = helpers.gentoo_mangle_version(up_pv)
+        pv = mangling.mangle_version(up_pv, options)
         if helpers.version_filtered(cp, ver, pv):
             continue
         urls = client.release_urls(package, up_pv)
-        urls = " ".join([infos['url'] for infos in urls])
-        ret.append((urls, pv))
+        urls = " ".join([mangling.mangle_url(infos['url'], options) for infos in urls])
+        ret.append((urls, pv, HANDLER_NAME, CONFIDENCE))
     return ret

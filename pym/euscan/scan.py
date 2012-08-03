@@ -44,24 +44,6 @@ def filter_versions(cp, versions):
     ]
 
 
-# gentoolkit stores PORTDB, so even if we modify it to add an overlay
-# it will still use the old dbapi
-def reload_gentoolkit():
-    from gentoolkit import dbapi
-    import gentoolkit.package
-    import gentoolkit.query
-
-    PORTDB = portage.db[portage.root]["porttree"].dbapi
-    dbapi.PORTDB = PORTDB
-
-    if hasattr(dbapi, 'PORTDB'):
-        dbapi.PORTDB = PORTDB
-    if hasattr(gentoolkit.package, 'PORTDB'):
-        gentoolkit.package.PORTDB = PORTDB
-    if hasattr(gentoolkit.query, 'PORTDB'):
-        gentoolkit.query.PORTDB = PORTDB
-
-
 def scan_upstream(query, on_progress=None):
     """
     Scans the upstream searching new versions for the given query

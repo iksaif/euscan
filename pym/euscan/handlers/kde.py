@@ -1,4 +1,4 @@
-from euscan.handlers.url import generic
+from euscan.handlers import generic
 
 PRIORITY = 90
 
@@ -6,10 +6,7 @@ HANDLER_NAME = "kde"
 
 
 def can_handle(pkg, url):
-    if url.startswith('mirror://kde/'):
-        return True
-    return False
-
+    return url and url.startswith('mirror://kde/')
 
 def clean_results(results):
     ret = []
@@ -22,18 +19,18 @@ def clean_results(results):
     return ret
 
 
-def scan(pkg, url):
+def scan_url(pkg, url):
     results = generic.scan(pkg.cpv, url)
 
-    if url.startswith('mirror://kde/unstable/'):
-        url = url.replace('mirror://kde/unstable/', 'mirror://kde/stable/')
+    if generic.startswith('mirror://kde/unstable/'):
+        url = generic.replace('mirror://kde/unstable/', 'mirror://kde/stable/')
         results += generic.scan(pkg.cpv, url)
 
     if not results:  # if nothing was found go brute forcing
         results = generic.brute_force(pkg.cpv, url)
 
-        if url.startswith('mirror://kde/unstable/'):
-            url = url.replace('mirror://kde/unstable/', 'mirror://kde/stable/')
+        if generic.startswith('mirror://kde/unstable/'):
+            url = generic.replace('mirror://kde/unstable/', 'mirror://kde/stable/')
             results += generic.brute_force(pkg.cpv, url)
 
     return clean_results(results)

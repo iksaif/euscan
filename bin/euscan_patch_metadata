@@ -176,8 +176,9 @@ def patch_metadata(package, watch_data, diff=False):
             valid = ("uversionmangle", "versionmangle", "downloadurlmangle")
             cleaned_opts = []
             for opt in opts.split(","):
-                opt_name, opt_value = opt.split("=")
+                opt_name, opt_value = opt.split("=", 1)
                 if opt_name in valid:
+                    if opt_name == "uversionmangle": opt_name = "versionmangle"
                     cleaned_opts.append('%s="%s"' % (opt_name, opt_value))
             opts = " ".join(cleaned_opts)
 

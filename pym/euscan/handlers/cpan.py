@@ -3,7 +3,7 @@ import portage
 import urllib2
 import json
 
-from euscan import helpers, output
+from euscan import helpers, output, mangling
 
 HANDLER_NAME = "cpan"
 CONFIDENCE = 100
@@ -11,10 +11,8 @@ PRIORITY = 90
 
 _cpan_package_name_re = re.compile("mirror://cpan/authors/.*/([^/.]*).*")
 
-
-def can_handle(pkg, url):
-    return url.startswith('mirror://cpan/')
-
+def can_handle(pkg, url=None):
+    return url and url.startswith('mirror://cpan/')
 
 def guess_package(cp, url):
     match = _cpan_package_name_re.search(url)
@@ -33,7 +31,7 @@ def guess_package(cp, url):
     return pkg
 
 
-def gentoo_mangle_version(up_pv):
+def mangle_version(up_pv):
     # clean
     up_pv = up_pv.replace("._", "_")  # e.g.: 0.999._002 -> 0.999_002
     up_pv = up_pv.replace("_0.", "_")  # e.g.: 0.30_0.1 -> 0.30_1
@@ -68,53 +66,25 @@ def gentoo_mangle_version(up_pv):
     if rc_part:
         pv = "%s_rc" % pv
 
-    return helpers.gentoo_mangle_version(pv)
-
-
-def cpan_trim_version(pv):
-    pv = re.sub('^[a-zA-Z]+', '', pv)
-    pv = re.sub('[a-zA-Z]$', '', pv)
     return pv
 
-
-def cpan_mangle_version(pv):
-    pos = pv.find('.')
-    if pos < 0:
-        return pv
-    up_pv = pv.replace('.', '')
-    up_pv = up_pv[0:pos] + '.' + up_pv[pos:]
-    up_pv = cpan_trim_version(up_pv)
-    return up_pv
-
-
-def cpan_vercmp(cp, a, b):
-    try:
-        return float(a) - float(b)
-    except:
-        if a < b:
-            return -1
-        else:
-            return 1
-
-
-def scan(pkg, url):
+def scan_url(pkg, url, options):
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
     remote_pkg = guess_package(cp, url)
 
     output.einfo("Using CPAN API: %s", remote_pkg)
 
-    result = scan_remote(pkg, [remote_pkg])
+    return scan_pkg(pkg, {'data' : remote_pkg})
 
-    ret = []
-    for url, pv in result:
-        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
-    return ret
+def scan_pkg(pkg, options):
+    remote_pkg = options['data']
 
+    # Defaults to CPAN mangling rules
+    if 'versionmangle' not in options:
+        options['versionmangle'] = ['cpan', 'gentoo']
 
-def scan_remote(pkg, remote_data):
-    remote_pkg = remote_data[0]
     url = 'http://search.cpan.org/api/dist/%s' % remote_pkg
-    cp, ver, rev = portage.pkgsplit(pkg.cpv)
+    cp, ver, rev = pkg.cp, pkg.version, pkg.revision
 
     try:
         fp = helpers.urlopen(url)
@@ -139,11 +109,9 @@ def scan_remote(pkg, remote_data):
         #    continue
 
         up_pv = version['version']
-        up_pv = cpan_trim_version(up_pv)
-        pv = gentoo_mangle_version(up_pv)
-        up_ver = cpan_mangle_version(ver)
+        pv = mangling.mangle_version(up_pv, options)
 
-        if helpers.version_filtered(cp, up_ver, up_pv, cpan_vercmp):
+        if helpers.version_filtered(cp, ver, pv):
             continue
 
         url = 'mirror://cpan/authors/id/%s/%s/%s/%s' % (
@@ -153,6 +121,7 @@ def scan_remote(pkg, remote_data):
             version['archive']
         )
 
-        ret.append((url, pv))
+        url = mangling.mangle_url(url, options)
+        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
 
     return ret

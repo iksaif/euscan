@@ -12,7 +12,7 @@ except ImportError:
 import portage
 
 from euscan import CONFIG, SCANDIR_BLACKLIST_URLS, \
-    BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS, output, helpers
+    BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS, output, helpers, mangling
 
 HANDLER_NAME = "generic"
 CONFIDENCE = 45
@@ -69,6 +69,7 @@ def scan_html(data, url, pattern):
                 (".".join([x for x in match.groups() if x is not None]),
                  match.group(0))
             )
+
     return results
 
 
@@ -87,7 +88,7 @@ def scan_ftp(data, url, pattern):
     return results
 
 
-def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
+def scan_directory_recursive(cp, ver, rev, url, steps, orig_url, options):
     if not steps:
         return []
 
@@ -120,7 +121,8 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
     versions = []
 
     for up_pv, path in results:
-        pv = helpers.gentoo_mangle_version(up_pv)
+        pv = mangling.mangle_version(up_pv, options)
+
         if helpers.version_filtered(cp, ver, pv):
             continue
         if not url.endswith("/"):
@@ -129,16 +131,17 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url):
 
         if not steps and path not in orig_url:
             confidence = confidence_score(path, orig_url)
+            path = mangling.mangle_url(path, options)
             versions.append((path, pv, HANDLER_NAME, confidence))
 
         if steps:
-            ret = scan_directory_recursive(cp, ver, rev, path, steps, orig_url)
+            ret = scan_directory_recursive(cp, ver, rev, path, steps, orig_url, options)
             versions.extend(ret)
 
     return versions
 
 
-def scan(pkg, url):
+def scan_url(pkg, url, options):
     if CONFIG["scan-dir"]:
         for bu in SCANDIR_BLACKLIST_URLS:
             if re.match(bu, url):
@@ -171,7 +174,7 @@ def scan(pkg, url):
             output.einfo("Scanning: %s" % template)
 
         steps = helpers.generate_scan_paths(template)
-        ret = scan_directory_recursive(cp, ver, rev, "", steps, url)
+        ret = scan_directory_recursive(cp, ver, rev, "", steps, url, options)
 
     if not ret:
         ret = brute_force(pkg, url)
