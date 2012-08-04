@@ -32,6 +32,9 @@ def guess_package(cp, url):
 
 
 def mangle_version(up_pv):
+    if up_pv.startswith('v'):
+        return up_pv[1:]
+
     # clean
     up_pv = up_pv.replace("._", "_")  # e.g.: 0.999._002 -> 0.999_002
     up_pv = up_pv.replace("_0.", "_")  # e.g.: 0.30_0.1 -> 0.30_1
@@ -44,15 +47,18 @@ def mangle_version(up_pv):
     # Gentoo creates groups of 3 digits, except for the first digit,
     # or when last digit is 0.  e.g.: 4.11 -> 4.110.0
     splitted = up_pv.split(".")
-    if rc_part:
-        splitted.append(rc_part)
+
+    if len(splitted) == 2: # Split second part is sub-groups
+        part = splitted.pop()
+        for i in xrange(0, len(part), 3):
+            splitted.append(part[i:i+3])
 
     if len(splitted) == 2:  # add last group if it's missing
         splitted.append("0")
 
     groups = [splitted[0]]
     for part in splitted[1:-1]:
-        groups.append(part.ljust(3, "0"))
+            groups.append(part.ljust(3, "0"))
     if splitted[-1] == "0":
         groups.append(splitted[-1])
     else:
@@ -64,9 +70,23 @@ def mangle_version(up_pv):
     pv = ".".join(groups)
 
     if rc_part:
-        pv = "%s_rc" % pv
+        pv = "%s_rc%s" % (pv, rc_part)
 
     return pv
+
+def cpan_mangle_version(pv):
+    pos = pv.find('.')
+    if pos <= 0:
+        return pv
+    up_pv = pv.replace('.', '')
+    up_pv = up_pv[0:pos] + '.' + up_pv[pos:]
+    return up_pv
+
+def cpan_vercmp(cp, a, b):
+    try:
+        return float(a) - float(b)
+    except:
+        return helpers.simple_vercmp(a, b)
 
 def scan_url(pkg, url, options):
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
@@ -85,6 +105,9 @@ def scan_pkg(pkg, options):
 
     url = 'http://search.cpan.org/api/dist/%s' % remote_pkg
     cp, ver, rev = pkg.cp, pkg.version, pkg.revision
+    m_ver = cpan_mangle_version(ver)
+
+    output.einfo("Using CPAN API: " + url)
 
     try:
         fp = helpers.urlopen(url)
@@ -111,8 +134,14 @@ def scan_pkg(pkg, options):
         up_pv = version['version']
         pv = mangling.mangle_version(up_pv, options)
 
-        if helpers.version_filtered(cp, ver, pv):
-            continue
+        if up_pv.startswith('v'):
+            if helpers.version_filtered(cp, ver, pv):
+                continue
+        else:
+            m_pv = cpan_mangle_version(up_pv)
+            if helpers.version_filtered(cp, m_ver, m_pv, cpan_vercmp):
+                continue
+
 
         url = 'mirror://cpan/authors/id/%s/%s/%s/%s' % (
             version['cpanid'][0],
