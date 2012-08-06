@@ -13,6 +13,7 @@ from gentoolkit.package import Package
 
 from euscan import CONFIG, BLACKLIST_PACKAGES
 from euscan import handlers, output
+from euscan.out import from_mirror
 from euscan.helpers import version_blacklisted
 from euscan.version import is_version_stable
 from euscan.ebuild import package_from_ebuild
@@ -43,6 +44,31 @@ def filter_versions(cp, versions):
         for version in filtered
     ]
 
+def parse_src_uri(uris):
+    ret = {}
+
+    uris = uris.split()
+    uris.reverse()
+    while uris:
+        uri = uris.pop()
+
+        if '://' not in uri:
+            continue
+        if 'mirror://' in uri:
+            uri = from_mirror(uri)
+
+        if uris and uris[-1] == "->":
+            operator = uris.pop()
+            file = uris.pop()
+        else:
+            file = os.path.basename(uri)
+
+        if file not in ret:
+            ret[file] = []
+
+        ret[file].append(uri)
+
+    return ret
 
 def scan_upstream(query, on_progress=None):
     """
@@ -110,30 +136,16 @@ def scan_upstream(query, on_progress=None):
                 "ebuild", pp.path(os.path.normpath(ebuild_path))
             )
 
+        uris, homepage, description = pkg.environment(('SRC_URI', 'HOMEPAGE', 'DESCRIPTION'))
+
         output.metadata("repository", pkg.repo_name())
-        output.metadata("homepage", pkg.environment("HOMEPAGE"))
-        output.metadata("description", pkg.environment("DESCRIPTION"))
+        output.metadata("homepage", homepage)
+        output.metadata("description", description)
+    else:
+        uris = pkg.environment('SRC_URI')
 
     cpv = pkg.cpv
-    metadata = {
-        "EAPI": portage.settings["EAPI"],
-        "SRC_URI": pkg.environment("SRC_URI", False),
-    }
-    use = frozenset(portage.settings["PORTAGE_USE"].split())
-    try:
-        alist = porttree._parse_uri_map(cpv, metadata, use=use)
-        aalist = porttree._parse_uri_map(cpv, metadata)
-    except Exception as e:
-        output.ewarn(pp.warn("%s\n" % str(e)))
-        output.ewarn(
-            pp.warn("Invalid SRC_URI for '%s'" % pp.pkgquery(cpv))
-        )
-        return None
-
-    if "mirror" in portage.settings.features:
-        urls = aalist
-    else:
-        urls = alist
+    urls = parse_src_uri(uris)
 
     versions = handlers.scan(pkg, urls, on_progress)
 

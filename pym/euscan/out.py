@@ -10,6 +10,7 @@ import portage
 from portage.output import EOutput, TermProgressBar
 from gentoolkit import pprinter as pp
 
+mirrors_ = None
 
 class ProgressHandler(object):
     def __init__(self, progress_bar):
@@ -96,10 +97,27 @@ def to_ebuild_uri(cpv, url):
         url = url.replace(src, '${%s}' % dst)
     return url
 
+def from_mirror(url):
+    if not url.startswith('mirror://'):
+        return url
+
+    global mirrors_
+    if mirrors_ is None:
+        mirrors_ = portage.settings.thirdpartymirrors()
+
+    for mirror_name in mirrors_:
+        prefix = 'mirror://' + mirror_name
+        if url.startswith(prefix):
+            return url.replace(prefix, mirrors_[mirror_name][0])
+
+    return url
 
 def to_mirror(url):
-    mirrors = portage.settings.thirdpartymirrors()
-    for mirror_name in mirrors:
+    global mirrors_
+    if mirrors_ is None:
+        mirrors_ = portage.settings.thirdpartymirrors()
+
+    for mirror_name in mirrors_:
         for mirror_url in mirrors[mirror_name]:
             if url.startswith(mirror_url):
                 url_part = url.split(mirror_url)[1]
