@@ -35,9 +35,10 @@ def group_one(task, seq, *args, **kwargs):
     for elem in seq:
         if attr_name:
             kwargs[attr_name] = elem
-            tasks.append(task.subtask(args=args, kwargs=dict(kwargs)))
+            tasks.append(task.subtask(args=list(args), kwargs=dict(kwargs), immutable=True))
         else:
-            tasks.append(task.subtask(args=[elem] + list(args), kwargs=dict(kwargs)))
+            tasks.append(task.subtask(args=[elem] + list(args), kwargs=dict(kwargs), immutable=True))
+
     return group(tasks)
 
 
@@ -48,7 +49,7 @@ def group_chunks(task, seq, n, *args, **kwargs):
     tasks = []
     for i in xrange(0, len(seq), n):
         tasks.append(
-            task.subtask(args=[seq[i:i + n]] + list(args), kwargs=kwargs)
+            task.subtask(args=[seq[i:i + n]] + list(args), kwargs=kwargs, immutable=True)
         )
     return group(tasks)
 
@@ -67,6 +68,7 @@ def update_counters(fast=False):
     """
     Updates counters
     """
+
     logger = update_counters.get_logger()
     logger.info("Updating counters (fast=%s)...", fast)
     misc.update_counters(fast=fast)
@@ -163,16 +165,26 @@ def update_portage_trees():
 
 @task
 def update_portage(packages=None):
+    categories = portage.settings.categories
+
+    """ Workaround for celery bug when chaining groups """
+    update_portage_trees()
+    scan_portage(packages=[], purge_packages=True, purge_versions=True, prefetch=True)
+    scan_metadata(packages=[], populate=True)
+    update_counters(fast=False)
+
+    """ Currently broken
     update_portage_trees()
     scan_metadata(packages=None, populate=True)
     (
-        group_one(scan_portage, portage.settings.categories,
+        group_one(scan_portage, categories,
                   attr_name="category", purge_packages=True,
                   purge_versions=True, prefetch=True) |
-        group_one(scan_metadata, portage.settings.categories,
+        group_one(scan_metadata, categories,
                   attr_name="category") |
-        update_counters.si(fast=False)
+        update_counters.si(fast=True)
     )()
+    """
     return True
 
 
