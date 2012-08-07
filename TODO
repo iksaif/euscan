@@ -9,29 +9,20 @@ euscan
 - Check other distros (youri, distrowatch, distromatch, whoas; Equivalent-Packages)
 - Steal ideas from other tools (uscan, portscout)
 - Steal data from other tools (dehs)
-- Debian/watch support ? (or a tool to convert debian/watch to something euscan could use).
-  - push some kind of equivalent in metadata.xml
-    - <upsteam><watch options="quirck1 quirck2">http://my.soft/tar-(\d+).ball</watch></upstream>
 - Add a way to enable/disable methods: other_distributions,remote_euscan,handlers, etc....
-- Try to differenciate stable, beta, alpha versions
 
 ### Command line interface
 
-- Run euscan on .ebuild (see /usr/bin/ebuild + os.environ['PORTDIR_OVERLAY']
-- Choose output format (basic html, json, xml, human)
-- Add a way to how we failled to find a new version
+- html and xml output
 
 ### Misc
 
-- clean the code to separate gentoo mangled version and upstream unmangled versions
-  - try to import $PV -> $MY_PV transformations from ebuilds ?
 - Add a HTTP cache (1day, configurable)
-- Give the full Package() to handlers, not just the cpv string
-- Better handlers detection logic __init__.py
 
 Site Handlers
 -------------
 
+- berlios
 - sourceforge: http://sourceforge.net/api/file/index/project-name/vboxgtk/mtime/desc/limit/20/rss  http://sourceforge.net/api/release/index/project-id/264534/rss
 - MySQL: should use http://downloads.mysql.com/archives/
 - mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/
@@ -40,29 +31,10 @@ euscanwww
 ---------
 
 - Try to separate portage stuff in django-portage/djportage (see what can be shared with other GSoC projects)
-- Add last scan date in the footer
 - Add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)
-- Add a table for overlays, change euscan_versions
 - Create a rss for "scan world" + packages in GET
 - Always keep in db the last upstream version (could be marked as packaged without overlay ?)
-- Store euscan status (and used methods ?)
-
-### Commands
-
-- euscan_init: init local tree (portage, layman, eix)
-- euscan_addoverlay: add a layman overlay
-- euscan_sync [--async|--sync]: sync portage, overlays, caches
-- euscan_scan [--async|--sync] [--all|--category=<category>|--herd=<herd>|--maintainer=<maintainer>|--package=<package>]: scan local
-- euscan_uscan [--async|--sync] [--all|--category=<category>|--herd=<herd>|--maintainer=<maintainer>|--package=<package>]: scan upstream
-
-### Scan process
-
-- Move to celery:
--  periodic task for emerge --sync; layman -S; eix-update etc... (every day ?)
--  periodic task for euscan (once every week, groupped by category or package ?)
-
-This would allow easier on-demand refresh from web interface
 
 ### API
 
-- Move to tastypie:
+- Move to tastypie
