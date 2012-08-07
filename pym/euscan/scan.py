@@ -70,6 +70,22 @@ def parse_src_uri(uris):
 
     return ret
 
+def reload_gentoolkit():
+    import gentoolkit
+
+    # Not used in recent versions
+    if not hasattr(gentoolkit.package, 'PORTDB'):
+        return
+
+    PORTDB = portage.db[portage.root]["porttree"].dbapi
+
+    if hasattr(gentoolkit.dbapi, 'PORTDB'):
+        gentoolkit.dbapi.PORTDB = PORTDB
+    if hasattr(gentoolkit.package, 'PORTDB'):
+        gentoolkit.package.PORTDB = PORTDB
+    if hasattr(gentoolkit.query, 'PORTDB'):
+        gentoolkit.query.PORTDB = PORTDB
+
 def scan_upstream(query, on_progress=None):
     """
     Scans the upstream searching new versions for the given query
@@ -78,8 +94,8 @@ def scan_upstream(query, on_progress=None):
 
     if query.endswith(".ebuild"):
         cpv = package_from_ebuild(query)
+        reload_gentoolkit()
         if cpv:
-            reload_gentoolkit()
             matches = [Package(cpv)]
     else:
         matches = Query(query).find(
