@@ -11,8 +11,8 @@ except ImportError:
 
 import portage
 
-from euscan import CONFIG, SCANDIR_BLACKLIST_URLS, \
-    BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS, output, helpers, mangling
+from euscan import output, helpers, mangling, CONFIG, SCANDIR_BLACKLIST_URLS, \
+    BRUTEFORCE_BLACKLIST_PACKAGES, BRUTEFORCE_BLACKLIST_URLS
 
 HANDLER_NAME = "generic"
 CONFIDENCE = 45

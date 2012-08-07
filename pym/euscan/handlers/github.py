@@ -14,11 +14,13 @@ PRIORITY = 90
 def can_handle(pkg, url=None):
     return url and url.startswith('mirror://github/')
 
+
 def guess_package(cp, url):
     match = re.search('^mirror://github/(.*?)/(.*?)/(.*)$', url)
 
     assert(match)
     return (match.group(1), match.group(2), match.group(3))
+
 
 def scan_url(pkg, url, options):
     'http://developer.github.com/v3/repos/downloads/'

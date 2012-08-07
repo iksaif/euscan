@@ -77,12 +77,11 @@ def read_options(options):
     return base, file_pattern
 
 
-def scan_pkg(pkg, options):
-    output.einfo("Using watch data")
+def process_scan(pkg, base, file_pattern, options=None):
+    if options is None:
+        options = {}
 
     cp, ver, rev = pkg.cp, pkg.version, pkg.revision
-
-    base, file_pattern = read_options(options)
 
     results = []
     if not re.search(is_pattern, base):
@@ -97,3 +96,9 @@ def scan_pkg(pkg, options):
             )
 
     return results
+
+
+def scan_pkg(pkg, options):
+    output.einfo("Using watch data")
+    base, file_pattern = read_options(options)
+    return process_scan(pkg, base, file_pattern, options)
