@@ -97,13 +97,21 @@ def to_ebuild_uri(cpv, url):
         url = url.replace(src, '${%s}' % dst)
     return url
 
-def from_mirror(url):
-    if not url.startswith('mirror://'):
-        return url
+def load_mirrors():
+    import random
 
     global mirrors_
     if mirrors_ is None:
         mirrors_ = portage.settings.thirdpartymirrors()
+    for mirror_name in mirrors_:
+        random.shuffle(mirrors_[mirror_name])
+
+def from_mirror(url):
+    if not url.startswith('mirror://'):
+        return url
+
+    if not mirrors_:
+        load_mirrors()
 
     for mirror_name in mirrors_:
         prefix = 'mirror://' + mirror_name
@@ -113,9 +121,8 @@ def from_mirror(url):
     return url
 
 def to_mirror(url):
-    global mirrors_
-    if mirrors_ is None:
-        mirrors_ = portage.settings.thirdpartymirrors()
+    if not mirrors_:
+        load_mirrors()
 
     for mirror_name in mirrors_:
         for mirror_url in mirrors[mirror_name]:
