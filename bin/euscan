@@ -299,9 +299,9 @@ def main():
 
         except Exception as err:
             import traceback
-            print ('-'*60)
+            print ('-' * 60)
             traceback.print_exc(file=sys.stderr)
-            print ('-'*60)
+            print ('-' * 60)
 
             output.eerror('%s: %s' % (query, str(err)))
             exit_helper(1)

@@ -41,7 +41,7 @@ def scan_url(pkg, url, options):
 
     output.einfo("Using RubyGem API: %s" % gem)
 
-    return scan_pkg(pkg, {'data' : gem})
+    return scan_pkg(pkg, {'data': gem})
 
 
 def scan_pkg(pkg, options):

@@ -12,6 +12,7 @@ from gentoolkit import pprinter as pp
 
 mirrors_ = None
 
+
 class ProgressHandler(object):
     def __init__(self, progress_bar):
         self.curval = 0
@@ -97,6 +98,7 @@ def to_ebuild_uri(cpv, url):
         url = url.replace(src, '${%s}' % dst)
     return url
 
+
 def load_mirrors():
     import random
 
@@ -105,6 +107,7 @@ def load_mirrors():
         mirrors_ = portage.settings.thirdpartymirrors()
     for mirror_name in mirrors_:
         random.shuffle(mirrors_[mirror_name])
+
 
 def from_mirror(url):
     if not url.startswith('mirror://'):
@@ -120,12 +123,13 @@ def from_mirror(url):
 
     return url
 
+
 def to_mirror(url):
     if not mirrors_:
         load_mirrors()
 
     for mirror_name in mirrors_:
-        for mirror_url in mirrors[mirror_name]:
+        for mirror_url in mirrors_[mirror_name]:
             if url.startswith(mirror_url):
                 url_part = url.split(mirror_url)[1]
                 return "mirror://%s%s%s" % (

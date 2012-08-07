@@ -399,9 +399,14 @@ def accounts_index(request):
     maintainers = sorted(get_account_maintainers(request.user),
                          key=upstream_k, reverse=True)
     m_upstream = sum([upstream_k(c) for c in maintainers])
-    packages = sorted(get_profile(user).packages.all(),
-                      key=lambda p: p.n_versions - p.n_packaged - p.n_overlay, reverse=True)
-    p_upstream = sum([c.n_versions - c.n_packaged - c.n_overlay for c in packages])
+    packages = sorted(
+        get_profile(user).packages.all(),
+        key=lambda p: p.n_versions - p.n_packaged - p.n_overlay,
+        reverse=True
+    )
+    p_upstream = sum(
+        [c.n_versions - c.n_packaged - c.n_overlay for c in packages]
+    )
     return {
         "categories": categories, "categories_upstream": c_upstream,
         "herds": herds, "herds_upstream": h_upstream,

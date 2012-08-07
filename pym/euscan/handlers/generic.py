@@ -135,7 +135,8 @@ def scan_directory_recursive(cp, ver, rev, url, steps, orig_url, options):
             versions.append((path, pv, HANDLER_NAME, confidence))
 
         if steps:
-            ret = scan_directory_recursive(cp, ver, rev, path, steps, orig_url, options)
+            ret = scan_directory_recursive(cp, ver, rev, path, steps, orig_url,
+                                           options)
             versions.extend(ret)
 
     return versions

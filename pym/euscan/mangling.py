@@ -2,6 +2,7 @@ import re
 
 import euscan.handlers
 
+
 def apply_mangling_rule(mangle, string):
     # convert regex from perl format to python format
     # there are some regex in this format: s/pattern/replacement/
@@ -9,12 +10,13 @@ def apply_mangling_rule(mangle, string):
     if not m:
         # or in this format s|pattern|replacement|
         m = re.match(r"s\|(.*[^\\])\|(.*)\|", mangle)
-    if not m: # Not a known regex format
+    if not m:  # Not a known regex format
         return string
     pattern, repl = m.groups()
     repl = re.sub(r"\$(\d+)", r"\\\1", repl)
 
     return re.sub(pattern, repl, string)
+
 
 def apply_mangling_rules(kind, rules, string):
     """
@@ -36,18 +38,21 @@ def apply_mangling_rules(kind, rules, string):
         elif kind == 'versionmangle':
             ret = euscan.handlers.mangle_version(rule, string)
 
-        if ret is not None: # Use return value as new string if not None
+        if ret is not None:  # Use return value as new string if not None
             string = ret
-        else: # Apply sed like rules
+        else:  # Apply sed like rules
             string = apply_mangling_rule(rule, string)
 
     return string
 
+
 def mangle_version(up_pv, options):
     return apply_mangling_rules('versionmangle', options, up_pv)
 
+
 def mangle_url(url, options):
     return apply_mangling_rules('downloadurlmangle', options, url)
+
 
 # Stolen from g-pypi
 def gentoo_mangle_version(up_pv):

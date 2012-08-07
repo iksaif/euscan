@@ -1,8 +1,6 @@
 import re
 import urllib2
 
-import portage
-
 import generic
 from euscan import output, helpers
 
@@ -14,8 +12,10 @@ CONFIDENCE = 100.0
 
 is_pattern = r"\([^\/]+\)"
 
+
 def can_handle(*args):
     return False
+
 
 def handle_directory_patterns(base, file_pattern):
     """
@@ -55,6 +55,7 @@ def handle_directory_patterns(base, file_pattern):
     return [("/".join((basedir, path, final)), file_pattern)
             for _, path in scan_data]
 
+
 def read_options(options):
     try:
         base, file_pattern = options['data'].split(" ")[:2]
@@ -74,6 +75,7 @@ def read_options(options):
     )
 
     return base, file_pattern
+
 
 def scan_pkg(pkg, options):
     output.einfo("Using watch data")
@@ -95,4 +97,3 @@ def scan_pkg(pkg, options):
             )
 
     return results
-

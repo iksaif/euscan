@@ -8,6 +8,7 @@ HANDLER_NAME = "kde"
 def can_handle(pkg, url):
     return url and url.startswith('mirror://kde/')
 
+
 def clean_results(results):
     ret = []
 
@@ -30,7 +31,8 @@ def scan_url(pkg, url, options):
         results = generic.brute_force(pkg.cpv, url)
 
         if generic.startswith('mirror://kde/unstable/'):
-            url = generic.replace('mirror://kde/unstable/', 'mirror://kde/stable/')
+            url = generic.replace('mirror://kde/unstable/',
+                                  'mirror://kde/stable/')
             results += generic.brute_force(pkg.cpv, url)
 
     return clean_results(results)

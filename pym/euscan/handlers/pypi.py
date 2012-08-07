@@ -28,7 +28,7 @@ def scan_url(pkg, url, options):
     'http://wiki.python.org/moin/PyPiXmlRpc'
 
     package = guess_package(pkg.cpv, url)
-    return scan_kg(pkg, [package])
+    return scan_pkg(pkg, [package])
 
 
 def scan_pkg(pkg, options):
@@ -52,6 +52,7 @@ def scan_pkg(pkg, options):
         if helpers.version_filtered(cp, ver, pv):
             continue
         urls = client.release_urls(package, up_pv)
-        urls = " ".join([mangling.mangle_url(infos['url'], options) for infos in urls])
+        urls = " ".join([mangling.mangle_url(infos['url'], options)
+                         for infos in urls])
         ret.append((urls, pv, HANDLER_NAME, CONFIDENCE))
     return ret

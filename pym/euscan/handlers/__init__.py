@@ -1,12 +1,12 @@
-import os, sys
+import os
+import sys
 import pkgutil
 
 from euscan import CONFIG, output
-import euscan.mangling
 
 from gentoolkit.metadata import MetaData
 
-handlers = {'package' : [], 'url' : [], 'all' : {}}
+handlers = {'package': [], 'url': [], 'all': {}}
 
 # autoimport all modules in this directory and append them to handlers list
 for loader, module_name, is_pkg in pkgutil.walk_packages(__path__):
@@ -19,6 +19,7 @@ for loader, module_name, is_pkg in pkgutil.walk_packages(__path__):
         handlers['package'].append(module)
     handlers['all'][module.HANDLER_NAME] = module
 
+
 # sort handlers by priority
 def sort_handlers(handlers):
     return sorted(
@@ -30,6 +31,7 @@ def sort_handlers(handlers):
 handlers['package'] = sort_handlers(handlers['package'])
 handlers['url'] = sort_handlers(handlers['url'])
 
+
 def find_best_handler(kind, pkg, *args):
     """
     Find the best handler for the given package
@@ -38,6 +40,7 @@ def find_best_handler(kind, pkg, *args):
         if handler.can_handle(pkg, *args):
             return handler
     return None
+
 
 def find_handlers(kind, names):
     ret = []
@@ -49,12 +52,14 @@ def find_handlers(kind, names):
 
     return ret
 
+
 def get_metadata(pkg):
     metadata = {}
 
     pkg_metadata = None
 
-    meta_override = os.path.join('metadata', pkg.category, pkg.name, 'metadata.xml')
+    meta_override = os.path.join('metadata', pkg.category, pkg.name,
+                                 'metadata.xml')
 
     try:
         if os.path.exists(meta_override):
@@ -99,9 +104,10 @@ def get_metadata(pkg):
                     if not metadata[handler][i]['data']:
                         metadata[handler][i]['data'] = node.text
             else:
-                metadata[handler] = [{'type' : handler, 'data' : node.text }]
+                metadata[handler] = [{'type': handler, 'data': node.text}]
 
     return metadata
+
 
 def scan_pkg(pkg_handler, pkg, options, on_progress=None):
     versions = []
@@ -116,6 +122,7 @@ def scan_pkg(pkg_handler, pkg, options, on_progress=None):
         on_progress(increment=35)
 
     return versions
+
 
 def scan_url(pkg, urls, options, on_progress=None):
     versions = []
@@ -158,6 +165,7 @@ def scan_url(pkg, urls, options, on_progress=None):
 
     return versions
 
+
 def scan(pkg, urls, on_progress=None):
     """
     Scans upstream for the given package.
@@ -174,7 +182,8 @@ def scan(pkg, urls, on_progress=None):
     pkg_handlers = find_handlers('package', metadata.keys())
     if not pkg_handlers:
         pkg_handler = find_best_handler('package', pkg)
-        if pkg_handler: pkg_handlers = [pkg_handler]
+        if pkg_handler:
+            pkg_handlers = [pkg_handler]
 
     for pkg_handler in pkg_handlers:
         options = metadata.get(pkg_handler.HANDLER_NAME, [{}])
@@ -185,6 +194,7 @@ def scan(pkg, urls, on_progress=None):
 
     return versions
 
+
 def mangle(kind, name, string):
     if name not in handlers['all']:
         return None
@@ -193,8 +203,10 @@ def mangle(kind, name, string):
         return None
     return getattr(handler, 'mangle_%s' % kind)(string)
 
+
 def mangle_url(name, string):
     return mangle('url', name, string)
+
 
 def mangle_version(name, string):
     return mangle('version', name, string)

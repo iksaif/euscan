@@ -43,8 +43,8 @@ class ScanMetadata(object):
             pkg = self.get_package(query)
 
         try:
-            version = Version.objects.filter(package=pkg).values('metadata_path')\
-                                .order_by('version', 'revision')[0]
+            version = Version.objects.filter(package=pkg).\
+                values('metadata_path').order_by('version', 'revision')[0]
         except IndexError:
             return pkg, None
 

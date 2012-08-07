@@ -4,6 +4,7 @@ HANDLER_NAME = "pear"
 CONFIDENCE = 100
 PRIORITY = 90
 
+
 def can_handle(pkg, url=None):
     return url and url.startswith('http://%s.php.net/get/' % HANDLER_NAME)
 

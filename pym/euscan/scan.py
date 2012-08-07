@@ -5,7 +5,6 @@ import sys
 from datetime import datetime
 
 import portage
-from portage.dbapi import porttree
 
 import gentoolkit.pprinter as pp
 from gentoolkit.query import Query
@@ -44,6 +43,7 @@ def filter_versions(cp, versions):
         for version in filtered
     ]
 
+
 def parse_src_uri(uris):
     ret = {}
 
@@ -59,16 +59,17 @@ def parse_src_uri(uris):
 
         if uris and uris[-1] == "->":
             operator = uris.pop()
-            file = uris.pop()
+            file_ = uris.pop()
         else:
-            file = os.path.basename(uri)
+            file_ = os.path.basename(uri)
 
-        if file not in ret:
-            ret[file] = []
+        if file_ not in ret:
+            ret[file_] = []
 
-        ret[file].append(uri)
+        ret[file_].append(uri)
 
     return ret
+
 
 def reload_gentoolkit():
     import gentoolkit
@@ -85,6 +86,7 @@ def reload_gentoolkit():
         gentoolkit.package.PORTDB = PORTDB
     if hasattr(gentoolkit.query, 'PORTDB'):
         gentoolkit.query.PORTDB = PORTDB
+
 
 def scan_upstream(query, on_progress=None):
     """
@@ -152,7 +154,9 @@ def scan_upstream(query, on_progress=None):
                 "ebuild", pp.path(os.path.normpath(ebuild_path))
             )
 
-        uris, homepage, description = pkg.environment(('SRC_URI', 'HOMEPAGE', 'DESCRIPTION'))
+        uris, homepage, description = pkg.environment(
+            ('SRC_URI', 'HOMEPAGE', 'DESCRIPTION')
+        )
 
         output.metadata("repository", pkg.repo_name())
         output.metadata("homepage", homepage)

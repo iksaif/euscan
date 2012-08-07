@@ -11,8 +11,10 @@ PRIORITY = 90
 
 _cpan_package_name_re = re.compile("mirror://cpan/authors/.*/([^/.]*).*")
 
+
 def can_handle(pkg, url=None):
     return url and url.startswith('mirror://cpan/')
+
 
 def guess_package(cp, url):
     match = _cpan_package_name_re.search(url)
@@ -48,10 +50,10 @@ def mangle_version(up_pv):
     # or when last digit is 0.  e.g.: 4.11 -> 4.110.0
     splitted = up_pv.split(".")
 
-    if len(splitted) == 2: # Split second part is sub-groups
+    if len(splitted) == 2:  # Split second part is sub-groups
         part = splitted.pop()
         for i in xrange(0, len(part), 3):
-            splitted.append(part[i:i+3])
+            splitted.append(part[i:i + 3])
 
     if len(splitted) == 2:  # add last group if it's missing
         splitted.append("0")
@@ -74,6 +76,7 @@ def mangle_version(up_pv):
 
     return pv
 
+
 def cpan_mangle_version(pv):
     pos = pv.find('.')
     if pos <= 0:
@@ -82,11 +85,13 @@ def cpan_mangle_version(pv):
     up_pv = up_pv[0:pos] + '.' + up_pv[pos:]
     return up_pv
 
+
 def cpan_vercmp(cp, a, b):
     try:
         return float(a) - float(b)
     except:
         return helpers.simple_vercmp(a, b)
+
 
 def scan_url(pkg, url, options):
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
@@ -94,7 +99,8 @@ def scan_url(pkg, url, options):
 
     output.einfo("Using CPAN API: %s", remote_pkg)
 
-    return scan_pkg(pkg, {'data' : remote_pkg})
+    return scan_pkg(pkg, {'data': remote_pkg})
+
 
 def scan_pkg(pkg, options):
     remote_pkg = options['data']
@@ -141,7 +147,6 @@ def scan_pkg(pkg, options):
             m_pv = cpan_mangle_version(up_pv)
             if helpers.version_filtered(cp, m_ver, m_pv, cpan_vercmp):
                 continue
-
 
         url = 'mirror://cpan/authors/id/%s/%s/%s/%s' % (
             version['cpanid'][0],

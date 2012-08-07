@@ -406,6 +406,7 @@ def basedir_from_template(template):
 
     return template[0:idx]
 
+
 def generate_scan_paths(url):
     prefix, chunks = url.split('://')
     chunks = chunks.split('/')

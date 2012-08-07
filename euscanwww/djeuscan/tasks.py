@@ -35,9 +35,11 @@ def group_one(task, seq, *args, **kwargs):
     for elem in seq:
         if attr_name:
             kwargs[attr_name] = elem
-            tasks.append(task.subtask(args=list(args), kwargs=dict(kwargs), immutable=True))
+            tasks.append(task.subtask(args=list(args), kwargs=dict(kwargs),
+                         immutable=True))
         else:
-            tasks.append(task.subtask(args=[elem] + list(args), kwargs=dict(kwargs), immutable=True))
+            tasks.append(task.subtask(args=[elem] + list(args),
+                         kwargs=dict(kwargs), immutable=True))
 
     return group(tasks)
 
@@ -49,7 +51,8 @@ def group_chunks(task, seq, n, *args, **kwargs):
     tasks = []
     for i in xrange(0, len(seq), n):
         tasks.append(
-            task.subtask(args=[seq[i:i + n]] + list(args), kwargs=kwargs, immutable=True)
+            task.subtask(args=[seq[i:i + n]] + list(args), kwargs=kwargs,
+                         immutable=True)
         )
     return group(tasks)
 
@@ -169,7 +172,8 @@ def update_portage(packages=None):
 
     """ Workaround for celery bug when chaining groups """
     update_portage_trees()
-    scan_portage(packages=[], purge_packages=True, purge_versions=True, prefetch=True)
+    scan_portage(packages=[], purge_packages=True, purge_versions=True,
+                 prefetch=True)
     scan_metadata(packages=[], populate=True)
     update_counters(fast=False)
 
@@ -250,7 +254,9 @@ def consume_refresh_queue(locked=False):
     if RefreshPackageQuery.objects.count():
         logger.info('Restarting myself in 60s')
         lock()
-        consume_refresh_queue.apply_async(kwargs={'locked':True}, countdown=60)
+        consume_refresh_queue.apply_async(
+            kwargs={'locked': True}, countdown=60
+        )
 
 admin_tasks = [
     regen_rrds,
