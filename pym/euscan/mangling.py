@@ -44,6 +44,9 @@ def apply_mangling_rules(kind, rules, string):
     return string
 
 def mangle_version(up_pv, options):
+    # Default rule is gentoo when empty
+    if 'versionmangle' not in options or not options['versionmangle']:
+        options['versionmangle'] = ['gentoo']
     return apply_mangling_rules('versionmangle', options, up_pv)
 
 def mangle_url(url, options):
