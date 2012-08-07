@@ -8,7 +8,7 @@ from euscan import output
 
 HANDLER_NAME = "sourceforge"
 CONFIDENCE = 90
-PRIORITY = 95
+PRIORITY = 90
 
 
 def can_handle(pkg, url=None):
