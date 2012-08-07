@@ -73,7 +73,7 @@ def version_is_nightly(a, b):
     a = parse_version(a)
     b = parse_version(b)
 
-    ''' Try to skip nightly builds when not wanted (www-apps/moodle) '''
+    # Try to skip nightly builds when not wanted (www-apps/moodle)
     if len(a) != len(b) and len(b) == 2 and len(b[0]) == len('yyyymmdd'):
         if b[0][:4] != '0000':
             return True
@@ -84,7 +84,7 @@ def version_blacklisted(cp, version):
     rule = None
     cpv = '%s-%s' % (cp, version)
 
-    ''' Check that the generated cpv can be used by portage '''
+    # Check that the generated cpv can be used by portage
     if not portage.versions.catpkgsplit(cpv):
         return False
 
@@ -99,7 +99,7 @@ def version_blacklisted(cp, version):
 
 
 def version_change_end_sep(version):
-    match = re.match('.*' + _v_end, version)
+    match = re.match(r".*(%s)" % _v_end, version)
     if not match:
         return None
     end = match.group(1)
@@ -240,7 +240,7 @@ class HeadRequest(urllib2.Request):
         return "HEAD"
 
 
-""" RobotParser cache """
+# RobotParser cache
 rpcache = {}
 
 
