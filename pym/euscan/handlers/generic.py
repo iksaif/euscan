@@ -63,7 +63,7 @@ def scan_html(data, url, pattern):
         if href.startswith(url):
             href = href.replace(url, "", 1)
 
-        match = re.match(pattern, href, re.I)
+        match = re.search(pattern, href, re.I)
         if match:
             results.append(
                 (".".join([x for x in match.groups() if x is not None]),

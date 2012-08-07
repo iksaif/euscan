@@ -19,7 +19,7 @@ def clean_results(results):
     return ret
 
 
-def scan_url(pkg, url):
+def scan_url(pkg, url, options):
     results = generic.scan(pkg.cpv, url)
 
     if generic.startswith('mirror://kde/unstable/'):
