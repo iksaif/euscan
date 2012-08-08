@@ -148,16 +148,19 @@ class CategoryFeed(BaseFeed):
 class UserFeed(BaseFeed):
     link = "/"
 
-    def description(self, user):
+    def description(self, data):
         return "%s - last euscan changes"
 
-    def title(self, user):
-        return "%s - watched packages" % user
+    def title(self, data):
+        return "%s - watched packages" % data[0]
 
     def get_object(self, request):
-        return request.user
+        options = request.GET
+        return request.user, options
 
-    def items(self, user):
+    def items(self, data):
+        user, options = data
+
         profile = get_profile(user)
         packages = get_account_packages(user)
         overlays = [o.name for o in profile.overlays.all()]
@@ -165,9 +168,18 @@ class UserFeed(BaseFeed):
         ret = VersionLog.objects.filter(
             Q(package__in=packages) | Q(overlay__in=overlays)
             )
-        if not profile.upstream_info:
+
+        # first of all consider options, then user preferences
+        if options:
+            upstream_info = "upstream_info" in options
+            portage_info = "portage_info" in options
+        else:
+            upstream_info = profile.upstream_info
+            portage_info = profile.portage_info
+
+        if not upstream_info:
             ret = ret.exclude(overlay="")
-        if not profile.portage_info:
+        if not portage_info:
             ret = ret.exclude(~Q(overlay=""))
 
         return ret.order_by("-datetime")[:100]
