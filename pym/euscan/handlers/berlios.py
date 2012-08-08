@@ -9,11 +9,14 @@ from euscan import output
 
 HANDLER_NAME = "berlios"
 CONFIDENCE = 90
-PRIORITY = 95
+PRIORITY = 90
+
+
+berlios_regex = r"berlios.de/([^/]+)/([^/]+)"
 
 
 def can_handle(pkg, url=None):
-    return url and "berlios.de/" in url
+    return url and re.search(berlios_regex, url)
 
 
 def scan_url(pkg, url, options):
@@ -21,7 +24,7 @@ def scan_url(pkg, url, options):
 
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
-    project, filename = re.search(r"berlios.de/(.+)/(.+)", url).groups()
+    project, filename = re.search(berlios_regex, url).groups()
 
     project_page = "http://developer.berlios.de/projects/%s" % project
     content = urllib.urlopen(project_page).read()
