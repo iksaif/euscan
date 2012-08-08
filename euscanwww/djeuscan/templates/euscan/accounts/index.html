@@ -6,6 +6,15 @@
   {{ block.super }} - Welcome {{ user }}
 {% endblock %}
 
+{% block menu_feed %}
+{{ block.super }}
+<li>
+  <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
+  <a title="{{ user }} Feed" href="{% url "user_feed" %}">
+    {{ user }}'s Feed
+  </a>
+</li>
+{% endblock %}
 
 {% block content %}
   <h2>

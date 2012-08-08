@@ -4,6 +4,7 @@ from django.utils.feedgenerator import Atom1Feed
 from django.core.urlresolvers import reverse
 
 from djeuscan.models import Package, Herd, Maintainer, VersionLog
+from djeuscan.helpers import get_profile, get_account_packages
 
 
 class BaseFeed(Feed):
@@ -141,3 +142,25 @@ class CategoryFeed(BaseFeed):
 
     def items(self, category):
         return VersionLog.objects.for_category(category, order=True)[:100]
+
+
+class UserFeed(BaseFeed):
+    link = "/"
+
+    def description(self, user):
+        return "%s - last euscan changes"
+
+    def title(self, user):
+        return "%s - watched packages" % user
+
+    def get_object(self, request):
+        return request.user
+
+    def items(self, user):
+        packages = get_account_packages(user)
+        overlays = [o.name for o in get_profile(user).overlays.all()]
+
+        ret = VersionLog.objects.filter(package__in=packages).filter(
+                overlay__in=overlays).order_by("-datetime")[:100]
+
+        return ret

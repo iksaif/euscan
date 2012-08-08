@@ -3,6 +3,7 @@ djeuscan.helpers
 """
 
 from distutils.version import StrictVersion, LooseVersion
+from django.db.models import Q
 
 
 def xint(i):
@@ -106,3 +107,19 @@ def get_account_maintainers(user):
     ids = [obj.pk for obj in get_profile(user).maintainers.all()]
     return Package.objects.maintainers(ids=ids)
 
+
+def get_account_packages(user):
+    """
+    Returns all watched packages
+    """
+    from djeuscan.models import Package
+
+    profile = get_profile(user)
+    q_categories = Q(category__in=[
+        category.name for category in profile.categories.all()])
+    q_herds = Q(herds__in=profile.herds.all())
+    q_maintainers = Q(maintainers__in=profile.maintainers.all())
+    packages = list(profile.packages.all()) + list(Package.objects.filter(
+        q_categories | q_herds | q_maintainers))
+
+    return packages

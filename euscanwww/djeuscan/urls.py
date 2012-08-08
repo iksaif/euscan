@@ -7,7 +7,7 @@ from djcelery.views import apply as apply_task
 from djeuscan.views import registered_tasks
 
 from djeuscan.feeds import PackageFeed, CategoryFeed, HerdFeed, \
-    MaintainerFeed, GlobalFeed
+    MaintainerFeed, GlobalFeed, UserFeed
 
 
 admin_required = user_passes_test(lambda u: u.is_superuser)
@@ -93,6 +93,8 @@ accounts_patterns = patterns('djeuscan.views',
         name="accounts_maintainers"),
     url(r'^packages/$', 'accounts_packages', name="accounts_packages"),
     url(r'^overlays/$', 'accounts_overlays', name="accounts_overlays"),
+
+    url(r'^feed/$', UserFeed(), name='user_feed'),
 
     url(r'^logout/$', logout, {'next_page': '/'}),
 
