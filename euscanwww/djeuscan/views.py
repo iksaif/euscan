@@ -522,7 +522,7 @@ def unfavourite_category(request, category):
 @require_POST
 @ajax_request
 def favourite_overlay(request, overlay):
-    obj = Category.objects.get(name=overlay)
+    obj = Overlay.objects.get(name=overlay)
     get_profile(request.user).overlays.add(obj)
     return {"success": True}
 
@@ -531,6 +531,6 @@ def favourite_overlay(request, overlay):
 @require_POST
 @ajax_request
 def unfavourite_overlay(request, overlay):
-    obj = Category.objects.get(name=overlay)
+    obj = Overlay.objects.get(name=overlay)
     get_profile(request.user).overlays.remove(obj)
     return {"success": True}
