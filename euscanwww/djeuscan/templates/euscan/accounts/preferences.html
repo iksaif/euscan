@@ -5,6 +5,17 @@
   {{ block.super }} - Edit user preferences for {{ user }}
 {% endblock %}
 
+{% block css %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/toggle_buttons.css" media="screen" title="Normal" />
+{% endblock %}
+
+{% block javascript %}
+  {{ block.super }}
+  <script type="text/javascript" language="javascript" src="{{STATIC_URL}}js/jquery.js"></script>
+  <script type="text/javascript" language="javascript" src="{{STATIC_URL}}js/jquery.toggle.buttons.js"></script>
+{% endblock %}
+
 
 {% block content %}
   {% if updated %}
@@ -17,7 +28,7 @@
     Edit user preferences
   </h2>
 
-  <form method='post' action='.'>
+  <form id="preferences_form" method='post' action='.'>
     {% csrf_token %}
     <table class="table">
       {{ form }}
@@ -29,4 +40,16 @@
       </tr>
     </table>
   </form>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#preferences_form").find("input:checkbox").each(function () {
+        var div = $("<div/>")
+          , td = $(this).closest("td");
+        $(this).remove();
+        td.append(div.append($(this)));
+        div.toggleButtons();
+      });
+    });
+  </script>
 {% endblock %}

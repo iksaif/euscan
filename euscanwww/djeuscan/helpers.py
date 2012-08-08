@@ -121,5 +121,4 @@ def get_account_packages(user):
     q_maintainers = Q(maintainers__in=profile.maintainers.all())
     packages = list(profile.packages.all()) + list(Package.objects.filter(
         q_categories | q_herds | q_maintainers))
-
     return packages

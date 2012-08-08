@@ -420,6 +420,8 @@ def accounts_index(request):
 @render_to('euscan/accounts/preferences.html')
 def accounts_preferences(request):
     user = request.user
+    profile = get_profile(user)
+
     updated = False
     if request.method == "POST":
         form = PreferencesForm(request.POST)
@@ -428,12 +430,20 @@ def accounts_preferences(request):
             user.last_name = form.cleaned_data["last_name"]
             user.email = form.cleaned_data["email"]
             user.save(force_update=True)
+
+            profile.upstream_info = form.cleaned_data["upstream_info"]
+            profile.portage_info = form.cleaned_data["portage_info"]
+
+            profile.save(force_update=True)
+
             updated = True
     else:
         initial_data = {
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "email": user.email
+            "email": user.email,
+            "upstream_info": profile.upstream_info,
+            "portage_info": profile.portage_info,
         }
         form = PreferencesForm(initial_data)
     return {"form": form, "updated": updated}

@@ -259,6 +259,9 @@ class UserProfile(models.Model):
     categories = models.ManyToManyField(Category)
     overlays = models.ManyToManyField(Overlay)
 
+    upstream_info = models.BooleanField(default=True)
+    portage_info = models.BooleanField(default=False)
+
 
 class Log(models.Model):
     """

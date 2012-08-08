@@ -2,6 +2,7 @@ from django.contrib.syndication.views import Feed, FeedDoesNotExist
 from django.shortcuts import get_object_or_404
 from django.utils.feedgenerator import Atom1Feed
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 
 from djeuscan.models import Package, Herd, Maintainer, VersionLog
 from djeuscan.helpers import get_profile, get_account_packages
@@ -157,10 +158,16 @@ class UserFeed(BaseFeed):
         return request.user
 
     def items(self, user):
+        profile = get_profile(user)
         packages = get_account_packages(user)
-        overlays = [o.name for o in get_profile(user).overlays.all()]
+        overlays = [o.name for o in profile.overlays.all()]
 
-        ret = VersionLog.objects.filter(package__in=packages).filter(
-                overlay__in=overlays).order_by("-datetime")[:100]
+        ret = VersionLog.objects.filter(
+            Q(package__in=packages) | Q(overlay__in=overlays)
+            )
+        if not profile.upstream_info:
+            ret = ret.exclude(overlay="")
+        if not profile.portage_info:
+            ret = ret.exclude(~Q(overlay=""))
 
-        return ret
+        return ret.order_by("-datetime")[:100]
