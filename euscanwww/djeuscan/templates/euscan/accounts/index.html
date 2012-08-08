@@ -16,7 +16,7 @@
   <div class="row-fluid padded">
     <div class="padded span6">
       {% with categories|length as num_categories %}
-        Watching {{ num_categories }} categor{{ num_categories|pluralize:"y,es"}}
+        Watching {{ num_categories }} categor{{ num_categories|pluralize:"y,ies"}}
         <ul>
           <li>{{ categories_upstream }} new upstream version{{ categories_upstream|pluralize:"s"}}</li>
           {% if categories_upstream %}
