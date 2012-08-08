@@ -8,8 +8,19 @@
 
 
 {% block content %}
-  <h2>Welcome {{ user }}</h2>
+  <h2>
+    Welcome {{ user }}
 
+    <span class="pull-right">
+      <a href="{% url "auth_password_change" %}" class="btn">
+        Change password
+      </a>
+
+      <a href="{% url "accounts_preferences" %}" class="btn">
+        Preferences
+      </a>
+    </span>
+  </h2>
 
   <h3 class="padded">Summary</h3>
 

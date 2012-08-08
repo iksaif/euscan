@@ -1,0 +1,32 @@
+{% extends "_base.html" %}
+{% load url from future %}
+
+{% block title %}
+  {{ block.super }} - Edit user preferences for {{ user }}
+{% endblock %}
+
+
+{% block content %}
+  {% if updated %}
+    <div class="alert alert-success">
+      <strong>Saved!</strong> Your preferences has been saved
+    </div>
+  {% endif %}
+
+  <h2>
+    Edit user preferences
+  </h2>
+
+  <form method='post' action='.'>
+    {% csrf_token %}
+    <table class="table">
+      {{ form }}
+      <tr>
+        <td></td>
+        <td>
+          <input class="btn" type='submit' value="Save" />
+        </td>
+      </tr>
+    </table>
+  </form>
+{% endblock %}

@@ -1,5 +1,7 @@
 from django.conf.urls.defaults import url, patterns, include
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.views import logout
+from django.views.generic import RedirectView
 
 from djcelery.views import apply as apply_task
 from djeuscan.views import registered_tasks
@@ -83,12 +85,19 @@ tasks_patterns = patterns('djeuscan.views',
 
 accounts_patterns = patterns('djeuscan.views',
     url(r'^profile/$', 'accounts_index', name="accounts_index"),
+    url(r'^profile/preferences/$', 'accounts_preferences',
+        name="accounts_preferences"),
     url(r'^categories/$', 'accounts_categories', name="accounts_categories"),
     url(r'^herds/$', 'accounts_herds', name="accounts_herds"),
     url(r'^maintainers/$', 'accounts_maintainers',
         name="accounts_maintainers"),
     url(r'^packages/$', 'accounts_packages', name="accounts_packages"),
     url(r'^overlays/$', 'accounts_overlays', name="accounts_overlays"),
+
+    url(r'^logout/$', logout, {'next_page': '/'}),
+
+    url(r'^password/change/done/$',
+        RedirectView.as_view(url="../../../profile/")),
 )
 
 

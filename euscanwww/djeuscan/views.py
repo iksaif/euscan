@@ -12,7 +12,8 @@ from djeuscan.helpers import version_key, packages_from_names, get_profile, \
     get_account_categories, get_account_herds, get_account_maintainers
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog, RefreshPackageQuery, ProblemReport, Category, Overlay
-from djeuscan.forms import WorldForm, PackagesForm, ProblemReportForm
+from djeuscan.forms import WorldForm, PackagesForm, ProblemReportForm, \
+    PreferencesForm
 from djeuscan.tasks import admin_tasks
 from djeuscan import charts
 
@@ -413,6 +414,29 @@ def accounts_index(request):
         "maintainers": maintainers, "maintainers_upstream": m_upstream,
         "packages": packages, "packages_upstream": p_upstream,
     }
+
+
+@login_required
+@render_to('euscan/accounts/preferences.html')
+def accounts_preferences(request):
+    user = request.user
+    updated = False
+    if request.method == "POST":
+        form = PreferencesForm(request.POST)
+        if form.is_valid():
+            user.first_name = form.cleaned_data["first_name"]
+            user.last_name = form.cleaned_data["last_name"]
+            user.email = form.cleaned_data["email"]
+            user.save(force_update=True)
+            updated = True
+    else:
+        initial_data = {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email
+        }
+        form = PreferencesForm(initial_data)
+    return {"form": form, "updated": updated}
 
 
 @login_required

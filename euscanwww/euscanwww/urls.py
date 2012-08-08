@@ -5,13 +5,11 @@ admin.autodiscover()
 
 
 urlpatterns = patterns('',
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    url(r'^', include('djeuscan.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('captcha.backends.default.urls')),
     url(r'^accounts/', include('registration.backends.default.urls')),
-    url(r'^', include('djeuscan.urls')),
 )
 
 
