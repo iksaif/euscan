@@ -271,7 +271,6 @@ def world(request):
 
 @render_to('euscan/world_scan.html')
 def world_scan(request):
-
     if 'world' in request.FILES:
         data = request.FILES['world'].read()
     elif 'packages' in request.POST:
@@ -280,8 +279,19 @@ def world_scan(request):
         data = ""
 
     packages = packages_from_names(data)
+    packages_ids = [p.pk for p in packages]
 
-    return {'packages': packages}
+    favourited = False
+    if request.user.is_authenticated():
+        profile = get_profile(request.user)
+        if len(packages) == len(profile.packages.filter(id__in=packages_ids)):
+            favourited = True
+
+    return {
+        'packages': packages,
+        'packages_ids': packages_ids,
+        'favourited': favourited
+    }
 
 
 @render_to("euscan/about.html")
@@ -328,7 +338,7 @@ def chart(request, **kwargs):
     elif chart == 'versions':
         path = charts.versions(**kwargs)
     else:
-        raise Http404()
+        raise Http404
 
     return serve(request, path, document_root=charts.CHARTS_ROOT)
 
@@ -567,4 +577,28 @@ def favourite_overlay(request, overlay):
 def unfavourite_overlay(request, overlay):
     obj = Overlay.objects.get(name=overlay)
     get_profile(request.user).overlays.remove(obj)
+    return {"success": True}
+
+
+@login_required
+@require_POST
+@ajax_request
+def favourite_world(request):
+    if not "packages[]" in request.POST:
+        return {"success": False}
+    packages = request.POST.getlist("packages[]")
+    objs = Package.objects.filter(id__in=packages)
+    get_profile(request.user).packages.add(*objs)
+    return {"success": True}
+
+
+@login_required
+@require_POST
+@ajax_request
+def unfavourite_world(request):
+    if not "packages[]" in request.POST:
+        return {"success": False}
+    packages = request.POST.getlist("packages[]")
+    objs = Package.objects.filter(id__in=packages)
+    get_profile(request.user).packages.remove(*objs)
     return {"success": True}

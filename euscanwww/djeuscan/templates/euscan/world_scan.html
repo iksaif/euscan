@@ -1,5 +1,6 @@
 {% extends "euscan/_datatable.html" %}
 
+{% load url from future %}
 {% load djeuscan_helpers %}
 
 {% block title %}
@@ -7,6 +8,40 @@
 {% endblock %}
 
 {% block content %}
-<h2>World scan:</h2>
+<h2>
+  World scan:
+  {% if user.is_authenticated %}
+    <span class="pull-right">
+      <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_world" %}">
+        <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" >
+      </button>
+      <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_world" %}">
+        <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" >
+      </button>
+    </span>
+  {% endif %}
+</h2>
+
 {% packages packages %}
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    var packages = [{{packages_ids|join:","}}];
+
+    $(".favourite-button").click(function() {
+      $.post($(this).data("url"), {packages: packages}, function() {
+        $(".unfavourite-button").removeClass("hide");
+        $(".favourite-button").addClass("hide");
+      });
+    });
+
+    $(".unfavourite-button").click(function() {
+      $.post($(this).data("url"), {packages: packages}, function() {
+        $(".favourite-button").removeClass("hide");
+        $(".unfavourite-button").addClass("hide");
+      });
+    });
+  });
+</script>
+
 {% endblock %}

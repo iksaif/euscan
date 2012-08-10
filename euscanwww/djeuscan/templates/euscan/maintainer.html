@@ -53,6 +53,7 @@
 </p>
 
 <script type="text/javascript">
+$(document).ready(function () {
   $(".favourite-button").click(function() {
     $.post($(this).data("url"), function() {
       $(".unfavourite-button").removeClass("hide");
@@ -66,6 +67,7 @@
       $(".unfavourite-button").addClass("hide");
     });
   });
+});
 </script>
 
 {% endblock %}

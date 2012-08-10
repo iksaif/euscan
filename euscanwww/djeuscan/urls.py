@@ -115,6 +115,9 @@ urlpatterns = patterns('djeuscan.views',
     url(r'^statistics/charts/(?P<chart>[\w\-]+).png$', 'chart', name="chart"),
     url(r'^world/$', 'world', name="world"),
     url(r'^world/scan/$', 'world_scan', name="world_scan"),
+    url(r'^world/favourite/$', 'favourite_world', name="favourite_world"),
+    url(r'^world/unfavourite/$', 'unfavourite_world',
+        name="unfavourite_world"),
 
     # Real data
     url(r'^categories/', include(categories_patterns)),
