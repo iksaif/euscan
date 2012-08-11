@@ -1,6 +1,6 @@
 from djeuscan.models import Package, Version, VersionLog, EuscanResult, \
     Log, WorldLog, CategoryLog, HerdLog, MaintainerLog, Herd, Maintainer, \
-    RefreshPackageQuery, Category, Overlay, ProblemReport
+    RefreshPackageQuery, Category, Overlay, ProblemReport, UserProfile
 from django.contrib import admin
 
 
@@ -35,6 +35,9 @@ class ProblemReportAdmin(admin.ModelAdmin):
     search_fields = ('package__name', 'package__category')
     list_filter = ('datetime', 'package__category')
     ordering = ["-datetime"]
+
+
+admin.site.register(UserProfile)
 
 admin.site.register(Package, PackageAdmin)
 

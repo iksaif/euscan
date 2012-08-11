@@ -1,8 +1,12 @@
+import json
+
 from django.contrib.syndication.views import Feed, FeedDoesNotExist
 from django.shortcuts import get_object_or_404
 from django.utils.feedgenerator import Atom1Feed
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+
+from euscan.version import gentoo_unstable
 
 from djeuscan.models import Package, Herd, Maintainer, VersionLog
 from djeuscan.helpers import get_profile, get_account_packages
@@ -50,19 +54,29 @@ class BaseFeed(Feed):
 
     def items(self, data=None):
         user = data.get("user", None) if data else None
-        options = data.get("options", None) if data else None
-
-        upstream_info = True
-        portage_info = True
+        options = data.get("options", {}) if data else {}
 
         # first of all consider options, then user preferences
-        if options:
-            upstream_info = "upstream_info" in options
-            portage_info = "portage_info" in options
-        elif user:
+        try:
+            upstream_info = json.loads(options.get("upstream_info", "1"))
+            portage_info = json.loads(options.get("portage_info", "1"))
+            show_adds = json.loads(options.get("show_adds", "1"))
+            show_removals = json.loads(options.get("show_removals", "1"))
+            ignore_pre = json.loads(options.get("ignore_pre", "0"))
+            ignore_pre_if_stable = json.loads(
+                options.get("ignore_pre_if_stable", "0")
+            )
+        except ValueError:
+            return []
+
+        if user and not options:
             profile = get_profile(user)
-            upstream_info = profile.upstream_info
-            portage_info = profile.portage_info
+            upstream_info = profile.feed_upstream_info
+            portage_info = profile.feed_portage_info
+            show_adds = profile.feed_show_adds
+            show_removals = profile.feed_show_removals
+            ignore_pre = profile.feed_ignore_pre
+            ignore_pre_if_stable = profile.feed_ignore_pre_if_stable
 
         ret, max_items = self._items(data)
 
@@ -70,6 +84,17 @@ class BaseFeed(Feed):
             ret = ret.exclude(overlay="")
         if not portage_info:
             ret = ret.exclude(~Q(overlay=""))
+        if not show_adds:
+            ret = ret.exclude(action=VersionLog.VERSION_ADDED)
+        if not show_removals:
+            ret = ret.exclude(action=VersionLog.VERSION_REMOVED)
+        if ignore_pre:
+            ret = ret.exclude(vtype__in=gentoo_unstable)
+        if ignore_pre_if_stable:
+            ret = ret.exclude(
+                ~Q(package__last_version_gentoo__vtype__in=gentoo_unstable),
+                vtype__in=gentoo_unstable
+            )
 
         return ret.order_by("-datetime")[:max_items]
 

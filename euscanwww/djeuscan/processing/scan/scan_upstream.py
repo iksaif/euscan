@@ -113,7 +113,8 @@ class ScanUpstream(object):
             slot='',
             revision='r0',
             version=ver,
-            overlay=''
+            overlay='',
+            vtype=version_type,
         )
 
         package.n_versions += 1
@@ -131,7 +132,8 @@ class ScanUpstream(object):
                 slot=version.slot,
                 revision=version.revision,
                 version=version.version,
-                overlay=version.overlay
+                overlay=version.overlay,
+                vtype=version.vtype,
             )
 
             version.package.n_versions -= 1

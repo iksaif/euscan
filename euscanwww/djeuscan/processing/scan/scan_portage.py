@@ -316,7 +316,8 @@ class ScanPortage(object):
                 slot=version.slot,
                 revision=version.revision,
                 version=version.version,
-                overlay=version.overlay
+                overlay=version.overlay,
+                vtype=version.vtype,
             )
 
         versions.delete()

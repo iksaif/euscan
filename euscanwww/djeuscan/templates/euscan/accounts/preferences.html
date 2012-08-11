@@ -31,11 +31,68 @@
   <form id="preferences_form" method='post' action='.'>
     {% csrf_token %}
     <table class="table">
-      {{ form }}
+      <thead><tr><th>Personal settings</th></tr></thead>
+      <tr>
+        <th>{{ form.first_name.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.first_name.errors }}</ul>{{ form.first_name }}</td>
+      </tr>
+      <tr>
+        <th>{{ form.last_name.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.last_name.errors }}</ul>{{ form.last_name }}</td>
+      </tr>
+      <tr>
+        <th>{{ form.email.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.email.errors }}</ul>{{ form.email }}</td>
+      </tr>
+    </table>
+
+    <table class="table">
+      <thead><tr><th>Feed settings</th></tr></thead>
+      <tr>
+        <th>{{ form.feed_upstream_info.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.feed_upstream_info.errors }}</ul>{{ form.feed_upstream_info }}</td>
+      </tr>
+      <tr>
+        <th>{{ form.feed_portage_info.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.feed_portage_info.errors }}</ul>{{ form.feed_portage_info }}</td>
+      </tr>
+      <tr>
+        <th>{{ form.feed_show_adds.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.feed_show_adds.errors }}</ul>{{ form.feed_show_adds }}</td>
+      </tr>
+      <tr>
+        <th>{{ form.feed_show_removals.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.feed_show_removals.errors }}</ul>{{ form.feed_show_removals }}</td>
+      </tr>
+      <tr>
+        <th>{{ form.feed_ignore_pre.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.feed_ignore_pre.errors }}</ul>{{ form.feed_ignore_pre }}</td>
+      </tr>
+      <tr>
+        <th>{{ form.feed_ignore_pre_if_stable.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.feed_ignore_pre_if_stable.errors }}</ul>{{ form.feed_ignore_pre_if_stable }}</td>
+      </tr>
+    </table>
+
+    <table class="table">
+      <thead><tr><th>Mail settings</th></tr></thead>
+      <tr>
+        <th>{{ form.email_activated.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.email_activated.errors }}</ul>{{ form.email_activated }}</td>
+      </tr>
+      <tr>
+        <th>{{ form.email_ignore_pre.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.email_ignore_pre.errors }}</ul>{{ form.email_ignore_pre }}</td>
+      </tr>
+      <tr>
+        <th>{{ form.email_ignore_pre_if_stable.label_tag }}</th>
+        <td><ul class="errorlist">{{ form.email_ignore_pre_if_stable.errors }}</ul>{{ form.email_ignore_pre_if_stable }}</td>
+      </tr>
+      <tr><td>&nbsp;</td><td></td></tr>
       <tr>
         <td></td>
         <td>
-          <input class="btn" type='submit' value="Save" />
+          <input class="btn btn-large" type='submit' value="Save" />
         </td>
       </tr>
     </table>

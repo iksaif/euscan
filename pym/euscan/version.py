@@ -1,8 +1,11 @@
 import re
 
+gentoo_unstable = ("alpha", "beta", "pre", "rc")
+gentoo_types = ("alpha", "beta", "pre", "rc", "p")
+
 
 def is_version_type_stable(version_type):
-    return version_type not in ("alpha", "beta", "pre", "rc")
+    return version_type not in gentoo_unstable
 
 
 def is_version_stable(version):
@@ -11,7 +14,6 @@ def is_version_stable(version):
 
 def get_version_type(version):
     types = []
-    gentoo_types = ("alpha", "beta", "pre", "rc", "p")
 
     for token in re.findall("[\._-]([a-zA-Z]+)", version):
         if token in gentoo_types:

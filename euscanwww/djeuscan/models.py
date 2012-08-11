@@ -259,8 +259,16 @@ class UserProfile(models.Model):
     categories = models.ManyToManyField(Category)
     overlays = models.ManyToManyField(Overlay)
 
-    upstream_info = models.BooleanField(default=True)
-    portage_info = models.BooleanField(default=False)
+    feed_upstream_info = models.BooleanField(default=True)
+    feed_portage_info = models.BooleanField(default=False)
+    feed_show_adds = models.BooleanField(default=True)
+    feed_show_removals = models.BooleanField(default=True)
+    feed_ignore_pre = models.BooleanField(default=False)
+    feed_ignore_pre_if_stable = models.BooleanField(default=False)
+
+    email_activated = models.BooleanField(default=True)
+    email_ignore_pre = models.BooleanField(default=False)
+    email_ignore_pre_if_stable = models.BooleanField(default=False)
 
 
 class Log(models.Model):

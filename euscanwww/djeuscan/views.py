@@ -430,7 +430,7 @@ def accounts_index(request):
 @render_to('euscan/accounts/preferences.html')
 def accounts_preferences(request):
     user = request.user
-    profile = get_profile(user)
+    prof = get_profile(user)
 
     updated = False
     if request.method == "POST":
@@ -441,10 +441,10 @@ def accounts_preferences(request):
             user.email = form.cleaned_data["email"]
             user.save(force_update=True)
 
-            profile.upstream_info = form.cleaned_data["upstream_info"]
-            profile.portage_info = form.cleaned_data["portage_info"]
+            prof.feed_upstream_info = form.cleaned_data["feed_upstream_info"]
+            prof.feed_portage_info = form.cleaned_data["feed_portage_info"]
 
-            profile.save(force_update=True)
+            prof.save(force_update=True)
 
             updated = True
     else:
@@ -452,8 +452,15 @@ def accounts_preferences(request):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "email": user.email,
-            "upstream_info": profile.upstream_info,
-            "portage_info": profile.portage_info,
+            "feed_upstream_info": prof.feed_upstream_info,
+            "feed_portage_info": prof.feed_portage_info,
+            "feed_show_adds": prof.feed_show_adds,
+            "feed_show_removals": prof.feed_show_removals,
+            "feed_ignore_pre": prof.feed_ignore_pre,
+            "feed_ignore_pre_if_stable": prof.feed_ignore_pre_if_stable,
+            "email_activated": prof.email_activated,
+            "email_ignore_pre": prof.email_ignore_pre,
+            "email_ignore_pre_if_stable": prof.email_ignore_pre_if_stable,
         }
         form = PreferencesForm(initial_data)
     return {"form": form, "updated": updated}
