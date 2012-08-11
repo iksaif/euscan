@@ -108,17 +108,21 @@ def get_account_maintainers(user):
     return Package.objects.maintainers(ids=ids)
 
 
-def get_account_packages(user):
+def get_account_versionlogs(profile):
     """
     Returns all watched packages
     """
-    from djeuscan.models import Package
+    from djeuscan.models import Package, VersionLog
 
-    profile = get_profile(user)
     q_categories = Q(category__in=[
         category.name for category in profile.categories.all()])
     q_herds = Q(herds__in=profile.herds.all())
     q_maintainers = Q(maintainers__in=profile.maintainers.all())
     packages = list(profile.packages.all()) + list(Package.objects.filter(
         q_categories | q_herds | q_maintainers))
-    return packages
+
+    overlays = [o.name for o in profile.overlays.all()]
+
+    return VersionLog.objects.filter(
+        Q(package__in=packages) | Q(overlay__in=overlays)
+    )

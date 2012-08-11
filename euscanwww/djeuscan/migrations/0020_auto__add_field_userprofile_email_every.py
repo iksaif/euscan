@@ -1,59 +1,21 @@
 # -*- coding: utf-8 -*-
-from south.v2 import DataMigration
+import datetime
+from south.db import db
+from south.v2 import SchemaMigration
+from django.db import models
 
 
-class Migration(DataMigration):
-
-    depends_on = (
-        ("djcelery", "0001_initial"),
-    )
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        every_day = orm["djcelery.CrontabSchedule"].objects.create(
-            minute="00",
-            hour="01",
-            day_of_week="*",
-            day_of_month="*",
-            month_of_year="*"
-        )
-        every_week = orm["djcelery.CrontabSchedule"].objects.create(
-            minute="00",
-            hour="03",
-            day_of_week="1",
-            day_of_month="*",
-            month_of_year="*"
-        )
-        every_month = orm["djcelery.CrontabSchedule"].objects.create(
-            minute="00",
-            hour="05",
-            day_of_month="1",
-            month_of_year="*"
-        )
-        orm["djcelery.PeriodicTask"].objects.create(
-            name="Daily portage update",
-            task="djeuscan.tasks.update_portage",
-            crontab=every_day
-        )
-        orm["djcelery.PeriodicTask"].objects.create(
-            name="Weekly upstream update",
-            task="djeuscan.tasks.update_upstream",
-            crontab=every_week
-        )
-        orm["djcelery.PeriodicTask"].objects.create(
-            name="Weekly emails",
-            task="djeuscan.tasks.send_weekly_email",
-            crontab=every_week
-        )
-        orm["djcelery.PeriodicTask"].objects.create(
-            name="Monthly emails",
-            task="djeuscan.tasks.send_monthly_email",
-            crontab=every_month
-        )
+        # Adding field 'UserProfile.email_every'
+        db.add_column('djeuscan_userprofile', 'email_every',
+                      self.gf('django.db.models.fields.IntegerField')(default=1),
+                      keep_default=False)
 
     def backwards(self, orm):
-        orm["djcelery.CrontabSchedule"].objects.all().delete()
-        orm["djcelery.PeriodicTask"].objects.all().delete()
-
+        # Deleting field 'UserProfile.email_every'
+        db.delete_column('djeuscan_userprofile', 'email_every')
 
     models = {
         'auth.group': {
@@ -92,93 +54,10 @@ class Migration(DataMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        'djcelery.crontabschedule': {
-            'Meta': {'object_name': 'CrontabSchedule'},
-            'day_of_month': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '64'}),
-            'day_of_week': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '64'}),
-            'hour': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '64'}),
+        'djeuscan.category': {
+            'Meta': {'object_name': 'Category'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'minute': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '64'}),
-            'month_of_year': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '64'})
-        },
-        'djcelery.intervalschedule': {
-            'Meta': {'object_name': 'IntervalSchedule'},
-            'every': ('django.db.models.fields.IntegerField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'period': ('django.db.models.fields.CharField', [], {'max_length': '24'})
-        },
-        'djcelery.periodictask': {
-            'Meta': {'object_name': 'PeriodicTask'},
-            'args': ('django.db.models.fields.TextField', [], {'default': "'[]'", 'blank': 'True'}),
-            'crontab': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['djcelery.CrontabSchedule']", 'null': 'True', 'blank': 'True'}),
-            'date_changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'exchange': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'expires': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'interval': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['djcelery.IntervalSchedule']", 'null': 'True', 'blank': 'True'}),
-            'kwargs': ('django.db.models.fields.TextField', [], {'default': "'{}'", 'blank': 'True'}),
-            'last_run_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '200'}),
-            'queue': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'routing_key': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'task': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'total_run_count': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'})
-        },
-        'djcelery.periodictasks': {
-            'Meta': {'object_name': 'PeriodicTasks'},
-            'ident': ('django.db.models.fields.SmallIntegerField', [], {'default': '1', 'unique': 'True', 'primary_key': 'True'}),
-            'last_update': ('django.db.models.fields.DateTimeField', [], {})
-        },
-        'djcelery.taskmeta': {
-            'Meta': {'object_name': 'TaskMeta', 'db_table': "'celery_taskmeta'"},
-            'date_done': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'hidden': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'meta': ('djcelery.picklefield.PickledObjectField', [], {'default': 'None', 'null': 'True'}),
-            'result': ('djcelery.picklefield.PickledObjectField', [], {'default': 'None', 'null': 'True'}),
-            'status': ('django.db.models.fields.CharField', [], {'default': "'PENDING'", 'max_length': '50'}),
-            'task_id': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
-            'traceback': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'djcelery.tasksetmeta': {
-            'Meta': {'object_name': 'TaskSetMeta', 'db_table': "'celery_tasksetmeta'"},
-            'date_done': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'hidden': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'result': ('djcelery.picklefield.PickledObjectField', [], {}),
-            'taskset_id': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
-        },
-        'djcelery.taskstate': {
-            'Meta': {'ordering': "['-tstamp']", 'object_name': 'TaskState'},
-            'args': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'eta': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
-            'expires': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
-            'hidden': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'kwargs': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'db_index': 'True'}),
-            'result': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'retries': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'runtime': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'state': ('django.db.models.fields.CharField', [], {'max_length': '64', 'db_index': 'True'}),
-            'task_id': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '36'}),
-            'traceback': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'tstamp': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
-            'worker': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['djcelery.WorkerState']", 'null': 'True'})
-        },
-        'djcelery.workerstate': {
-            'Meta': {'ordering': "['-last_heartbeat']", 'object_name': 'WorkerState'},
-            'hostname': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'last_heartbeat': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'db_index': 'True'})
-        },
-        'djeuscan.categoryassociation': {
-            'Meta': {'unique_together': "(['user', 'category'],)", 'object_name': 'CategoryAssociation'},
-            'category': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
         },
         'djeuscan.categorylog': {
             'Meta': {'object_name': 'CategoryLog', '_ormbases': ['djeuscan.Log']},
@@ -200,12 +79,6 @@ class Migration(DataMigration):
             'herd': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'maintainers': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['djeuscan.Maintainer']", 'symmetrical': 'False'})
-        },
-        'djeuscan.herdassociation': {
-            'Meta': {'unique_together': "(['user', 'herd'],)", 'object_name': 'HerdAssociation'},
-            'herd': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['djeuscan.Herd']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
         },
         'djeuscan.herdlog': {
             'Meta': {'object_name': 'HerdLog', '_ormbases': ['djeuscan.Log']},
@@ -229,22 +102,15 @@ class Migration(DataMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '128'})
         },
-        'djeuscan.maintainerassociation': {
-            'Meta': {'unique_together': "(['user', 'maintainer'],)", 'object_name': 'MaintainerAssociation'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'maintainer': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['djeuscan.Maintainer']"}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
-        },
         'djeuscan.maintainerlog': {
             'Meta': {'object_name': 'MaintainerLog', '_ormbases': ['djeuscan.Log']},
             'log_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['djeuscan.Log']", 'unique': 'True', 'primary_key': 'True'}),
             'maintainer': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['djeuscan.Maintainer']"})
         },
-        'djeuscan.overlayassociation': {
-            'Meta': {'unique_together': "(['user', 'overlay'],)", 'object_name': 'OverlayAssociation'},
+        'djeuscan.overlay': {
+            'Meta': {'object_name': 'Overlay'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'overlay': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
         },
         'djeuscan.package': {
             'Meta': {'unique_together': "(['category', 'name'],)", 'object_name': 'Package'},
@@ -262,12 +128,6 @@ class Migration(DataMigration):
             'n_versions': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '128'})
         },
-        'djeuscan.packageassociation': {
-            'Meta': {'unique_together': "(['user', 'package'],)", 'object_name': 'PackageAssociation'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'package': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['djeuscan.Package']"}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
-        },
         'djeuscan.problemreport': {
             'Meta': {'object_name': 'ProblemReport'},
             'datetime': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
@@ -283,6 +143,26 @@ class Migration(DataMigration):
             'package': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['djeuscan.Package']"}),
             'priority': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False'})
+        },
+        'djeuscan.userprofile': {
+            'Meta': {'object_name': 'UserProfile'},
+            'categories': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['djeuscan.Category']", 'symmetrical': 'False'}),
+            'email_activated': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'email_every': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
+            'email_ignore_pre': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'email_ignore_pre_if_stable': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'feed_ignore_pre': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'feed_ignore_pre_if_stable': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'feed_portage_info': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'feed_show_adds': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'feed_show_removals': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'feed_upstream_info': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'herds': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['djeuscan.Herd']", 'symmetrical': 'False'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'maintainers': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['djeuscan.Maintainer']", 'symmetrical': 'False'}),
+            'overlays': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['djeuscan.Overlay']", 'symmetrical': 'False'}),
+            'packages': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['djeuscan.Package']", 'symmetrical': 'False'}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'})
         },
         'djeuscan.version': {
             'Meta': {'unique_together': "(['package', 'slot', 'revision', 'version', 'overlay'],)", 'object_name': 'Version'},
@@ -320,5 +200,4 @@ class Migration(DataMigration):
         }
     }
 
-    complete_apps = ['djcelery', 'djeuscan']
-    symmetrical = True
+    complete_apps = ['djeuscan']

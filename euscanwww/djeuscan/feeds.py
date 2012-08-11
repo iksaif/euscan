@@ -9,7 +9,7 @@ from django.db.models import Q
 from euscan.version import gentoo_unstable
 
 from djeuscan.models import Package, Herd, Maintainer, VersionLog
-from djeuscan.helpers import get_profile, get_account_packages
+from djeuscan.helpers import get_profile, get_account_versionlogs
 
 
 class BaseFeed(Feed):
@@ -230,9 +230,6 @@ class UserFeed(BaseFeed):
         user, options = data["user"], data["options"]
 
         profile = get_profile(user)
-        packages = get_account_packages(user)
-        overlays = [o.name for o in profile.overlays.all()]
+        vlogs = get_account_versionlogs(profile)
 
-        return VersionLog.objects.filter(
-            Q(package__in=packages) | Q(overlay__in=overlays)
-        ), 100
+        return vlogs, 100

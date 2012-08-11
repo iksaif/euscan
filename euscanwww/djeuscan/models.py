@@ -252,6 +252,15 @@ class Overlay(models.Model):
 
 
 class UserProfile(models.Model):
+    EMAIL_SCAN = 1
+    EMAIL_WEEKLY = 2
+    EMAIL_MONTHLY = 3
+    EMAIL_OPTS = (
+        (EMAIL_SCAN, 'On updates'),
+        (EMAIL_WEEKLY, 'Weekly'),
+        (EMAIL_MONTHLY, 'Monthly')
+    )
+
     user = models.OneToOneField(User)
     herds = models.ManyToManyField(Herd)
     maintainers = models.ManyToManyField(Maintainer)
@@ -267,8 +276,10 @@ class UserProfile(models.Model):
     feed_ignore_pre_if_stable = models.BooleanField(default=False)
 
     email_activated = models.BooleanField(default=True)
+    email_every = models.IntegerField(choices=EMAIL_OPTS, default=EMAIL_SCAN)
     email_ignore_pre = models.BooleanField(default=False)
     email_ignore_pre_if_stable = models.BooleanField(default=False)
+    last_email = models.DateTimeField(auto_now_add=True)
 
 
 class Log(models.Model):

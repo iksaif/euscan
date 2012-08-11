@@ -2,15 +2,24 @@
 Celery tasks for djeuscan
 """
 
+from datetime import datetime
+
 from celery.task import task, group
+
+#import portage
 
 from django.conf import settings
 from django.core.cache import cache
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.db.models import Q
 
-import portage
+from euscan.version import gentoo_unstable
 
-from djeuscan.models import Package, RefreshPackageQuery
+from djeuscan.models import Package, RefreshPackageQuery, UserProfile, \
+    VersionLog
 from djeuscan.processing import scan, misc
+from djeuscan.helpers import get_account_versionlogs
 
 
 class TaskFailedException(Exception):
@@ -168,9 +177,9 @@ def update_portage_trees():
 
 @task
 def update_portage(packages=None):
-    categories = portage.settings.categories
+    #categories = portage.settings.categories
 
-    """ Workaround for celery bug when chaining groups """
+    # Workaround for celery bug when chaining groups
     update_portage_trees()
     scan_portage(packages=[], purge_packages=True, purge_versions=True,
                  prefetch=True)
@@ -205,7 +214,8 @@ def update_upstream():
 
     (
         scan_upstream_sub |
-        update_counters.si(fast=False)
+        update_counters.si(fast=False) |
+        send_update_email.si()
     )()
     return True
 
@@ -238,7 +248,7 @@ def consume_refresh_queue(locked=False):
     if not locked and not lock():
         return
 
-    logger.info('Consumming package refresh request queue...')
+    logger.info('Consuming package refresh request queue...')
 
     try:
         query = RefreshPackageQuery.objects.all().order_by('-priority')[0]
@@ -257,6 +267,76 @@ def consume_refresh_queue(locked=False):
         consume_refresh_queue.apply_async(
             kwargs={'locked': True}, countdown=60
         )
+
+
+@task(max_retries=10, default_retry_delay=10 * 60)
+def send_user_email(address, subject, text):
+    try:
+        send_mail(
+            subject, text, settings.EMAIL_FROM, [address], fail_silently=False
+        )
+    except Exception, exc:
+        raise send_user_email.retry(exc=exc)
+
+
+@task
+def process_emails(profiles):
+    for profile in profiles:
+        if not profile.email_activated:
+            continue
+
+        now = datetime.now()
+        user = profile.user
+
+        vlogs = get_account_versionlogs(profile)
+        vlogs = vlogs.filter(
+            datetime__gt=profile.last_email,
+            overlay="",  # only upstream versions
+            action=VersionLog.VERSION_ADDED,  # only adds
+        )
+        if profile.email_ignore_pre:
+            vlogs = vlogs.exclude(vtype__in=gentoo_unstable)
+        if profile.email_ignore_pre_if_stable:
+            vlogs = vlogs.exclude(
+                ~Q(package__last_version_gentoo__vtype__in=gentoo_unstable),
+                vtype__in=gentoo_unstable
+            )
+
+        if not vlogs.count():
+            continue
+
+        mail_text = render_to_string(
+            "euscan/accounts/euscan_email.txt",
+            {"user": user, "vlogs": vlogs}
+        )
+
+        send_user_email.delay(
+            user.email, "euscan updates - %s" % str(now.date()), mail_text
+        )
+
+        profile.last_email = now
+        profile.save(force_update=True)
+
+
+@task
+def send_update_email():
+    profiles = UserProfile.objects.filter(email_every=UserProfile.EMAIL_SCAN)
+    group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
+
+
+@task
+def send_weekly_email():
+    profiles = UserProfile.objects.filter(email_every=UserProfile.EMAIL_WEEKLY)
+    group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
+
+
+@task
+def send_monthly_email():
+    profiles = UserProfile.objects.filter(
+        email_every=UserProfile.EMAIL_MONTHLY
+    )
+    group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
+
 
 admin_tasks = [
     regen_rrds,

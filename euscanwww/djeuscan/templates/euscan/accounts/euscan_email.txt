@@ -1,0 +1,6 @@
+Hello {{ user }},
+
+euscan news:
+{% for vlog in vlogs %}
+  * {{ vlog.package.category }}/{{ vlog.package.name }}-{{ vlog.version }}-{{ vlog.revision }}:{{ vlog.slot }} [{{ vlog.vtype }}]
+{% endfor %}

@@ -222,6 +222,7 @@ ACCOUNT_ACTIVATION_DAYS = 7
 RECAPTCHA_PUBLIC_KEY = ""
 RECAPTCHA_PRIVATE_KEY = ""
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_FROM = 'noreply@iksaif.net'
 
 # djeuscan tasks
 PORTAGE_ROOT = "/"
@@ -240,6 +241,7 @@ BROKER_CONNECTION_TIMEOUT = 3600
 CELERYD_CONCURRENCY = 4
 
 TASKS_UPSTREAM_GROUPS = 32
+TASKS_EMAIL_GROUPS = 10
 
 CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
 
@@ -251,6 +253,8 @@ AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
+
+AUTH_PROFILE_MODULE = 'djeuscan.UserProfile'
 
 try:
     from local_settings import *
@@ -264,5 +268,3 @@ except ImportError, ex:
 os.environ['ROOT'] = PORTAGE_ROOT
 os.environ['PORTAGE_CONFIGROOT'] = PORTAGE_CONFIGROOT
 os.environ['EIX_CACHEFILE'] = EIX_CACHEFILE
-
-AUTH_PROFILE_MODULE = 'djeuscan.UserProfile'

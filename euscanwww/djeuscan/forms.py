@@ -1,6 +1,6 @@
 from django import forms
 
-from djeuscan.models import Version, ProblemReport
+from djeuscan.models import Version, ProblemReport, UserProfile
 
 
 class WorldForm(forms.Form):
@@ -51,6 +51,10 @@ class PreferencesForm(forms.Form):
 
     email_activated = forms.BooleanField(
         required=False, label="Receive euscan emails"
+    )
+    email_every = forms.ChoiceField(
+        choices=UserProfile.EMAIL_OPTS,
+        label="Send email",
     )
     email_ignore_pre = forms.BooleanField(
         required=False, label="Ignore unstable releases"

@@ -443,6 +443,17 @@ def accounts_preferences(request):
 
             prof.feed_upstream_info = form.cleaned_data["feed_upstream_info"]
             prof.feed_portage_info = form.cleaned_data["feed_portage_info"]
+            prof.feed_show_adds = form.cleaned_data["feed_show_adds"]
+            prof.feed_show_removals = form.cleaned_data["feed_show_removals"]
+            prof.feed_ignore_pre = form.cleaned_data["feed_ignore_pre"]
+            prof.feed_ignore_pre_if_stable = \
+                form.cleaned_data["feed_ignore_pre_if_stable"]
+
+            prof.email_activated = form.cleaned_data["email_activated"]
+            prof.email_every = form.cleaned_data["email_every"]
+            prof.email_ignore_pre = form.cleaned_data["email_ignore_pre"]
+            prof.email_ignore_pre_if_stable = \
+                form.cleaned_data["email_ignore_pre_if_stable"]
 
             prof.save(force_update=True)
 
@@ -459,6 +470,7 @@ def accounts_preferences(request):
             "feed_ignore_pre": prof.feed_ignore_pre,
             "feed_ignore_pre_if_stable": prof.feed_ignore_pre_if_stable,
             "email_activated": prof.email_activated,
+            "email_every": prof.email_every,
             "email_ignore_pre": prof.email_ignore_pre,
             "email_ignore_pre_if_stable": prof.email_ignore_pre_if_stable,
         }
