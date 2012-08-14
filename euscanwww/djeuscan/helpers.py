@@ -44,7 +44,7 @@ def packages_from_names(data):
     data = data.replace("\r", "")
 
     for pkg in data.split('\n'):
-        if '/' in pkg:
+        if pkg.count('/') == 1:
             cat, pkg = pkg.split('/')
             packages.extend(Package.objects.filter(category=cat, name=pkg))
         else:

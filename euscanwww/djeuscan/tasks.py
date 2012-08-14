@@ -154,8 +154,7 @@ def scan_upstream(packages=[], purge_versions=False):
         logger.info("Starting upstream scan subtask for %d packages...",
                     len(packages))
     else:
-        logger.info("Starting upstream scan...",
-                    len(packages))
+        logger.info("Starting upstream scan...")
 
     scan.scan_upstream(
         packages=packages,

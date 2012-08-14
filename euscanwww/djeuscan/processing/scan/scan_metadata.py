@@ -26,7 +26,7 @@ class ScanMetadata(object):
 
         try:
             category, package = portage.catsplit(query)
-            return Package.objects.get(category=package, name=package)
+            return Package.objects.get(category=category, name=package)
         except Package.DoesNotExist:
             pass
 
@@ -88,7 +88,6 @@ class ScanMetadata(object):
         return pkg, package.metadata
 
     def scan(self, query=None, pkg=None):
-
         try:
             metadata = None
             pkg, metadata = self.metadata_from_db(query, pkg)
