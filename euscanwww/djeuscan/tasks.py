@@ -19,7 +19,7 @@ from euscan.version import gentoo_unstable
 from djeuscan.models import Package, RefreshPackageQuery, UserProfile, \
     VersionLog
 from djeuscan.processing import scan, misc
-from djeuscan.helpers import get_account_versionlogs
+from djeuscan.helpers import get_account_versionlogs, get_user_fav_infos
 
 
 class TaskFailedException(Exception):
@@ -272,18 +272,15 @@ def consume_refresh_queue(locked=False):
 def send_user_email(address, subject, text):
     try:
         send_mail(
-            subject, text, settings.EMAIL_FROM, [address], fail_silently=False
+            subject, text, settings.DEFAULT_FROM_EMAIL, [address], fail_silently=False
         )
     except Exception, exc:
         raise send_user_email.retry(exc=exc)
 
 
 @task
-def process_emails(profiles):
+def process_emails(profiles, only_if_vlogs=False):
     for profile in profiles:
-        if not profile.email_activated:
-            continue
-
         now = datetime.now()
         user = profile.user
 
@@ -301,12 +298,16 @@ def process_emails(profiles):
                 vtype__in=gentoo_unstable
             )
 
-        if not vlogs.count():
+        if only_if_vlogs and not vlogs.count():
             continue
+
+        infos = get_user_fav_infos(user)
+        infos["user"] = user
+        infos["vlogs"] = vlogs
 
         mail_text = render_to_string(
             "euscan/accounts/euscan_email.txt",
-            {"user": user, "vlogs": vlogs}
+            infos
         )
 
         send_user_email.delay(
@@ -319,20 +320,32 @@ def process_emails(profiles):
 
 @task
 def send_update_email():
-    profiles = UserProfile.objects.filter(email_every=UserProfile.EMAIL_SCAN)
-    group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
+    profiles = UserProfile.objects.filter(
+        email_every=UserProfile.EMAIL_SCAN,
+        email_activated=True
+    )
+    group_chunks(
+        process_emails,
+        profiles,
+        settings.TASKS_EMAIL_GROUPS,
+        only_if_vlogs=True
+    )()
 
 
 @task
 def send_weekly_email():
-    profiles = UserProfile.objects.filter(email_every=UserProfile.EMAIL_WEEKLY)
+    profiles = UserProfile.objects.filter(
+        email_every=UserProfile.EMAIL_WEEKLY,
+        email_activated=True
+    )
     group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
 
 
 @task
 def send_monthly_email():
     profiles = UserProfile.objects.filter(
-        email_every=UserProfile.EMAIL_MONTHLY
+        email_every=UserProfile.EMAIL_MONTHLY,
+        email_activated=True
     )
     group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
 

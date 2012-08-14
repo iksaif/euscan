@@ -126,3 +126,31 @@ def get_account_versionlogs(profile):
     return VersionLog.objects.filter(
         Q(package__in=packages) | Q(overlay__in=overlays)
     )
+
+def get_user_fav_infos(user):
+    upstream_k = lambda c: c["n_versions"] - c["n_packaged"] - c["n_overlay"]
+
+    categories = sorted(get_account_categories(user),
+                        key=upstream_k, reverse=True)
+    c_upstream = sum([upstream_k(c) for c in categories])
+    herds = sorted(get_account_herds(user),
+                   key=upstream_k, reverse=True)
+    h_upstream = sum([upstream_k(c) for c in herds])
+    maintainers = sorted(get_account_maintainers(user),
+                         key=upstream_k, reverse=True)
+    m_upstream = sum([upstream_k(c) for c in maintainers])
+    packages = sorted(
+        get_profile(user).packages.all(),
+        key=lambda p: p.n_versions - p.n_packaged - p.n_overlay,
+        reverse=True
+    )
+    p_upstream = sum(
+        [c.n_versions - c.n_packaged - c.n_overlay for c in packages]
+    )
+
+    return {
+        "categories": categories, "categories_upstream": c_upstream,
+        "herds": herds, "herds_upstream": h_upstream,
+        "maintainers": maintainers, "maintainers_upstream": m_upstream,
+        "packages": packages, "packages_upstream": p_upstream,
+    }

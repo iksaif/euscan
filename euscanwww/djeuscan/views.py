@@ -9,7 +9,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
 from djeuscan.helpers import version_key, packages_from_names, get_profile, \
-    get_account_categories, get_account_herds, get_account_maintainers
+    get_account_categories, get_account_herds, get_account_maintainers, \
+    get_user_fav_infos
+from djeuscan.feeds import UserFeed
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog, RefreshPackageQuery, ProblemReport, Category, Overlay
 from djeuscan.forms import WorldForm, PackagesForm, ProblemReportForm, \
@@ -397,34 +399,12 @@ def refresh_package(request, category, package):
 @login_required
 @render_to('euscan/accounts/index.html')
 def accounts_index(request):
-
     user = request.user
-    upstream_k = lambda c: c["n_versions"] - c["n_packaged"] - c["n_overlay"]
 
-    categories = sorted(get_account_categories(user),
-                        key=upstream_k, reverse=True)
-    c_upstream = sum([upstream_k(c) for c in categories])
-    herds = sorted(get_account_herds(request.user),
-                   key=upstream_k, reverse=True)
-    h_upstream = sum([upstream_k(c) for c in herds])
-    maintainers = sorted(get_account_maintainers(request.user),
-                         key=upstream_k, reverse=True)
-    m_upstream = sum([upstream_k(c) for c in maintainers])
-    packages = sorted(
-        get_profile(user).packages.all(),
-        key=lambda p: p.n_versions - p.n_packaged - p.n_overlay,
-        reverse=True
-    )
-    p_upstream = sum(
-        [c.n_versions - c.n_packaged - c.n_overlay for c in packages]
-    )
-    return {
-        "categories": categories, "categories_upstream": c_upstream,
-        "herds": herds, "herds_upstream": h_upstream,
-        "maintainers": maintainers, "maintainers_upstream": m_upstream,
-        "packages": packages, "packages_upstream": p_upstream,
-    }
+    infos = get_user_fav_infos(user)
+    infos['vlog'] = UserFeed().items({'user':user, 'options' : {}})
 
+    return infos
 
 @login_required
 @render_to('euscan/accounts/preferences.html')

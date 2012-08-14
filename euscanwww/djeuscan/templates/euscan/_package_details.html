@@ -83,35 +83,7 @@
      </ul>
   </dd>
   {% endif %}
-  {% if vlog %}
-  <dt>Version history</dt>
-  <dd>
-    <ul class="log">
-      {% for version in vlog %}
-      {% if version.action == version.VERSION_ADDED %}
-      <li class="added">
-      {% else %}
-      <li class="removed">
-      {% endif %}
-        {% if version.overlay == "gentoo" %}
-          <img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
-        {% elif version.overlay %}
-          <img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="In Overlays" />
-        {% else %}
-          <img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
-        {% endif %}
-
-        {% if version.vtype and not version.vtype|is_stable %}
-          <img src="{{ STATIC_URL }}img/unstable-icon.png" alt="unstable" title="{{ version.vtype }}" />
-        {% endif %}
-
-        {{ version }} - {{ version.datetime }}
-
-      </li>
-      {% endfor %}
-    </ul>
-  </dd>
-  {% endif %}
+  {% include "euscan/_package_vlogs.html" %}
   {% if log %}
   <dt>euscan log</dt>
   <dd>
