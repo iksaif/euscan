@@ -238,3 +238,7 @@ textarea {
     color: red;
     list-style: none;
 }
+
+.errorlist + input {
+    border: 1px solid red;
+}
