@@ -58,7 +58,7 @@ def parse_src_uri(uris):
             uri = from_mirror(uri)
 
         if uris and uris[-1] == "->":
-            operator = uris.pop()
+            uris.pop()  # operator
             file_ = uris.pop()
         else:
             file_ = os.path.basename(uri)

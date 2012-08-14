@@ -127,6 +127,7 @@ def get_account_versionlogs(profile):
         Q(package__in=packages) | Q(overlay__in=overlays)
     )
 
+
 def get_user_fav_infos(user):
     upstream_k = lambda c: c["n_versions"] - c["n_packaged"] - c["n_overlay"]
 

@@ -221,6 +221,8 @@ def update_upstream():
 
 @task
 def scan_package(package):
+    logger = scan_package.get_logger()
+    logger.info("Scanning package %s", package)
     scan_portage([package], purge_packages=True, purge_versions=True)
     scan_metadata([package])
     scan_upstream([package])
@@ -272,7 +274,8 @@ def consume_refresh_queue(locked=False):
 def send_user_email(address, subject, text):
     try:
         send_mail(
-            subject, text, settings.DEFAULT_FROM_EMAIL, [address], fail_silently=False
+            subject, text, settings.DEFAULT_FROM_EMAIL, [address],
+            fail_silently=False
         )
     except Exception, exc:
         raise send_user_email.retry(exc=exc)

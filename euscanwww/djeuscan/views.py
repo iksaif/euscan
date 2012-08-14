@@ -402,9 +402,10 @@ def accounts_index(request):
     user = request.user
 
     infos = get_user_fav_infos(user)
-    infos['vlog'] = UserFeed().items({'user':user, 'options' : {}})
+    infos['vlog'] = UserFeed().items({'user': user, 'options': {}})
 
     return infos
+
 
 @login_required
 @render_to('euscan/accounts/preferences.html')
