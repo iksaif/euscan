@@ -29,7 +29,9 @@ settings.configure(
     USE_TZ=True,
     TASKS_CONCURRENTLY=8,
     TASKS_SUBTASK_PACKAGES=32,
-    AUTH_PROFILE_MODULE="djeuscan.UserProfile"
+    AUTH_PROFILE_MODULE="djeuscan.UserProfile",
+    RECAPTCHA_PUBLIC_KEY="",
+    RECAPTCHA_PRIVATE_KEY="",
 )
 
 

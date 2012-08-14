@@ -37,6 +37,14 @@ class PagesTest(SystemTestCase):
         response = self.get("api")
         self.assertEqual(response.status_code, 200)
 
+    def test_profile(self):
+        response = self.get("accounts_index")
+        self.assertEqual(response.status_code, 302)
+
+        with self.login():
+            response = self.get("accounts_index")
+            self.assertEqual(response.status_code, 200)
+
 
 class PackageTests(SystemTestCase):
     def setUp(self):
