@@ -1,0 +1,30 @@
+{% extends "_base.html" %}
+
+{% load url from future %}
+
+{% block content %}
+<h2>Feeds</h2>
+
+<div>
+  <p>
+    Euscan provides different types of feed for keeping an eye on the packages
+    you're interested in as well as a set of options to customize them.
+  </p>
+  <h4>Options</h4>
+  <ul>
+    <li><em>portage_info</em>: Get info about portage updates (default: on)</li>
+    <li><em>upstream_info</em>: Get info about upstream updates (default: on)</li>
+    <li><em>show_adds</em>: Show version bumps (default: on)</li>
+    <li><em>show_removals</em>: Show removals (default: on)</li>
+    <li><em>ignore_pre</em>: Ignore unstable releases (default: off)</li>
+    <li><em>ignore_pre_if_stable</em>: Ignore unstable releases only if current release is stable (default: off)</li>
+  </ul>
+
+  <h4>Usage examples</h4>
+  <ul>
+    <li><a href="{% url "global_feed" %}?portage_info=0&show_removals=0">{% url "global_feed" %}?portage_info=0&amp;show_removals=0</a></li>
+    <li><a href="{% url "global_feed" %}?ignore_pre=true">{% url "global_feed" %}?ignore_pre=true</a></li>
+  </ul>
+</div>
+
+{% endblock %}

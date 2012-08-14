@@ -306,6 +306,11 @@ def api(request):
     return {}
 
 
+@render_to("euscan/feeds.html")
+def feeds(request):
+    return {}
+
+
 @render_to("euscan/statistics.html")
 def statistics(request):
     return {}
