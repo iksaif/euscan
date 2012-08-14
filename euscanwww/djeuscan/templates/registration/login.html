@@ -26,19 +26,11 @@
         <td>{{ form.password }}</td>
       </tr>
       <tr>
-        <td></td>
+        <td>
+          <a href="{% url "django.contrib.auth.views.password_reset" %}">Forgot password</a>
+        </td>
         <td>
           <input class="btn pull-right" type="submit" value="Login" />
-        </td>
-      </tr>
-      <tr>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td>
-          <a class="pull-right" href="{% url "django.contrib.auth.views.password_reset" %}">Forgot password</a>
         </td>
       </tr>
     </table>
