@@ -2,6 +2,7 @@ from django.conf.urls.defaults import url, patterns, include
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import logout
 from django.views.generic import RedirectView
+from django.contrib.auth.decorators import login_required
 
 from djcelery.views import apply as apply_task
 from djeuscan.views import registered_tasks
@@ -94,7 +95,7 @@ accounts_patterns = patterns('djeuscan.views',
     url(r'^packages/$', 'accounts_packages', name="accounts_packages"),
     url(r'^overlays/$', 'accounts_overlays', name="accounts_overlays"),
 
-    url(r'^feed/$', UserFeed(), name='user_feed'),
+    url(r'^feed/$', login_required(UserFeed()), name='user_feed'),
 
     url(r'^logout/$', logout, {'next_page': '/'}),
 
