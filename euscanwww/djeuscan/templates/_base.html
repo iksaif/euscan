@@ -71,6 +71,15 @@
                         <img src="{{ STATIC_URL }}img/feed.png" alt="feed" />
                         <a title="Global Feed" href="{% url "global_feed" %}">Global Feed</a>
                       </li>
+
+                      {% if user.is_authenticated %}
+                        <li>
+                          <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
+                          <a title="{{ user }} Feed" href="{% url "user_feed" %}">
+                            {{ user }}'s Feed
+                          </a>
+                        </li>
+                      {% endif %}
                     {% endblock %}
                     <li>---</li>
                     <li><a href="{% url "api" %}">API</a></li>
