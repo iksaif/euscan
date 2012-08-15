@@ -12,7 +12,7 @@ PRIORITY = 90
 
 
 def can_handle(pkg, url=None):
-    return url and "sourceforge.net/" in url
+    return url and "mirror://sourceforge/" in url
 
 
 def scan_url(pkg, url, options):
@@ -20,7 +20,7 @@ def scan_url(pkg, url, options):
 
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
-    project, filename = re.search("sourceforge.net/([^/]+)/(?:.*/)?([^/]+)",
+    project, filename = re.search("mirror://sourceforge/([^/]+)/(?:.*/)?([^/]+)",
                                   url).groups()
     base_url = "http://qa.debian.org/watch/sf.php/%s" % project
     file_pattern = regex_from_template(
@@ -30,6 +30,6 @@ def scan_url(pkg, url, options):
     result = url_scan(pkg, base_url, file_pattern)
 
     ret = []
-    for found_url, pv, _, _ in result:
-        ret.append((found_url, pv, HANDLER_NAME, CONFIDENCE))
+    for url, pv, _, _ in result:
+        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
     return ret

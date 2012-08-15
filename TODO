@@ -22,6 +22,7 @@ euscan
 Site Handlers
 -------------
 
+- store un-expanded SRC_URI and use it in handlers
 - berlios
 - sourceforge: http://sourceforge.net/api/file/index/project-name/vboxgtk/mtime/desc/limit/20/rss  http://sourceforge.net/api/release/index/project-id/264534/rss
 - MySQL: should use http://downloads.mysql.com/archives/

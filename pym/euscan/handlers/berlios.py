@@ -12,7 +12,7 @@ CONFIDENCE = 90
 PRIORITY = 90
 
 
-berlios_regex = r"berlios.de/([^/]+)/([^/]+)"
+berlios_regex = r"mirror://berlios/([^/]+)/([^/]+)"
 
 
 def can_handle(pkg, url=None):

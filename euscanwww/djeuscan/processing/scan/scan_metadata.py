@@ -91,8 +91,10 @@ class ScanMetadata(object):
         try:
             metadata = None
             pkg, metadata = self.metadata_from_db(query, pkg)
+
             if not metadata:
                 pkg, metadata = self.metadata_from_portage(query, pkg)
+
             if not metadata:
                 return
         except Exception as e:
@@ -148,6 +150,7 @@ class ScanMetadata(object):
                     self.style.ERROR("Bad maintainer: '%s' '%s'" % \
                                          (maintainer.name, maintainer.email))
                 )
+
         pkg.save()
 
     def store_herd(self, name, email):

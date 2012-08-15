@@ -53,6 +53,14 @@ def emerge_sync(logger):
            "--config-root", settings.PORTAGE_CONFIGROOT]
     return _launch_command(cmd, logger)
 
+def emerge_metadata(logger):
+    """
+    Launches an emerge --metadata
+    """
+    cmd = ["emerge", "--metadata", "--root", settings.PORTAGE_ROOT,
+           "--config-root", settings.PORTAGE_CONFIGROOT]
+    return _launch_command(cmd, logger)
+
 
 def layman_sync(logger, cache=True):
     """
@@ -106,7 +114,8 @@ def update_portage_trees(logger=None):
     logger.info("Running layman --sync")
     layman_sync(logger, cache=True)
     #logger.info("Running emerge --regen")
-    #emerge_regen()
+    #emerge_regen(logger)
+    emerge_metadata(logger)
     logger.info("Running eix-update")
     eix_update(logger)
     logger.info("Done!")

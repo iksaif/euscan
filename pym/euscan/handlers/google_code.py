@@ -32,6 +32,6 @@ def scan_url(pkg, url, options):
     result = url_scan(pkg, base_url, file_pattern)
 
     ret = []
-    for found_url, pv, _, _ in result:
-        ret.append((found_url, pv, HANDLER_NAME, CONFIDENCE))
+    for url, pv, _, _ in result:
+        ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
     return ret
