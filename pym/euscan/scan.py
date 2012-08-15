@@ -165,7 +165,10 @@ def scan_upstream(query, on_progress=None):
     cpv = pkg.cpv
 
     uris = parse_src_uri(uris)
-    uris_expanded = [ from_mirror(uri) if 'mirror://' in uri else uri for uri in uris ]
+    uris_expanded = [
+        from_mirror(uri) if 'mirror://' in uri else uri for uri in uris
+    ]
+
     pkg._uris = uris
     pkg._uris_expanded = uris_expanded
 

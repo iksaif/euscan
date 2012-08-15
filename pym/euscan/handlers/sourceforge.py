@@ -20,8 +20,11 @@ def scan_url(pkg, url, options):
 
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
-    project, filename = re.search("mirror://sourceforge/([^/]+)/(?:.*/)?([^/]+)",
-                                  url).groups()
+    project, filename = re.search(
+        "mirror://sourceforge/([^/]+)/(?:.*/)?([^/]+)",
+        url
+    ).groups()
+
     base_url = "http://qa.debian.org/watch/sf.php/%s" % project
     file_pattern = regex_from_template(
         filename.replace(ver, "${PV}")

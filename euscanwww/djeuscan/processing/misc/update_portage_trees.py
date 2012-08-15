@@ -53,6 +53,7 @@ def emerge_sync(logger):
            "--config-root", settings.PORTAGE_CONFIGROOT]
     return _launch_command(cmd, logger)
 
+
 def emerge_metadata(logger):
     """
     Launches an emerge --metadata
