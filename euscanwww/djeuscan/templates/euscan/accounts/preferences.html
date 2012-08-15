@@ -34,15 +34,15 @@
       <thead><tr><th>Personal settings</th></tr></thead>
       <tr>
         <th>{{ form.first_name.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.first_name.errors }}</ul>{{ form.first_name }}</td>
+        <td>{% if form.first_name.errors %}<ul class="errorlist">{{ form.first_name.errors }}</ul>{% endif %}{{ form.first_name }}</td>
       </tr>
       <tr>
         <th>{{ form.last_name.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.last_name.errors }}</ul>{{ form.last_name }}</td>
+        <td>{% if form.last_name.errors %}<ul class="errorlist">{{ form.last_name.errors }}</ul>{% endif %}{{ form.last_name }}</td>
       </tr>
       <tr>
         <th>{{ form.email.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.email.errors }}</ul>{{ form.email }}</td>
+        <td>{% if form.first_name.errors %}<ul class="errorlist">{{ form.email.errors }}</ul>{% endif %} {{ form.email }}</td>
       </tr>
     </table>
 
@@ -50,27 +50,27 @@
       <thead><tr><th>Feed settings</th></tr></thead>
       <tr>
         <th>{{ form.feed_upstream_info.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.feed_upstream_info.errors }}</ul>{{ form.feed_upstream_info }}</td>
+        <td>{{ form.feed_upstream_info }}</td>
       </tr>
       <tr>
         <th>{{ form.feed_portage_info.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.feed_portage_info.errors }}</ul>{{ form.feed_portage_info }}</td>
+        <td>{{ form.feed_portage_info }}</td>
       </tr>
       <tr>
         <th>{{ form.feed_show_adds.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.feed_show_adds.errors }}</ul>{{ form.feed_show_adds }}</td>
+        <td>{{ form.feed_show_adds }}</td>
       </tr>
       <tr>
         <th>{{ form.feed_show_removals.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.feed_show_removals.errors }}</ul>{{ form.feed_show_removals }}</td>
+        <td>{{ form.feed_show_removals }}</td>
       </tr>
       <tr>
         <th>{{ form.feed_ignore_pre.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.feed_ignore_pre.errors }}</ul>{{ form.feed_ignore_pre }}</td>
+        <td>{{ form.feed_ignore_pre }}</td>
       </tr>
       <tr>
         <th>{{ form.feed_ignore_pre_if_stable.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.feed_ignore_pre_if_stable.errors }}</ul>{{ form.feed_ignore_pre_if_stable }}</td>
+        <td>{{ form.feed_ignore_pre_if_stable }}</td>
       </tr>
     </table>
 
@@ -78,19 +78,19 @@
       <thead><tr><th>Mail settings</th></tr></thead>
       <tr>
         <th>{{ form.email_activated.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.email_activated.errors }}</ul>{{ form.email_activated }}</td>
+        <td>{{ form.email_activated }}</td>
       </tr>
       <tr>
         <th>{{ form.email_every.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.email_every.errors }}</ul>{{ form.email_every }}</td>
+        <td>{{ form.email_every }}</td>
       </tr>
       <tr>
         <th>{{ form.email_ignore_pre.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.email_ignore_pre.errors }}</ul>{{ form.email_ignore_pre }}</td>
+        <td>{{ form.email_ignore_pre }}</td>
       </tr>
       <tr>
         <th>{{ form.email_ignore_pre_if_stable.label_tag }}</th>
-        <td><ul class="errorlist">{{ form.email_ignore_pre_if_stable.errors }}</ul>{{ form.email_ignore_pre_if_stable }}</td>
+        <td>{{ form.email_ignore_pre_if_stable }}</td>
       </tr>
       <tr><td>&nbsp;</td><td></td></tr>
       <tr>
