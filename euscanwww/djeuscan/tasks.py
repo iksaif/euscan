@@ -225,7 +225,7 @@ def scan_package(package):
     logger.info("Scanning package %s", package)
     scan_portage([package], purge_packages=True, purge_versions=True)
     scan_metadata([package])
-    scan_upstream([package])
+    scan_upstream([package], purge_versions=True)
     return True
 
 
@@ -256,7 +256,7 @@ def consume_refresh_queue(locked=False):
         pkg = query.package
         query.delete()
         scan_package_user.delay(pkg)
-        logger.info('Done (%s)' % pkg)
+        logger.info('Selected: %s' % pkg)
     except IndexError:
         pass
     finally:

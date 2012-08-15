@@ -54,8 +54,6 @@ def parse_src_uri(uris):
 
         if '://' not in uri:
             continue
-        if 'mirror://' in uri:
-            uri = from_mirror(uri)
 
         if uris and uris[-1] == "->":
             uris.pop()  # operator
@@ -102,7 +100,7 @@ def scan_upstream(query, on_progress=None):
     else:
         matches = Query(query).find(
             include_masked=True,
-            in_installed=False
+            in_installed=False,
         )
 
     if not matches:
@@ -165,9 +163,13 @@ def scan_upstream(query, on_progress=None):
         uris = pkg.environment('SRC_URI')
 
     cpv = pkg.cpv
-    urls = parse_src_uri(uris)
 
-    versions = handlers.scan(pkg, urls, on_progress)
+    uris = parse_src_uri(uris)
+    uris_expanded = [ from_mirror(uri) if 'mirror://' in uri else uri for uri in uris ]
+    pkg._uris = uris
+    pkg._uris_expanded = uris_expanded
+
+    versions = handlers.scan(pkg, uris, on_progress)
 
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
 

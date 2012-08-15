@@ -38,7 +38,6 @@ from euscan.out import progress_bar
 isatty = os.environ.get('TERM') != 'dumb' and sys.stdout.isatty()
 isatty_stderr = os.environ.get('TERM') != 'dumb' and sys.stderr.isatty()
 
-
 def exit_helper(status):
     if CONFIG["format"]:
         print(output.get_formatted_output())

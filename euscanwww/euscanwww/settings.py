@@ -222,7 +222,6 @@ ACCOUNT_ACTIVATION_DAYS = 7
 RECAPTCHA_PUBLIC_KEY = ""
 RECAPTCHA_PRIVATE_KEY = ""
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_FROM = 'noreply@iksaif.net'
 
 # djeuscan tasks
 PORTAGE_ROOT = "/"
