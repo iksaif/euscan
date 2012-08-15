@@ -95,7 +95,7 @@ setup(
         'django-piston>=0.2.3', 'matplotlib>=1.1.0',
         'django-celery>=3.0.1', 'django-registration>=0.8',
         'python-ldap>=2.4.10', 'django-auth-ldap>=1.1',
-        'django-recaptcha>=0.0.4',
+        'django-recaptcha>=0.0.4', 'ansi2html>=0.9.1',
     ],
     package_dir={'': 'pym'},
     packages=packages,
