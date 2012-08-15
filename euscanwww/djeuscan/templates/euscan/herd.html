@@ -23,10 +23,10 @@
   {% if user.is_authenticated %}
     <span class="pull-right">
       <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_herd" herd.herd %}">
-        <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" >
+        <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" />
       </button>
       <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_herd" herd.herd %}">
-        <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" >
+        <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" />
       </button>
     </span>
   {% endif %}
@@ -34,21 +34,21 @@
 </h2>
 {% packages packages %}
 
-<h3>Statistics</h2>
+<h3>Statistics</h3>
 <h4>Current statistics</h4>
 <p>
-  <img src="{% url "chart_herd" herd.herd 'pie-versions' %}" />
-  <img src="{% url "chart_herd" herd.herd 'pie-packages' %}" />
+  <img alt="pie versions" src="{% url "chart_herd" herd.herd 'pie-versions' %}" />
+  <img alt="pie packages" src="{% url "chart_herd" herd.herd 'pie-packages' %}" />
 </p>
 
 <h4>All Time</h4>
 <p>
-  <img src="{% url "chart_herd" herd.herd 'versions-weekly' %}" />
-  <img src="{% url "chart_herd" herd.herd 'versions-monthly' %}" />
-<p>
+  <img alt="versions weekly" src="{% url "chart_herd" herd.herd 'versions-weekly' %}" />
+  <img alt="versions monthly" src="{% url "chart_herd" herd.herd 'versions-monthly' %}" />
 </p>
-  <img src="{% url "chart_herd" herd.herd 'packages-weekly' %}" />
-  <img src="{% url "chart_herd" herd.herd 'packages-monthly' %}" />
+<p>
+  <img alt="packages weekly" src="{% url "chart_herd" herd.herd 'packages-weekly' %}" />
+  <img alt="packages monthly" src="{% url "chart_herd" herd.herd 'packages-monthly' %}" />
 </p>
 
 <script type="text/javascript">
@@ -76,9 +76,9 @@ $(document).ready(function () {
 <div class="menu rounded notfirst-menu">
   <dl>
     <dt>Versions</dt>
-    <dd><img src="{% url "chart_herd" herd.herd 'versions-monthly-small' %}" /></dd>
+    <dd><img alt="versions" src="{% url "chart_herd" herd.herd 'versions-monthly-small' %}" /></dd>
     <dt>Packages</dt>
-    <dd><img src="{% url "chart_herd" herd.herd 'packages-monthly-small' %}" /></dd>
+    <dd><img alt="packages" src="{% url "chart_herd" herd.herd 'packages-monthly-small' %}" /></dd>
   </dl>
 </div>
 

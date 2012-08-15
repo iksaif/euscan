@@ -5,7 +5,6 @@
 {% block content %}
 <h2>API</h2>
 
-<p>
 <ul>
   <li><a href="{% url "api.views.root" 'json' %}">/api/1.0/api.json</a></li>
   <li><a href="{% url "api.views.statistics" 'json' %}">/api/1.0/statistics.json</a></li>
@@ -18,7 +17,6 @@
   <li>/api/1.0/package/&lt;category&gt;/&lt;package&gt;.json</li>
 </ul>
 
-Formats: xml, yaml and json
-</p>
+<p>Formats: xml, yaml and json</p>
 
 {% endblock %}

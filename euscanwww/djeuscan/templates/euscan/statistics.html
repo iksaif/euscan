@@ -6,15 +6,15 @@
 <h2>Statistics</h2>
 
 <h3>Current statistics</h3>
-<img src="{% url "chart" 'pie-versions' %}" />
-<img src="{% url "chart" 'pie-packages' %}" />
+<img alt="pie versions" src="{% url "chart" 'pie-versions' %}" />
+<img alt="pie packages" src="{% url "chart" 'pie-packages' %}" />
 
 <h3>All time statistics</h3>
 
-<img src="{% url "chart" 'packages-weekly' %}" />
-<img src="{% url "chart" 'packages-monthly' %}" />
+<img alt="packages weekly" src="{% url "chart" 'packages-weekly' %}" />
+<img alt="packages monthly" src="{% url "chart" 'packages-monthly' %}" />
 
-<img src="{% url "chart" 'versions-weekly' %}" />
-<img src="{% url "chart" 'versions-monthly' %}" />
+<img alt="versions weekly" src="{% url "chart" 'versions-weekly' %}" />
+<img alt="versions monthly" src="{% url "chart" 'versions-monthly' %}" />
 
 {% endblock %}

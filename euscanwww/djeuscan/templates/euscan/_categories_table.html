@@ -3,14 +3,16 @@
 
 <table id="table" class="display">
   <thead>
-    <th>Category</th>
-    <th><img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="Versions in Gentoo" /></th>
-    <th><img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="Versions in Overlays" /></th>
-    <th><img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Versions only upstream" /></th>
-    <th><img src="{{ STATIC_URL }}img/freshness-icon.png" title="Freshness" /></th>
-    {% if extras %}
-    <th>Graphs</th>
-    {% endif %}
+    <tr>
+      <th>Category</th>
+      <th><img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="Versions in Gentoo" /></th>
+      <th><img src="{{ STATIC_URL }}img/overlay-icon.png" alt="overlays" title="Versions in Overlays" /></th>
+      <th><img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Versions only upstream" /></th>
+      <th><img src="{{ STATIC_URL }}img/freshness-icon.png" alt="freshness" title="Freshness" /></th>
+      {% if extras %}
+      <th>Graphs</th>
+      {% endif %}
+    </tr>
   </thead>
   <tbody>
   {% for category in categories %}
