@@ -31,7 +31,7 @@ def apply_mangling_rules(kind, rules, string):
         ret = None
 
         # First try handlers rules
-        if rule == 'gentoo' and kind == 'version':
+        if rule == 'gentoo' and kind == 'versionmangle':
             ret = gentoo_mangle_version(string)
         elif kind == 'downloadurlmangle':
             ret = euscan.handlers.mangle_url(rule, string)
