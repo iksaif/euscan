@@ -230,7 +230,8 @@ def parse_args():
 def main():
     """Parse command line and execute all actions."""
     CONFIG['nocolor'] = (
-        settings["NOCOLOR"] in ('yes', 'true') or not isatty
+        CONFIG['nocolor'] or
+        (settings["NOCOLOR"] in ('yes', 'true') or not isatty)
     )
     if CONFIG['nocolor']:
         pp.output.nocolor()

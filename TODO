@@ -17,7 +17,6 @@ euscan
 
 ### Misc
 
-- Add a config file (/etc/euscan.conf, ~/.euscan.conf)
 - Add a HTTP cache (configurable)
 
 ### Tests
