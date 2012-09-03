@@ -1,50 +1,31 @@
-{% load djeuscan_helpers %}
-{% load sub %}
-Hello {{ user }},
+{% load djeuscan_helpers %}{% load sub %}Hello {{ user }},
 
 {% if vlogs %}euscan news:
-
-{% for vlog in vlogs %}
-  * {{ vlog }} {% if vlog.vtype and not vlog.vtype|is_stable %}({{ vlog.vtype }}){% endif %} - {{ vlog.datetime }} {% endfor %}
+{% for vlog in vlogs %} * {{ vlog.package|ljust:"35" }} {{ vlog.version }} {% if vlog.vtype and not vlog.vtype|is_stable %}({{ vlog.vtype }}){% endif %}
+{% endfor %}
 {% endif %}
 
 Summary:
-
 {% with categories|length as num_categories %}{% if num_categories %}
-Watching {{ num_categories }} categor{{ num_categories|pluralize:"y,ies"}}
-{{ categories_upstream }} new upstream version{{ categories_upstream|pluralize:"s"}}
-{% if categories_upstream %}
-Hot categories:
-{% for c in categories|slice:":3" %}
- * {{ c.category }} ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }}){% endfor %}
+Watching {{ num_categories }} categor{{ num_categories|pluralize:"y,ies"}}: {{ categories_upstream }} upstream version{{ categories_upstream|pluralize:"s"}}
+{% if categories_upstream %}Hot categories:
+{% for c in categories|slice:":3" %} * {{ c.category }} ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})
+{% endfor %}
+{% endif %}{% endif %}{% endwith %}{% with herds|length as num_herds %}{% if num_herds %}
+Watching {{ num_herds }} herd{{ num_herds|pluralize:"s"}}: {{ herds_upstream }} upstream version{{ herds_upstream|pluralize:"s"}}
+{% if herds_upstream %}Hot herds:
+{% for c in herds|slice:":3" %} * {{ c.herds__herd }} ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})
+{% endfor %}
+{% endif %}{% endif %}{% endwith %}{% with maintainers|length as num_maintainers %}{% if num_maintainers %}
+Watching {{ num_maintainers }} maintainer{{ num_maintainers|pluralize:"s"}}: {{ maintainers_upstream }} upstream version{{ maintainers_upstream|pluralize:"s"}}
+{% if maintainers_upstream %}Hot maintainers:
+{% for c in maintainers|slice:":3" %} * {{ c.maintainers__name }} ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})
+{% endfor %}
+{% endif %}{% endif %}{% endwith %}{% with packages|length as num_packages %}{% if num_packages %}
+Watching {{ num_packages }} package{{ num_packages|pluralize:"s"}}: {{ packages_upstream }} upstream version{{ packages_upstream|pluralize:"s"}}
+{% if packages_upstream %}Hot packages:
+{% for c in packages|slice:":3" %} * {{ c }} ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})
+{% endfor %}
 {% endif %}{% endif %}{% endwith %}
-
-{% with herds|length as num_herds %}{% if num_herds %}
-Watching {{ num_herds }} herd{{ num_herds|pluralize:"s"}}
-{{ herds_upstream }} new upstream version{{ herds_upstream|pluralize:"s"}}
-{% if herds_upstream %}
-Hot herds:
-{% for c in herds|slice:":3" %}
- * {{ c.herds__herd }} ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }}){% endfor %}
-{% endif %}{% endif %}{% endwith %}
-
-{% with maintainers|length as num_maintainers %}{% if num_maintainers %}
-Watching {{ num_maintainers }} maintainer{{ num_maintainers|pluralize:"s"}}
-{{ maintainers_upstream }} new upstream version{{ maintainers_upstream|pluralize:"s"}}
-{% if maintainers_upstream %}
-Hot maintainers:
-{% for c in maintainers|slice:":3" %}
-* {{ c.maintainers__name }} ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }}){% endfor %}
-{% endif %}{% endif %}{% endwith %}
-
-{% with packages|length as num_packages %}{% if num_packages %}
-Watching {{ num_packages }} package{{ num_packages|pluralize:"s"}}
-{{ packages_upstream }} new upstream version{{ packages_upstream|pluralize:"s"}}
-{% if packages_upstream %}
-Hot packages:
-{% for c in packages|slice:":3" %}
-* {{ c }} ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }}){% endfor %}
-{% endif %}{% endif %}{% endwith %}
-
 --
-This email was sent by euscan
+This email was sent by euscan, please do not reply.
