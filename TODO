@@ -9,7 +9,6 @@ euscan
 - Check other distros (youri, distrowatch, distromatch, whoas; Equivalent-Packages)
 - Steal ideas from other tools (uscan, portscout)
 - Steal data from other tools (dehs)
-- Add a way to enable/disable handlers (--no-handler-kde --no-handler-sourceforge)
 
 ### Command line interface
 

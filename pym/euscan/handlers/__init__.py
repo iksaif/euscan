@@ -37,7 +37,8 @@ def find_best_handler(kind, pkg, *args):
     Find the best handler for the given package
     """
     for handler in handlers[kind]:
-        if handler.can_handle(pkg, *args):
+        if (handler.HANDLER_NAME not in CONFIG["handlers-exclude"] and
+            handler.can_handle(pkg, *args)):
             return handler
     return None
 
@@ -149,8 +150,11 @@ def scan_url(pkg, urls, options, on_progress=None):
 
             try:
                 url_handler = find_best_handler('url', pkg, url)
-                for o in options:
-                    versions += url_handler.scan_url(pkg, url, o)
+                if url_handler:
+                    for o in options:
+                        versions += url_handler.scan_url(pkg, url, o)
+                else:
+                    output.eerror("Can't find a suitable handler!")
             except Exception as e:
                 output.ewarn(
                     "Handler failed: [%s] %s" %

@@ -133,6 +133,9 @@ def print_usage(_error=None, help=None):
             "                       - use mirror:// URIs", file=out)
         print(yellow("     --ebuild-uri") +
             "                   - use ebuild variables in URIs", file=out)
+        print(yellow("     --no-handlers") +
+            "                  - exclude handlers (comma-separated list)",
+            file=out)
         print(file=out)
 
     if _error in ('packages',) or help:
@@ -194,6 +197,8 @@ def parse_args():
                 CONFIG['ignore-pre-release-if-stable'] = True
             elif o in ("--ebuild-uri"):
                 CONFIG['ebuild-uri'] = True
+            elif o in ("--no-handlers"):
+                CONFIG['handlers-exclude'] = a.split(",")
             else:
                 return_code = False
 
@@ -205,7 +210,7 @@ def parse_args():
     getopt_options['long']['global'] = [
         "help", "version", "nocolor", "quiet", "verbose", "oneshot",
         "brute-force=", "format=", "progress", "mirror", "ignore-pre-release",
-        "ignore-pre-release-if-stable", "ebuild-uri"
+        "ignore-pre-release-if-stable", "ebuild-uri", "no-handlers="
     ]
 
     short_opts = getopt_options['short']['global']
