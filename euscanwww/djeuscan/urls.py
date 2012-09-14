@@ -8,7 +8,7 @@ from djcelery.views import apply as apply_task
 from djeuscan.views import registered_tasks
 
 from djeuscan.feeds import PackageFeed, CategoryFeed, HerdFeed, \
-    MaintainerFeed, GlobalFeed, UserFeed
+    MaintainerFeed, GlobalFeed, UserFeed, WorldScanFeed
 
 
 admin_required = user_passes_test(lambda u: u.is_superuser)
@@ -117,6 +117,7 @@ urlpatterns = patterns('djeuscan.views',
     url(r'^statistics/charts/(?P<chart>[\w\-]+).png$', 'chart', name="chart"),
     url(r'^world/$', 'world', name="world"),
     url(r'^world/scan/$', 'world_scan', name="world_scan"),
+    url(r'^world/scan/feed$', WorldScanFeed(), name="world_scan_feed"),
     url(r'^world/favourite/$', 'favourite_world', name="favourite_world"),
     url(r'^world/unfavourite/$', 'unfavourite_world',
         name="unfavourite_world"),

@@ -52,7 +52,6 @@ euscanwww
 ---------
 
 - Add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)
-- Create a rss for "scan world" + packages in GET
 - Always keep in db all found versions (when using an API only?). But don't display them if older than current packaged version, except maybe in the "upstream_version" column.
 
 ### packages

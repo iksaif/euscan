@@ -7,6 +7,18 @@
 {{ block.super }} - World Scan
 {% endblock %}
 
+{% block menu_feed %}
+{{ block.super }}
+<li>
+  <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
+  <a title="World scan Feed"
+     href="{% url "world_scan_feed" %}?package={{ packages|join:"&package=" }}">
+    World scan feed
+  </a>
+</li>
+{% endblock %}
+
+
 {% block content %}
 <h2>
   World scan:

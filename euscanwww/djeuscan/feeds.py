@@ -229,9 +229,32 @@ class UserFeed(BaseFeed):
         }
 
     def _items(self, data):
-        user, options = data["user"], data["options"]
+        user = data["user"]
 
         profile = get_profile(user)
         vlogs = get_account_versionlogs(profile)
+
+        return vlogs, 100
+
+
+class WorldScanFeed(BaseFeed):
+    link = "/"
+
+    def get_object(self, request):
+        return {
+            "options": request.GET,
+        }
+
+    def _items(self, data):
+        packages = []
+        for pkg_name in data["options"].getlist("package", []):
+            if "/" in pkg_name:
+                cat, name = pkg_name.split("/", 1)
+                pkg = Package.objects.filter(name=name, category=cat)
+            else:
+                pkg = Package.objects.filter(name=pkg_name)
+            packages.extend(pkg)
+
+        vlogs = VersionLog.objects.filter(package__in=packages)
 
         return vlogs, 100
