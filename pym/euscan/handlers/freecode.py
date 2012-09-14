@@ -17,7 +17,7 @@ def can_handle(pkg, url=None):
 def scan_pkg(pkg, options):
     cp, ver, rev = portage.pkgsplit(pkg.cpv)
 
-    package = options['data']
+    package = options['data'].strip()
 
     output.einfo("Using FreeCode handler: " + package)
 
