@@ -48,3 +48,4 @@ Hot packages:
 
 --
 This email was sent by euscan
+Go to your euscan account to change email notification settings
