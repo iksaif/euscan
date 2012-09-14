@@ -113,7 +113,7 @@ def scan_metadata(packages=[], category=None, populate=False):
 
 
 @task
-def scan_portage(packages=[], category=None,
+def scan_portage(packages=[], category=None, upstream=True,
                  no_log=False, purge_packages=False,
                  purge_versions=False, prefetch=False):
     """
@@ -133,6 +133,7 @@ def scan_portage(packages=[], category=None,
     scan.scan_portage(
         packages=packages,
         category=category,
+        upstream=upstream,
         no_log=no_log,
         purge_packages=purge_packages,
         purge_versions=purge_versions,

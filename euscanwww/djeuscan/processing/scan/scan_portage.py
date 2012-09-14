@@ -13,16 +13,18 @@ from django.core.management.color import color_style
 from euscan.version import get_version_type
 
 from djeuscan.processing import FakeLogger
+from djeuscan.processing.scan.scan_upstream import scan_upstream
 from djeuscan.models import Package, Version, VersionLog, Category, Overlay
 
 
 class ScanPortage(object):
     def __init__(self, logger=None, no_log=False, purge_packages=False,
-                 purge_versions=False):
+                 purge_versions=False, upstream=False):
         self.logger = logger or FakeLogger()
         self.no_log = no_log
         self.purge_packages = purge_packages
         self.purge_versions = purge_versions
+        self.upstream = upstream
 
         self.style = color_style()
 
@@ -196,8 +198,15 @@ class ScanPortage(object):
                 cat, pkg, data['homepage'], data['description']
             )
             packages_alive.add("%s/%s" % (cat, pkg))
+            new_version = False
             for cpv, slot, overlay, overlay_path in data['versions']:
-                self.store_version(package, cpv, slot, overlay, overlay_path)
+                new_version = new_version or self.store_version(
+                    package, cpv, slot, overlay, overlay_path
+                )
+
+            # If the package has at least one new version scan upstream for it
+            if new_version and self.upstream:
+                scan_upstream([package], self.purge_versions, self.logger)
 
         self.purge_old_packages(current_packages, packages_alive)
         self.purge_old_versions()
@@ -260,8 +269,9 @@ class ScanPortage(object):
         # nothing to do (note: it can't be an upstream version because
         # overlay can't be empty here)
         if not created:
-            return
+            return False
 
+        # New version created
         self.logger.info('+ [v] %s' % (obj))
 
         if overlay == 'gentoo':
@@ -281,6 +291,8 @@ class ScanPortage(object):
                 overlay=obj.overlay,
                 vtype=obj.vtype,
             )
+
+        return True
 
     def purge_old_packages(self, packages, alive):
         if not self.purge_packages:
@@ -324,7 +336,7 @@ class ScanPortage(object):
 
 
 @commit_on_success
-def scan_portage(packages=None, category=None, no_log=False,
+def scan_portage(packages=None, category=None, no_log=False, upstream=False,
                  purge_packages=False, purge_versions=False, prefetch=False,
                  logger=None):
 
@@ -338,6 +350,7 @@ def scan_portage(packages=None, category=None, no_log=False,
         no_log=no_log,
         purge_packages=purge_packages,
         purge_versions=purge_versions,
+        upstream=upstream
     )
 
     logger.info('Scanning portage tree...')
