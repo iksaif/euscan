@@ -41,12 +41,18 @@ packages:
 
 ### handlers
 
-- freecode: to scan freecode.com
-- remote-id: type deb repository. Example I always scan:
-  http://dl.google.com/linux/musicmanager/deb/dists/stable/main/binary-i386/Packages
-  to see if google has release an update, same would help for all google
-  packages and some of the actual debian packages.
-  Something similar could be done for rpm repositories.
+- remote-id type deb repository:
+  - Fix handler to support Packages.gz or Packages.bz2
+  - find out how to get download url
+
+### remote-id
+- Propose new remote-id: deb
+  e.g.: <remote-id type="deb">
+            http://mysite.com/deb/dists/stable/main/binary-i386/Packages
+        </remote-id>
+- Propose new remote-id: freecode
+  e.g.: <remote-id type="freecode">projectname</remote-id>
+
 
 euscanwww
 ---------
