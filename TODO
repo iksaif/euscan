@@ -38,6 +38,12 @@ metadata.xml
 packages:
 - MySQL: should use http://downloads.mysql.com/archives/
 - mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/
+- freecode: to scan freecode.com
+- remote-id: type deb repository. Example I always scan:
+  http://dl.google.com/linux/musicmanager/deb/dists/stable/main/binary-i386/Packages
+  to see if google has release an update, same would help for all google
+  packages and some of the actual debian packages.
+  Something similar could be done for rpm repositories.
 
 euscanwww
 ---------
