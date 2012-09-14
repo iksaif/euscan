@@ -27,17 +27,21 @@ euscan
 -- Berlios: nast, enigma, usbprog, python-wifi, wifi-radar, bcm43xx-fwcutter
 -- Google code: pychess, redis, rssguard, ostinato, pidgin-facebookchat
 
-metadata.xml
-------------
+### metadata.xml
 
-- Finalize format
 - Create a subtree of metadata using custom rules
+- Finalize format
 - Write a GLEP
+- Convert subtree
 - Commit metadata.xml changes to tree
 
 packages:
 - MySQL: should use http://downloads.mysql.com/archives/
 - mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/
+
+
+### handlers
+
 - freecode: to scan freecode.com
 - remote-id: type deb repository. Example I always scan:
   http://dl.google.com/linux/musicmanager/deb/dists/stable/main/binary-i386/Packages
@@ -54,7 +58,6 @@ euscanwww
 
 ### packages
 
-
 - show additional informations in the web interface (remote-id, etc...)
 - show the content of the ebuild for a particular version
 - Ignore alpha/beta if current is not alpha/beta: per-package setting using metadata.xml ?
@@ -66,14 +69,21 @@ euscanwww
 
 Move account stuff to an euscan.account application to keep only package related stuff in djeuscan.
 
+### logs
+
+Move log models into djeuscanhistory ?
+
 ### models
 
 - Repository (added or not, from layman + repositories.xml)
 - Category (read metadata.xml)
 - Url ad ManyToMany
 - Arches and Keyword
+- Metadata, herds, maintainers and homepage are per-version, not per package. Store it in Version instead.
+  Define last_version that refers to the last version (can be last_version_gentoo or last_version_overlay)
+  Fix update_counter, to update this field.
 
-### djportage
+### djportage (LOW-PRIORITY))
 
 - Create standalone application to scan and represent portage trees in models using work done in:
 -- euscan
@@ -87,9 +97,11 @@ The scan process should be faster than the one using euscan. gentoo-packages hav
 ### Scanning
 
 - Remove alive field
-- Find a way to rescan upstream of packages recently changed in portage
+- Find a way to rescan upstream of packages recently changed in portage:
+  - make scan_portage/scan_upstream return a list of packages that were updated (or list of versions ?)
+  - use that list in tasks.py as scan_upstream (should be easy using chains and subtasks)
 
-### API
+### API (LOW-PRIORITY)
 
 - Move to tastypie
 
