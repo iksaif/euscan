@@ -9,7 +9,7 @@ euscan
 - Check other distros (youri, distrowatch, distromatch, whoas; Equivalent-Packages)
 - Steal ideas from other tools (uscan, portscout)
 - Steal data from other tools (dehs)
-- Add a way to enable/disable methods: other_distributions,remote_euscan,handlers, etc....
+- Add a way to enable/disable handlers (--no-handler-kde --no-handler-sourceforge)
 
 ### Command line interface
 
@@ -17,25 +17,83 @@ euscan
 
 ### Misc
 
-- Add a HTTP cache (1day, configurable)
+- Add a config file (/etc/euscan.conf, ~/.euscan.conf)
+- Add a HTTP cache (configurable)
 
-Site Handlers
--------------
+### Tests
 
-- store un-expanded SRC_URI and use it in handlers
-- berlios
-- sourceforge: http://sourceforge.net/api/file/index/project-name/vboxgtk/mtime/desc/limit/20/rss  http://sourceforge.net/api/release/index/project-id/264534/rss
+- Write tests for handlers
+- List some packages to test specific handlers
+-- Sourceforge: mummer, bfast, vcftools, mtop, phppgadmin, e2fsprog-libs
+-- Berlios: nast, enigma, usbprog, python-wifi, wifi-radar, bcm43xx-fwcutter
+-- Google code: pychess, redis, rssguard, ostinato, pidgin-facebookchat
+
+metadata.xml
+------------
+
+- Finalize format
+- Create a subtree of metadata using custom rules
+- Write a GLEP
+- Commit metadata.xml changes to tree
+
+packages:
 - MySQL: should use http://downloads.mysql.com/archives/
 - mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/
 
 euscanwww
 ---------
 
-- Try to separate portage stuff in django-portage/djportage (see what can be shared with other GSoC projects)
 - Add an /about/config page that describe the current config (overlays, stuff in make.conf, euscan default settings, etc..)
 - Create a rss for "scan world" + packages in GET
-- Always keep in db the last upstream version (could be marked as packaged without overlay ?)
+- Always keep in db all found versions (when using an API only?). But don't display them if older than current packaged version, except maybe in the "upstream_version" column.
+
+### packages
+
+
+- show additional informations in the web interface (remote-id, etc...)
+- show the content of the ebuild for a particular version
+- Ignore alpha/beta if current is not alpha/beta: per-package setting using metadata.xml ?
+- ~arch / stable support: see "models: keywords"
+- stabilisation candidates: check stabilizations rules, and see how this can be automated
+- set upstream version by hand: will be done after uscan compatiblity
+
+### accounts
+
+Move account stuff to an euscan.account application to keep only package related stuff in djeuscan.
+
+### models
+
+- Repository (added or not, from layman + repositories.xml)
+- Category (read metadata.xml)
+- Url ad ManyToMany
+- Arches and Keyword
+
+### djportage
+
+- Create standalone application to scan and represent portage trees in models using work done in:
+-- euscan
+-- p.g.o: https://github.com/bacher09/gentoo-packages
+-- gentoostats: https://github.com/gg7/gentoostats_server/blob/master/gentoostats/stats/models.py
+
+The application should be easy to use, and we should be able to launch the scan process in a celery worker using "logging" for logs.
+The application should also be usable for p.g.o and gentoostats later...
+The scan process should be faster than the one using euscan. gentoo-packages have some interesting ideas for that (keeping metadata and ebuild hash, etc..)
+
+### Scanning
+
+- Remove alive field
+- Find a way to rescan upstream of packages recently changed in portage
 
 ### API
 
 - Move to tastypie
+
+### Overlays
+
+/!\ blocked by "djportage" application
+Currently, overlay handling in euscan sucks (it's simply a column nothing more, and they are mostly handled by hand by layman). I'd like to be able to add and remove overlays (overlay name + svn/git/cvs/rsync url). Using a new model and layman API should make this task easy.
+
+/!\ could be done earlier using a simple "overlay" table ... but how to pre-compute everything per-overlay ?
+Once done, a great feature would be to be able to select displayed overlay on euscan (as a global setting: for all pages). This is actually a lot of work, so you should work on that on a separated branch.
+
+Note that this is more complicated that it seems, because a lot of things are precalculated (number of version for this herd, number of outdated versions, etc..), and selecting overlays would break all this. So you'll really need to experiment solutions for this one.
