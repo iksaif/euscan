@@ -304,6 +304,8 @@ def process_emails(profiles, only_if_vlogs=False):
         if only_if_vlogs and not vlogs.count():
             continue
 
+        vlogs = vlogs.order_by("-datetime")
+
         infos = get_user_fav_infos(user)
         infos["user"] = user
         infos["vlogs"] = vlogs

@@ -2,6 +2,7 @@ import os
 import re
 import errno
 import urllib2
+from xml.dom.minidom import Document
 
 import portage
 from portage import dep
@@ -451,3 +452,33 @@ def parse_mirror(uri):
         return None
 
     return uri
+
+
+def dict_to_xml(data, indent):
+    doc = Document()
+    root = doc.createElement("euscan")
+    doc.appendChild(root)
+
+    def _set_value(parent, value):
+        if isinstance(value, dict):
+            for k, v in value.iteritems():
+                node = doc.createElement(k)
+                _set_value(node, v)
+                parent.appendChild(node)
+        elif isinstance(value, list):
+            for item in value:
+                node = doc.createElement("value")
+                text = doc.createTextNode(item)
+                node.appendChild(text)
+                parent.appendChild(node)
+        else:
+            text = doc.createTextNode(unicode(value))
+            parent.appendChild(text)
+
+    for key, value in data.iteritems():
+        node = doc.createElement("package")
+        node.setAttribute("name", key)
+        _set_value(node, value)
+        root.appendChild(node)
+
+    return doc.toprettyxml(indent=" " * indent)

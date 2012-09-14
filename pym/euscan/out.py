@@ -10,6 +10,8 @@ import portage
 from portage.output import EOutput, TermProgressBar
 from gentoolkit import pprinter as pp
 
+from euscan.helpers import dict_to_xml
+
 mirrors_ = None
 
 
@@ -200,6 +202,8 @@ class EuscanOutput(object):
         format_ = format_ or self.config["format"]
         if format_.lower() == "json":
             return json.dumps(data, indent=self.config["indent"])
+        elif format_.lower() == "xml":
+            return dict_to_xml(data, indent=self.config["indent"])
         elif format_.lower() == "dict":
             return data
         else:

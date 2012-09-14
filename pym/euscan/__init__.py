@@ -5,6 +5,10 @@
 
 __version__ = "git"
 
+import ConfigParser
+import os
+
+
 CONFIG = {
     'nocolor': False,
     'quiet': False,
@@ -26,6 +30,13 @@ CONFIG = {
     'ignore-pre-release-if-stable': False,
     'ebuild-uri': False,
 }
+
+config = ConfigParser.ConfigParser()
+config.read(['/etc/euscan.conf', os.path.expanduser('~/.euscan.conf')])
+if config.has_section("euscan"):
+    for key, value in config.items("euscan"):
+        if key in CONFIG:
+            CONFIG[key] = value
 
 BLACKLIST_VERSIONS = [
     # Compatibility package for running binaries linked against a

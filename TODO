@@ -13,11 +13,10 @@ euscan
 
 ### Command line interface
 
-- html and xml output
+- html output
 
 ### Misc
 
-- Add a config file (/etc/euscan.conf, ~/.euscan.conf)
 - Add a HTTP cache (configurable)
 
 ### Tests
