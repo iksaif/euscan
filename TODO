@@ -34,7 +34,7 @@ euscan
 - Convert subtree
 - Commit metadata.xml changes to tree
 
-packages:
+### packages:
 - MySQL: should use http://downloads.mysql.com/archives/
 - mariadb: should use http://downloads.askmonty.org/MariaDB/+releases/
 
@@ -101,9 +101,6 @@ The scan process should be faster than the one using euscan. gentoo-packages hav
 ### Scanning
 
 - Remove alive field
-- Find a way to rescan upstream of packages recently changed in portage:
-  - make scan_portage/scan_upstream return a list of packages that were updated (or list of versions ?)
-  - use that list in tasks.py as scan_upstream (should be easy using chains and subtasks)
 
 ### API (LOW-PRIORITY)
 
