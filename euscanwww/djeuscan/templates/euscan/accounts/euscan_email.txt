@@ -29,3 +29,4 @@ Watching {{ num_packages }} package{{ num_packages|pluralize:"s"}}: {{ packages_
 {% endif %}{% endif %}{% endwith %}
 --
 This email was sent by euscan, please do not reply.
+Go to your euscan account to change email notification settings.
