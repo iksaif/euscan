@@ -360,4 +360,7 @@ admin_tasks = [
     update_portage,
     update_upstream,
     scan_package,
+    send_update_email,
+    send_weekly_email,
+    send_monthly_email,
 ]
