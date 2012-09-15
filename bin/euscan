@@ -287,9 +287,9 @@ def main():
 
             from os.path import basename  # To get the short name
 
-            output.error(
+            output.eerror(
                 "The short ebuild name '%s' is ambiguous. Please specify" %
-                    basename(pkgs[0]),
+                    basename(pkgs[0]) +
                 "one of the above fully-qualified ebuild names instead."
             )
             exit_helper(1)

@@ -70,6 +70,7 @@ def scan_html(data, url, pattern):
                  match.group(0))
             )
 
+
     return results
 
 
