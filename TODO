@@ -38,8 +38,7 @@ euscan
 ### handlers
 
 - remote-id type deb repository:
-  - Fix handler to support Packages.gz or Packages.bz2
-  - find out how to get download url
+  - find out how to get download url (not sure it's possible)
 
 ### remote-id
 - Propose new remote-id: deb
