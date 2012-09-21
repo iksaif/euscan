@@ -1,5 +1,7 @@
 import urllib
 import re
+import bz2
+import zlib
 
 import portage
 
@@ -24,17 +26,22 @@ def scan_pkg(pkg, options):
     fp = urllib.urlopen(packages_url)
     content = fp.read()
 
-    # TODO: Add support for .gz and .bz2 Packages file
+    # Support for .gz and .bz2 Packages file
+    if packages_url.endswith(".bz2"):
+        content = bz2.decompress(content)
+    if packages_url.endswith(".gz"):
+        content = zlib.decompress(content, 16 + zlib.MAX_WBITS)
 
     content = content.split("\n\n")
 
     result = []
 
     for package_info in content:
-        for line in package_info.split("\n"):
-            res = re.search("^Version: (.*)$", line)
-            if res:
-                result.append(res.group(1))
+        package_line = re.search(r"^Package: (.*)$", package_info, re.M)
+        version_line = re.search(r"^Version: (.*)$", package_info, re.M)
+        if package_line and package_line.group(1) == package_name:
+            if version_line:
+                result.append(version_line.group(1))
 
     ret = []
     for up_pv in result:
