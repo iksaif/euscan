@@ -12,7 +12,7 @@
 <li>
   <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
   <a title="World scan Feed"
-     href="{% url "world_scan_feed" %}?package={{ packages|join:"&package=" }}">
+     href="{% url "world_scan_feed" %}?p={{ packages|join:"&p=" }}">
     World scan feed
   </a>
 </li>

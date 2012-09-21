@@ -247,7 +247,7 @@ class WorldScanFeed(BaseFeed):
 
     def _items(self, data):
         packages = []
-        for pkg_name in data["options"].getlist("package", []):
+        for pkg_name in data["options"].getlist("p", []):
             if "/" in pkg_name:
                 cat, name = pkg_name.split("/", 1)
                 pkg = Package.objects.filter(name=name, category=cat)
