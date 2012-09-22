@@ -79,8 +79,6 @@ Move log models into djeuscanhistory ?
 - Url ad ManyToMany
 - Arches and Keyword
 - Metadata, herds, maintainers and homepage are per-version, not per package. Store it in Version instead.
-  Define last_version that refers to the last version (can be last_version_gentoo or last_version_overlay)
-  Fix update_counter, to update this field.
 
 ### djportage (LOW-PRIORITY))
 
