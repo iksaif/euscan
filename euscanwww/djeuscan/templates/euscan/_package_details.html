@@ -18,10 +18,12 @@
   <dt>Herds</dt>
   <dd>
     {% for herd in package.herds.all %}
-    <a href="{% url "herd" herd.herd %}">
-      {{ herd.herd }}
-    </a>
-    &lt;{{ herd.email }}&gt;
+      <p>
+        <a href="{% url "herd" herd.herd %}">
+          {{ herd.herd }}
+        </a>
+        &lt;{{ herd.email }}&gt;
+      </p>
     {% endfor %}
   </dd>
   {% endif %}
@@ -29,16 +31,18 @@
   <dt>Maintainers</dt>
   <dd>
     {% for maintainer in package.maintainers.all %}
-      {% if maintainer.name != maintainer.email %}
-       <a href="{% url "maintainer" maintainer.id %}">
-         {{ maintainer.name }}
-       </a>
-       &lt;{{ maintainer.email }}&gt;
-      {% else %}
-       <a href="{% url "maintainer" maintainer.id %}">
-       {{ maintainer.email }}
-       </a>
-      {% endif %}
+      <p>
+        {% if maintainer.name != maintainer.email %}
+         <a href="{% url "maintainer" maintainer.id %}">
+           {{ maintainer.name }}
+         </a>
+         &lt;{{ maintainer.email }}&gt;
+        {% else %}
+         <a href="{% url "maintainer" maintainer.id %}">
+         {{ maintainer.email }}
+         </a>
+        {% endif %}
+      </p>
     {% endfor %}
   </dd>
   {% endif %}
