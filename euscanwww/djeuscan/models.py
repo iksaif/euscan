@@ -116,6 +116,20 @@ class Package(models.Model):
     def homepages(self):
         return self.homepage.split(' ')
 
+    @property
+    def last_version(self):
+        from euscan.helpers import vercmp
+
+        versions = [
+            self.last_version_gentoo,
+            self.last_version_overlay,
+            self.last_version_upstream
+        ]
+        _cmp = lambda x, y: vercmp(
+            unicode(self), x.version if x else "", y.version if y else ""
+        )
+        return sorted(versions, cmp=_cmp)[-1]
+
 
 class Version(models.Model):
     """
