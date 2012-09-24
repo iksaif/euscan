@@ -1,0 +1,95 @@
+{% extends "_base.html" %}
+
+{% block content %}
+<h2>Server configuration</h2>
+
+<table class="table table-bordered">
+  <caption>
+    <h4 class="padded">Euscan config</h4>
+  </caption>
+  {% for key, value in CONFIG.items %}
+  <tr>
+    <td><b>{{ key }}</b></td>
+    <td>{{ value }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<hr />
+
+<table class="table table-bordered">
+  <caption>
+    <h4 class="padded">Versions blacklist</h4>
+  </caption>
+  {% for item in BLACKLIST_VERSIONS %}
+  <tr>
+    <td>{{ item }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<hr />
+
+<table class="table table-bordered">
+  <caption>
+    <h4 class="padded">Packages blacklist</h4>
+  </caption>
+  {% for item in BLACKLIST_PACKAGES %}
+  <tr>
+    <td>{{ item }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<hr />
+
+<table class="table table-bordered">
+  <caption>
+    <h4 class="padded">Scandir blacklist</h4>
+  </caption>
+  {% for item in SCANDIR_BLACKLIST_URLS %}
+  <tr>
+    <td>{{ item }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<hr />
+
+<table class="table table-bordered">
+  <caption>
+    <h4 class="padded">Bruteforce packages blacklist</h4>
+  </caption>
+  {% for item in BRUTEFORCE_BLACKLIST_PACKAGES %}
+  <tr>
+    <td>{{ item }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<hr />
+
+<table class="table table-bordered">
+  <caption>
+    <h4 class="padded">Bruteforce urls blacklist</h4>
+  </caption>
+  {% for item in BRUTEFORCE_BLACKLIST_URLS %}
+  <tr>
+    <td>{{ item }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<hr />
+
+<table class="table table-bordered">
+  <caption>
+    <h4 class="padded">Robots.txt domain blacklist</h4>
+  </caption>
+  {% for item in ROBOTS_TXT_BLACKLIST_DOMAINS %}
+  <tr>
+    <td>{{ item }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
