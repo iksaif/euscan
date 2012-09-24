@@ -117,14 +117,6 @@ dd {
     padding: 5px;
 }
 
-hr {
-    margin: 0.3em 1em 0.3em 1em;
-    height: 1px;
-    border: #bcbcbc dashed;
-    border-width: 0 0 1px 0;
-}
-
-
 .table {
     width: 60% !important;
     margin: auto;
