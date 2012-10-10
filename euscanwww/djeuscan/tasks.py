@@ -80,7 +80,6 @@ def update_counters(fast=False):
     """
     Updates counters
     """
-
     logger = update_counters.get_logger()
     logger.info("Updating counters (fast=%s)...", fast)
     misc.update_counters(fast=fast)
@@ -235,20 +234,12 @@ def scan_package_user(package):
     return True
 
 
-@task
+@task(rate_limit="1/m")
 def consume_refresh_queue(locked=False):
     """
     Satisfies user requests for package refreshing, runs every minute
     """
-    LOCK_ID = 'lock-consume-refresh-queue'
-    unlock = lambda: cache.delete(LOCK_ID)
-    lock = lambda: cache.add(LOCK_ID, True, 120)
-
     logger = consume_refresh_queue.get_logger()
-
-    if not locked and not lock():
-        return
-
     logger.info('Consuming package refresh request queue...')
 
     try:
@@ -258,17 +249,14 @@ def consume_refresh_queue(locked=False):
         scan_package_user.delay(pkg)
         logger.info('Selected: %s' % pkg)
     except IndexError:
-        pass
-    finally:
-        unlock()
+        return
 
     if RefreshPackageQuery.objects.count():
         logger.info('Restarting myself in 60s')
-        lock()
         consume_refresh_queue.apply_async(
             kwargs={'locked': True}, countdown=60
         )
-
+    return True
 
 @task(max_retries=10, default_retry_delay=10 * 60)
 def send_user_email(address, subject, text):
@@ -279,7 +267,7 @@ def send_user_email(address, subject, text):
         )
     except Exception, exc:
         raise send_user_email.retry(exc=exc)
-
+    return True
 
 @task
 def process_emails(profiles, only_if_vlogs=False):
@@ -321,7 +309,7 @@ def process_emails(profiles, only_if_vlogs=False):
 
         profile.last_email = now
         profile.save(force_update=True)
-
+    return True
 
 @task
 def send_update_email():
@@ -335,6 +323,7 @@ def send_update_email():
         settings.TASKS_EMAIL_GROUPS,
         only_if_vlogs=True
     )()
+    return True
 
 
 @task
@@ -344,6 +333,7 @@ def send_weekly_email():
         email_activated=True
     )
     group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
+    return True
 
 
 @task
@@ -353,7 +343,7 @@ def send_monthly_email():
         email_activated=True
     )
     group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
-
+    return True
 
 admin_tasks = [
     regen_rrds,
