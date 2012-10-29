@@ -114,7 +114,6 @@ def update_counters(fast=False, nolog=False, logger=None):
             package.last_version_upstream_id = last_versions_upstream.get(
                 package.id, default
             )['id']
-
             package.save()
 
         n_packages_gentoo = int(package.n_packaged == package.n_versions)

@@ -34,11 +34,6 @@ class Command(BaseCommand):
             dest='purge-versions',
             default=False,
             help='Purge old versions'),
-        make_option('--upstream',
-            action='store_true',
-            dest='upstream',
-            default=False,
-            help='Scan upstream for updated packages in Portage'),
         make_option('--no-log',
             action='store_true',
             dest='no-log',
@@ -71,6 +66,5 @@ class Command(BaseCommand):
             purge_packages=options["purge-packages"],
             purge_versions=options["purge-versions"],
             prefetch=options["prefetch"],
-            upstream=options["upstream"],
             logger=logger,
         )

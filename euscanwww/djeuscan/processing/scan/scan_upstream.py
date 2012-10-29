@@ -34,7 +34,7 @@ class ScanUpstream(object):
                 "Error while scanning upstream for package %s!",
                 package
             )
-            self.logger.info(
+            self.logger.debug(
                 "Error %s",
                 out_json
             )

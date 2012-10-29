@@ -113,7 +113,7 @@ def scan_metadata(packages=[], category=None, populate=False):
 
 
 @task
-def scan_portage(packages=[], category=None, upstream=True,
+def scan_portage(packages=None, category=None,
                  no_log=False, purge_packages=False,
                  purge_versions=False, prefetch=False):
     """
@@ -130,17 +130,15 @@ def scan_portage(packages=[], category=None, upstream=True,
     else:
         logger.info("Starting portage scan...")
 
-    scan.scan_portage(
+    return scan.scan_portage(
         packages=packages,
         category=category,
-        upstream=upstream,
         no_log=no_log,
         purge_packages=purge_packages,
         purge_versions=purge_versions,
         prefetch=prefetch,
         logger=logger,
     )
-    return True
 
 
 @task
@@ -180,9 +178,17 @@ def update_portage(packages=None):
 
     # Workaround for celery bug when chaining groups
     update_portage_trees()
-    scan_portage(packages=[], purge_packages=True, purge_versions=True,
-                 prefetch=True)
-    scan_metadata(packages=[], populate=True)
+    updated_packages = scan_portage(
+        packages=None,
+        purge_packages=True,
+        purge_versions=True,
+        prefetch=True
+    )
+    scan_metadata(packages=None, populate=True)
+    if updated_packages:
+            group_chunks(scan_upstream, updated_packages,
+                         settings.TASKS_UPSTREAM_GROUPS,
+                         purge_versions=True)()
     update_counters(fast=False)
 
     """ Currently broken
