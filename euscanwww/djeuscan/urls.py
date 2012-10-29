@@ -55,16 +55,13 @@ herds_patterns = patterns('djeuscan.views',
     url(r'^$', 'herds', name="herds"),
 )
 
+prefix = '^((?P<maintainer_id>\d+)|(?P<maintainer_email>[^/]+))'
 maintainers_patterns = patterns('djeuscan.views',
-    url(r'^(?P<maintainer_id>\d+)/(view/)?$', 'maintainer', name="maintainer"),
-    url(r'^(?P<maintainer_id>\d+)/feed/$', MaintainerFeed(),
-        name='maintainer_feed'),
-    url(r'^(?P<maintainer_id>\d+)/charts/(?P<chart>[\w\-]+).png$',
-        'chart_maintainer', name="chart_maintainer"),
-    url(r'^(?P<maintainer_id>\d+)/favourite/$',
-        'favourite_maintainer', name="favourite_maintainer"),
-    url(r'^(?P<maintainer_id>\d+)/unfavourite/$',
-        'unfavourite_maintainer', name="unfavourite_maintainer"),
+    url(prefix + r'/(view/)?$', 'maintainer', name="maintainer"),
+    url(prefix + r'/feed/$', MaintainerFeed(), name='maintainer_feed'),
+    url(prefix + r'/charts/(?P<chart>[\w\-]+).png$', 'chart_maintainer', name="chart_maintainer"),
+    url(prefix + r'/favourite/$', 'favourite_maintainer', name="favourite_maintainer"),
+    url(prefix + r'/unfavourite/$', 'unfavourite_maintainer', name="unfavourite_maintainer"),
     url(r'^$', 'maintainers', name="maintainers"),
 )
 

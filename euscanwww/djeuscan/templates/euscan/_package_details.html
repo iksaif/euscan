@@ -33,12 +33,12 @@
     {% for maintainer in package.maintainers.all %}
       <p>
         {% if maintainer.name != maintainer.email %}
-         <a href="{% url "maintainer" maintainer.id %}">
+         <a href="{% url "maintainer" maintainer.email %}">
            {{ maintainer.name }}
          </a>
          &lt;{{ maintainer.email }}&gt;
         {% else %}
-         <a href="{% url "maintainer" maintainer.id %}">
+         <a href="{% url "maintainer" maintainer.email %}">
          {{ maintainer.email }}
          </a>
         {% endif %}

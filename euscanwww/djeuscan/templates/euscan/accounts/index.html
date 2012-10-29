@@ -75,7 +75,7 @@
               Hot maintainers:
               <ul>
                 {% for c in maintainers|slice:":3" %}
-                  <li><a href="{% url "maintainer" c.maintainers__id %}">{{ c.maintainers__name }}</a> ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})</li>
+                  <li><a href="{% url "maintainer" c.maintainers__email %}">{{ c.maintainers__name }}</a> ({{ c.n_versions|sub:c.n_packaged|sub:c.n_overlay }})</li>
                 {% endfor %}
               </ul>
             </li>

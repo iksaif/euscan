@@ -146,9 +146,16 @@ class PackageFeed(BaseFeed):
 class MaintainerFeed(BaseFeed):
     feed_type = Atom1Feed
 
-    def get_object(self, request, maintainer_id):
+    def get_object(self, request, maintainer_id=None, maintainer_email=None):
+        print maintainer_id, maintainer_email
+        if maintainer_id:
+            obj = get_object_or_404(Maintainer, id=maintainer_id)
+        else:
+            obj = get_object_or_404(Maintainer, email=maintainer_email)
+
+        print obj
         return {
-            "obj": get_object_or_404(Maintainer, id=maintainer_id),
+            "obj": obj,
             "options": request.GET,
         }
 
@@ -159,8 +166,7 @@ class MaintainerFeed(BaseFeed):
         return "Last changes for %s" % data["obj"]
 
     def link(self, data):
-        return reverse('djeuscan.views.maintainer',
-                       kwargs={'maintainer_id': data["obj"].id})
+        return reverse('djeuscan.views.maintainer', args=[data["obj"].email])
 
     def _items(self, data):
         return VersionLog.objects.for_maintainer(data["obj"]), 50
