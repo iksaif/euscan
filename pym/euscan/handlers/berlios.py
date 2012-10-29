@@ -16,7 +16,14 @@ berlios_regex = r"mirror://berlios/([^/]+)/([^/]+)"
 
 
 def can_handle(pkg, url=None):
-    return url and re.search(berlios_regex, url)
+    if not url:
+        return False
+
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
+    if ver not in url:
+        return False
+
+    return re.search(berlios_regex, url)
 
 
 def scan_url(pkg, url, options):

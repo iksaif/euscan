@@ -14,8 +14,14 @@ package_name_regex = r"http://(.+).googlecode.com/files/.+"
 
 
 def can_handle(pkg, url=None):
-    return url and re.match(package_name_regex, url)
+    if not url:
+        return False
 
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
+    if ver not in url:
+        return False
+
+    return re.match(package_name_regex, url)
 
 def scan_url(pkg, url, options):
     output.einfo("Using Google Code handler")
