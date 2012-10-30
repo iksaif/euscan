@@ -11,7 +11,7 @@
 {{ block.super }}
 <li>
   <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
-  <a title="{{ maintainer.name }} Feed" href="{% url "maintainer_feed" maintainer.id %}">
+  <a title="{{ maintainer.name }} Feed" href="{% url "maintainer_feed" maintainer.email %}">
     {{ maintainer.name|truncatechars:15 }}
   </a>
 </li>
@@ -22,10 +22,10 @@
   Maintainer: {{ maintainer.name }} &lt;{{ maintainer.email }}&gt;
   {% if user.is_authenticated %}
     <span class="pull-right">
-      <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_maintainer" maintainer.id %}">
+      <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_maintainer" maintainer.email %}">
         <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" />
       </button>
-      <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_maintainer" maintainer.id %}">
+      <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_maintainer" maintainer.email %}">
         <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" />
       </button>
     </span>
@@ -37,19 +37,19 @@
 <h3>Statistics</h3>
 <h4>Current statistics</h4>
 <p>
-  <img alt="pie versions" src="{% url "chart_maintainer" maintainer.id 'pie-versions' %}" />
-  <img alt="pie packages" src="{% url "chart_maintainer" maintainer.id 'pie-packages' %}" />
+  <img alt="pie versions" src="{% url "chart_maintainer" maintainer.email 'pie-versions' %}" />
+  <img alt="pie packages" src="{% url "chart_maintainer" maintainer.email 'pie-packages' %}" />
 </p>
 
 <h4>All Time</h4>
 <p>
-  <img alt="version weekly" src="{% url "chart_maintainer" maintainer.id 'versions-weekly' %}" />
-  <img alt="versions monthly" src="{% url "chart_maintainer" maintainer.id 'versions-monthly' %}" />
+  <img alt="version weekly" src="{% url "chart_maintainer" maintainer.email 'versions-weekly' %}" />
+  <img alt="versions monthly" src="{% url "chart_maintainer" maintainer.email 'versions-monthly' %}" />
 </p>
 
 <p>
-  <img alt="packages weekly" src="{% url "chart_maintainer" maintainer.id 'packages-weekly' %}" />
-  <img alt="packages monthly" src="{% url "chart_maintainer" maintainer.id 'packages-monthly' %}" />
+  <img alt="packages weekly" src="{% url "chart_maintainer" maintainer.email 'packages-weekly' %}" />
+  <img alt="packages monthly" src="{% url "chart_maintainer" maintainer.email 'packages-monthly' %}" />
 </p>
 
 <script type="text/javascript">
@@ -77,9 +77,9 @@ $(document).ready(function () {
 <div class="menu rounded notfirst-menu">
   <dl>
     <dt>Versions</dt>
-    <dd><img alt="versions" src="{% url "chart_maintainer" maintainer.id 'versions-monthly-small' %}" /></dd>
+    <dd><img alt="versions" src="{% url "chart_maintainer" maintainer.email 'versions-monthly-small' %}" /></dd>
     <dt>Packages</dt>
-    <dd><img alt="packages" src="{% url "chart_maintainer" maintainer.id 'packages-monthly-small' %}" /></dd>
+    <dd><img alt="packages" src="{% url "chart_maintainer" maintainer.email 'packages-monthly-small' %}" /></dd>
   </dl>
 </div>
 

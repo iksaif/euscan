@@ -12,7 +12,14 @@ PRIORITY = 90
 
 
 def can_handle(pkg, url=None):
-    return url and "mirror://sourceforge/" in url
+    if not url:
+        return False
+
+    cp, ver, rev = portage.pkgsplit(pkg.cpv)
+    if ver not in url:
+        return False
+
+    return "mirror://sourceforge/" in url
 
 
 def scan_url(pkg, url, options):

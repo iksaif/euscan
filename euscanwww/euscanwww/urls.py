@@ -8,7 +8,7 @@ urlpatterns = patterns('',
     url(r'^', include('djeuscan.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^accounts/', include('captcha.backends.default.urls')),
+    url(r'^accounts/', include('euscanwww.captcha.urls')),
     url(r'^accounts/', include('registration.backends.default.urls')),
 )
 

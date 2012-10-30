@@ -373,27 +373,28 @@ def tryurl(fileurl, template):
 
 def regex_from_template(template):
     # Escape
-    template = re.escape(template)
+    regexp = re.escape(template)
 
     # Unescape specific stuff
-    template = template.replace('\$\{', '${')
-    template = template.replace('\}', '}')
-    template = template.replace('}\.$', '}.$')
+    regexp = regexp.replace('\$\{', '${')
+    regexp = regexp.replace('\}', '}')
+    regexp = regexp.replace('}\.$', '}.$')
 
     # Replace ${\d+}
-    #template = template.replace('${0}', r'([\d]+?)')
-    template = re.sub(r'(\$\{\d+\}(\.?))+', r'([\w\.]+?)', template)
+    #regexp = regexp.replace('${0}', r'([\d]+?)')
+    regexp = re.sub(r'(\$\{\d+\}(\.?))+', r'([\w\.]+?)', regexp)
 
-    #template = re.sub(r'(\$\{\d+\}\.?)+', r'([\w]+?)', template)
-    #template = re.sub(r'(\$\{\d+\}\.+)+', '(.+?)\.', template)
-    #template = re.sub(r'(\$\{\d+\})+', '(.+?)', template)
+    #regexp = re.sub(r'(\$\{\d+\}\.?)+', r'([\w]+?)', regexp)
+    #regexp = re.sub(r'(\$\{\d+\}\.+)+', '(.+?)\.', regexp)
+    #regexp = re.sub(r'(\$\{\d+\})+', '(.+?)', regexp)
 
     # Full version
-    template = template.replace('${PV}', _v)
+    regexp = regexp.replace('${PV}', _v)
 
     # End
-    template = template + r'/?$'
-    return template
+    regexp = regexp + r'/?$'
+
+    return regexp
 
 
 def basedir_from_template(template):
@@ -417,7 +418,7 @@ def generate_scan_paths(url):
     path = prefix + ":/"
     for chunk in chunks:
         if '${' in chunk:
-            steps.append((path, regex_from_template(chunk)))
+            steps.append((path, '^(?:|.*/)'  + regex_from_template(chunk)))
             path = ""
         else:
             path += "/"

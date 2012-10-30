@@ -122,9 +122,15 @@ def maintainers(request):
     return {'maintainers': maintainers, 'last_scan': last_scan}
 
 
+def get_maintainer_or_404(id=None, email=None):
+    if id:
+        return get_object_or_404(Maintainer, pk=id)
+    else:
+        return get_object_or_404(Maintainer, email=email)
+
 @render_to('euscan/maintainer.html')
-def maintainer(request, maintainer_id):
-    maintainer = get_object_or_404(Maintainer, pk=maintainer_id)
+def maintainer(request, maintainer_id=None, maintainer_email=None):
+    maintainer = get_maintainer_or_404(maintainer_id, maintainer_email)
     packages = Package.objects.for_maintainer(maintainer, last_versions=True)
 
     try:
@@ -337,10 +343,10 @@ def chart(request, **kwargs):
 
     chart = kwargs['chart'] if 'chart' in kwargs else None
 
-    if 'maintainer_id' in kwargs:
-        kwargs['maintainer'] = get_object_or_404(
-            Maintainer,
-            id=kwargs['maintainer_id']
+    if 'maintainer_id' in kwargs or 'maintainer_email' in kwargs:
+        kwargs['maintainer'] = get_maintainer_or_404(
+            kwargs.get('maintainer_id'),
+            kwargs.get('maintainer_email')
         )
     if 'herd' in kwargs:
         kwargs['herd'] = get_object_or_404(Herd, herd=kwargs['herd'])
@@ -550,8 +556,8 @@ def unfavourite_herd(request, herd):
 @login_required
 @require_POST
 @ajax_request
-def favourite_maintainer(request, maintainer_id):
-    obj = get_object_or_404(Maintainer, pk=maintainer_id)
+def favourite_maintainer(request, maintainer_id=None, maintainer_email=None):
+    obj = get_maintainer_or_404(maintainer_id, maintainer_email)
     get_profile(request.user).maintainers.add(obj)
     return {"success": True}
 
@@ -559,8 +565,8 @@ def favourite_maintainer(request, maintainer_id):
 @login_required
 @require_POST
 @ajax_request
-def unfavourite_maintainer(request, maintainer_id):
-    maintainer = get_object_or_404(Maintainer, pk=maintainer_id)
+def unfavourite_maintainer(request, maintainer_id=None, maintainer_email=None):
+    obj = get_maintainer_or_404(maintainer_id, maintainer_email)
     get_profile(request.user).maintainers.remove(maintainer)
     return {"success": True}
 

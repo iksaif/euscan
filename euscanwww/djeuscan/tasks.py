@@ -9,7 +9,6 @@ from celery.task import task, group
 #import portage
 
 from django.conf import settings
-from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.db.models import Q
@@ -80,7 +79,6 @@ def update_counters(fast=False):
     """
     Updates counters
     """
-
     logger = update_counters.get_logger()
     logger.info("Updating counters (fast=%s)...", fast)
     misc.update_counters(fast=fast)
@@ -114,7 +112,7 @@ def scan_metadata(packages=[], category=None, populate=False):
 
 
 @task
-def scan_portage(packages=[], category=None, upstream=True,
+def scan_portage(packages=None, category=None,
                  no_log=False, purge_packages=False,
                  purge_versions=False, prefetch=False):
     """
@@ -131,17 +129,15 @@ def scan_portage(packages=[], category=None, upstream=True,
     else:
         logger.info("Starting portage scan...")
 
-    scan.scan_portage(
+    return scan.scan_portage(
         packages=packages,
         category=category,
-        upstream=upstream,
         no_log=no_log,
         purge_packages=purge_packages,
         purge_versions=purge_versions,
         prefetch=prefetch,
         logger=logger,
     )
-    return True
 
 
 @task
@@ -181,9 +177,17 @@ def update_portage(packages=None):
 
     # Workaround for celery bug when chaining groups
     update_portage_trees()
-    scan_portage(packages=[], purge_packages=True, purge_versions=True,
-                 prefetch=True)
-    scan_metadata(packages=[], populate=True)
+    updated_packages = scan_portage(
+        packages=None,
+        purge_packages=True,
+        purge_versions=True,
+        prefetch=True
+    )
+    scan_metadata(packages=None, populate=True)
+    if updated_packages:
+            group_chunks(scan_upstream, updated_packages,
+                         settings.TASKS_UPSTREAM_GROUPS,
+                         purge_versions=True)()
     update_counters(fast=False)
 
     """ Currently broken
@@ -236,20 +240,12 @@ def scan_package_user(package):
     return True
 
 
-@task
+@task(rate_limit="1/m")
 def consume_refresh_queue(locked=False):
     """
     Satisfies user requests for package refreshing, runs every minute
     """
-    LOCK_ID = 'lock-consume-refresh-queue'
-    unlock = lambda: cache.delete(LOCK_ID)
-    lock = lambda: cache.add(LOCK_ID, True, 120)
-
     logger = consume_refresh_queue.get_logger()
-
-    if not locked and not lock():
-        return
-
     logger.info('Consuming package refresh request queue...')
 
     try:
@@ -259,16 +255,14 @@ def consume_refresh_queue(locked=False):
         scan_package_user.delay(pkg)
         logger.info('Selected: %s' % pkg)
     except IndexError:
-        pass
-    finally:
-        unlock()
+        return
 
     if RefreshPackageQuery.objects.count():
         logger.info('Restarting myself in 60s')
-        lock()
         consume_refresh_queue.apply_async(
             kwargs={'locked': True}, countdown=60
         )
+    return True
 
 
 @task(max_retries=10, default_retry_delay=10 * 60)
@@ -280,6 +274,7 @@ def send_user_email(address, subject, text):
         )
     except Exception, exc:
         raise send_user_email.retry(exc=exc)
+    return True
 
 
 @task
@@ -322,6 +317,7 @@ def process_emails(profiles, only_if_vlogs=False):
 
         profile.last_email = now
         profile.save(force_update=True)
+    return True
 
 
 @task
@@ -336,6 +332,7 @@ def send_update_email():
         settings.TASKS_EMAIL_GROUPS,
         only_if_vlogs=True
     )()
+    return True
 
 
 @task
@@ -345,6 +342,7 @@ def send_weekly_email():
         email_activated=True
     )
     group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
+    return True
 
 
 @task
@@ -354,7 +352,7 @@ def send_monthly_email():
         email_activated=True
     )
     group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
-
+    return True
 
 admin_tasks = [
     regen_rrds,

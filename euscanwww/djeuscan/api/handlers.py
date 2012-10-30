@@ -97,8 +97,12 @@ class PackagesHandler(AnonymousBaseHandler):
             herd = Herd.objects.get(herd=kwargs['herd'])
             packages = Package.objects.for_herd(herd, last_versions=True)
             data = {'herd': herd}
-        elif 'maintainer_id' in kwargs:
-            maintainer = Maintainer.objects.get(id=kwargs['maintainer_id'])
+        elif 'maintainer_id' in kwargs or 'maintainer_email' in kwargs:
+            if 'maintainer_id' in kwargs:
+                maintainer = Maintainer.objects.get(id=kwargs['maintainer_id'])
+            elif 'maintainer_email' in kwargs:
+                maintainer = Maintainer.objects.get(email=kwargs['maintainer_email'])
+
             packages = Package.objects.for_maintainer(
                 maintainer,
                 last_versions=True

@@ -79,11 +79,12 @@ ROBOTS_TXT_BLACKLIST_DOMAINS = [
     '(.*)sourceforge(.*)',
     '(.*)github.com',
     '(.*)berlios(.*)',
-    '(.*)qt.nokia.com(.*)',
-    '(.*)chromium.org(.*)',
-    '(.*)nodejs.org(.*)',
-    '(.*)download.mono-project.com(.*)',
-    '(.*)fedorahosted.org(.*)',
+    '(.*)qt\.nokia\.com(.*)',
+    '(.*)chromium\.org(.*)',
+    '(.*)nodejs\.org(.*)',
+    '(.*)download\.mono-project\.com(.*)',
+    '(.*)fedorahosted\.org(.*)',
+    '(.*)download\.tuxfamily\.org(.*)',
 ]
 
 from out import EuscanOutput

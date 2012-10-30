@@ -24,6 +24,8 @@ urlpatterns = patterns('djeuscan.api.views',
 
     url(r'^1.0/packages/by-maintainer/(?P<maintainer_id>\d+)\.(?P<emitter_format>.+)$',
         packages_handler, name='api.views.packages'),
+    url(r'^1.0/packages/by-maintainer/(?P<maintainer_email>[^/]+)\.(?P<emitter_format>.+)$',
+        packages_handler, name='api.views.packages'),
     url(r'^1.0/packages/by-herd/(?P<herd>[\@\{\}\w+.-]*)\.(?P<emitter_format>.+)?$',
         packages_handler, name='api.views.packages'),
     url(r'^1.0/packages/by-category/(?P<category>[\w+][\w+.-]*)\.(?P<emitter_format>.+)?$',

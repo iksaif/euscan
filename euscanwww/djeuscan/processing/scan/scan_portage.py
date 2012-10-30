@@ -13,7 +13,6 @@ from django.core.management.color import color_style
 from euscan.version import get_version_type
 
 from djeuscan.processing import FakeLogger
-from djeuscan.processing.scan.scan_upstream import scan_upstream
 from djeuscan.models import Package, Version, VersionLog, Category, Overlay
 
 
@@ -30,6 +29,10 @@ class ScanPortage(object):
 
         self._cache = {'packages': {}, 'versions': {}}
         self._overlays = None
+        self._updated_packages = set()
+
+    def updated_packages(self):
+        return list(self._updated_packages)
 
     def cache_hash_package(self, category, name):
         return '%s/%s' % (category, name)
@@ -200,13 +203,14 @@ class ScanPortage(object):
             packages_alive.add("%s/%s" % (cat, pkg))
             new_version = False
             for cpv, slot, overlay, overlay_path in data['versions']:
-                new_version = new_version or self.store_version(
+                obj, created = self.store_version(
                     package, cpv, slot, overlay, overlay_path
                 )
+                new_version = created or new_version
 
             # If the package has at least one new version scan upstream for it
-            if new_version and self.upstream:
-                scan_upstream([package], self.purge_versions, self.logger)
+            if new_version:
+                self._updated_packages.add(package)
 
         self.purge_old_packages(current_packages, packages_alive)
         self.purge_old_versions()
@@ -269,7 +273,7 @@ class ScanPortage(object):
         # nothing to do (note: it can't be an upstream version because
         # overlay can't be empty here)
         if not created:
-            return False
+            return obj, created
 
         # New version created
         self.logger.info('+ [v] %s' % (obj))
@@ -292,7 +296,7 @@ class ScanPortage(object):
                 vtype=obj.vtype,
             )
 
-        return True
+        return obj, created
 
     def purge_old_packages(self, packages, alive):
         if not self.purge_packages:
@@ -349,8 +353,7 @@ def scan_portage(packages=None, category=None, no_log=False, upstream=False,
         logger=logger,
         no_log=no_log,
         purge_packages=purge_packages,
-        purge_versions=purge_versions,
-        upstream=upstream
+        purge_versions=purge_versions
     )
 
     logger.info('Scanning portage tree...')
@@ -368,8 +371,10 @@ def scan_portage(packages=None, category=None, no_log=False, upstream=False,
             scan_handler.cache_store_version(version)
         logger.info('done')
 
-    if not packages:
+    if not packages and category:
         scan_handler.scan(category=category)
+    elif not packages:
+        scan_handler.scan()
     else:
         for pkg in packages:
             if isinstance(pkg, Package):
@@ -394,3 +399,4 @@ def scan_portage(packages=None, category=None, no_log=False, upstream=False,
             logger.info("+ [o] %s", overlay["overlay"])
 
     logger.info('Done.')
+    return scan_handler.updated_packages()
