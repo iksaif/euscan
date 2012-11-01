@@ -147,13 +147,11 @@ class MaintainerFeed(BaseFeed):
     feed_type = Atom1Feed
 
     def get_object(self, request, maintainer_id=None, maintainer_email=None):
-        print maintainer_id, maintainer_email
         if maintainer_id:
             obj = get_object_or_404(Maintainer, id=maintainer_id)
         else:
             obj = get_object_or_404(Maintainer, email=maintainer_email)
 
-        print obj
         return {
             "obj": obj,
             "options": request.GET,
