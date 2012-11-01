@@ -99,4 +99,4 @@ class MaintainerChartTests(ChartTests):
     def setUp(self):
         super(MaintainerChartTests, self).setUp()
         self.url = "chart_maintainer"
-        self.kwargs = {"maintainer_id": MaintainerFactory.create().id}
+        self.kwargs = {"maintainer_id": MaintainerFactory.create().pk}

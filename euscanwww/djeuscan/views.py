@@ -128,6 +128,7 @@ def get_maintainer_or_404(id=None, email=None):
     else:
         return get_object_or_404(Maintainer, email=email)
 
+
 @render_to('euscan/maintainer.html')
 def maintainer(request, maintainer_id=None, maintainer_email=None):
     maintainer = get_maintainer_or_404(maintainer_id, maintainer_email)
@@ -567,7 +568,7 @@ def favourite_maintainer(request, maintainer_id=None, maintainer_email=None):
 @ajax_request
 def unfavourite_maintainer(request, maintainer_id=None, maintainer_email=None):
     obj = get_maintainer_or_404(maintainer_id, maintainer_email)
-    get_profile(request.user).maintainers.remove(maintainer)
+    get_profile(request.user).maintainers.remove(obj)
     return {"success": True}
 
 

@@ -92,7 +92,8 @@ class SectionTests(SystemTestCase):
         soup = BeautifulSoup(response.content)
         rows = soup.findAll("tr")
 
-        self.assertEqual(len(rows), len(items))
+        # the -1 is for the table heading
+        self.assertEqual(len(rows) - 1, len(items))
 
         for item in items:
             if attr:
