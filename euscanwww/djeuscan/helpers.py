@@ -4,6 +4,11 @@ djeuscan.helpers
 
 from distutils.version import StrictVersion, LooseVersion
 from django.shortcuts import get_object_or_404
+from django.conf import settings
+
+from layman import Layman
+
+from portage.util import getconfig
 
 
 def xint(i):
@@ -83,3 +88,13 @@ def get_maintainer_or_404(id=None, email=None):
         return get_object_or_404(Maintainer, pk=id)
     else:
         return get_object_or_404(Maintainer, email=email)
+
+
+def get_make_conf():
+    return getconfig(settings.MAKE_CONF, tolerant=1, allow_sourcing=True)
+
+
+def get_layman_repos():
+    lay = Layman(config=settings.LAYMAN_CONFIG)
+    installed_overlays = lay.get_installed()
+    return lay.get_all_info(installed_overlays)

@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
 from djeuscan.helpers import version_key, packages_from_names, \
-    get_maintainer_or_404
+    get_maintainer_or_404, get_make_conf, get_layman_repos
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog, RefreshPackageQuery, ProblemReport, Category, Overlay
 from djeuscan.forms import WorldForm, PackagesForm, ProblemReportForm
@@ -315,7 +315,7 @@ def config(request):
     from euscan import CONFIG, BLACKLIST_VERSIONS, BLACKLIST_PACKAGES, \
         SCANDIR_BLACKLIST_URLS, BRUTEFORCE_BLACKLIST_PACKAGES, \
         BRUTEFORCE_BLACKLIST_URLS, ROBOTS_TXT_BLACKLIST_DOMAINS
-    return {
+    euscan_config = {
         "CONFIG": CONFIG,
         "BLACKLIST_VERSIONS": BLACKLIST_VERSIONS,
         "BLACKLIST_PACKAGES": BLACKLIST_PACKAGES,
@@ -323,6 +323,14 @@ def config(request):
         "BRUTEFORCE_BLACKLIST_PACKAGES": BRUTEFORCE_BLACKLIST_PACKAGES,
         "BRUTEFORCE_BLACKLIST_URLS": BRUTEFORCE_BLACKLIST_URLS,
         "ROBOTS_TXT_BLACKLIST_DOMAINS": ROBOTS_TXT_BLACKLIST_DOMAINS,
+    }
+    make_conf = get_make_conf()
+    layman_repos = get_layman_repos()
+
+    return {
+        "euscan_config": euscan_config,
+        "make_conf": make_conf,
+        "layman_repos": layman_repos,
     }
 
 

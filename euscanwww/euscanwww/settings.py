@@ -229,6 +229,7 @@ PORTAGE_ROOT = "/"
 PORTAGE_CONFIGROOT = "/"
 EIX_CACHEFILE = os.path.join(PORTAGE_ROOT, 'var/cache/eix')
 LAYMAN_CONFIG = "/etc/layman/layman.cfg"
+MAKE_CONF = "/etc/make.conf"
 
 EGENCACHE_JOBS = 4
 

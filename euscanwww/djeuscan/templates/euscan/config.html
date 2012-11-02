@@ -3,11 +3,40 @@
 {% block content %}
 <h2>Server configuration</h2>
 
+
+<table class="table table-bordered">
+  <caption>
+    <h4 class="padded">make.conf</h4>
+  </caption>
+  {% for key, value in make_conf.items %}
+  <tr>
+    <td><b>{{ key }}</b></td>
+    <td>{{ value }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<hr />
+
+<table class="table table-bordered">
+  <caption>
+    <h4 class="padded">Available overlays</h4>
+  </caption>
+  {% for key, value in layman_repos.items %}
+  <tr>
+    <td><b><a href="{{ value.homepage }}">{{ key }}</a></b></td>
+    <td>{{ value.description }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<hr />
+
 <table class="table table-bordered">
   <caption>
     <h4 class="padded">Euscan config</h4>
   </caption>
-  {% for key, value in CONFIG.items %}
+  {% for key, value in euscan_config.CONFIG.items %}
   <tr>
     <td><b>{{ key }}</b></td>
     <td>{{ value }}</td>
@@ -21,7 +50,7 @@
   <caption>
     <h4 class="padded">Versions blacklist</h4>
   </caption>
-  {% for item in BLACKLIST_VERSIONS %}
+  {% for item in euscan_config.BLACKLIST_VERSIONS %}
   <tr>
     <td>{{ item }}</td>
   </tr>
@@ -34,7 +63,7 @@
   <caption>
     <h4 class="padded">Packages blacklist</h4>
   </caption>
-  {% for item in BLACKLIST_PACKAGES %}
+  {% for item in euscan_config.BLACKLIST_PACKAGES %}
   <tr>
     <td>{{ item }}</td>
   </tr>
@@ -47,7 +76,7 @@
   <caption>
     <h4 class="padded">Scandir blacklist</h4>
   </caption>
-  {% for item in SCANDIR_BLACKLIST_URLS %}
+  {% for item in euscan_config.SCANDIR_BLACKLIST_URLS %}
   <tr>
     <td>{{ item }}</td>
   </tr>
@@ -60,7 +89,7 @@
   <caption>
     <h4 class="padded">Bruteforce packages blacklist</h4>
   </caption>
-  {% for item in BRUTEFORCE_BLACKLIST_PACKAGES %}
+  {% for item in euscan_config.BRUTEFORCE_BLACKLIST_PACKAGES %}
   <tr>
     <td>{{ item }}</td>
   </tr>
@@ -73,7 +102,7 @@
   <caption>
     <h4 class="padded">Bruteforce urls blacklist</h4>
   </caption>
-  {% for item in BRUTEFORCE_BLACKLIST_URLS %}
+  {% for item in euscan_config.BRUTEFORCE_BLACKLIST_URLS %}
   <tr>
     <td>{{ item }}</td>
   </tr>
@@ -86,7 +115,7 @@
   <caption>
     <h4 class="padded">Robots.txt domain blacklist</h4>
   </caption>
-  {% for item in ROBOTS_TXT_BLACKLIST_DOMAINS %}
+  {% for item in euscan_config.ROBOTS_TXT_BLACKLIST_DOMAINS %}
   <tr>
     <td>{{ item }}</td>
   </tr>
