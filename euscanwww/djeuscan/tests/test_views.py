@@ -5,7 +5,7 @@ try:
 except ImportError:
     from bs4 import BeautifulSoup
 
-from djeuscan.helpers import get_profile
+from euscan_accounts.helpers import get_profile
 
 from djeuscan.tests import SystemTestCase
 from djeuscan.tests.euscan_factory import PackageFactory, setup_maintainers, \

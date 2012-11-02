@@ -15,10 +15,11 @@ from django.db.models import Q
 
 from euscan.version import gentoo_unstable
 
-from djeuscan.models import Package, RefreshPackageQuery, UserProfile, \
-    VersionLog
+from djeuscan.models import Package, RefreshPackageQuery, VersionLog
 from djeuscan.processing import scan, misc
-from djeuscan.helpers import get_account_versionlogs, get_user_fav_infos
+
+from euscan_accounts.helpers import get_account_versionlogs, get_user_fav_infos
+from euscan_accounts.models import UserProfile
 
 
 class TaskFailedException(Exception):

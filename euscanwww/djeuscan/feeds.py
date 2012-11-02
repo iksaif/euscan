@@ -9,7 +9,8 @@ from django.db.models import Q
 from euscan.version import gentoo_unstable
 
 from djeuscan.models import Package, Herd, Maintainer, VersionLog
-from djeuscan.helpers import get_profile, get_account_versionlogs
+
+from euscan_accounts.helpers import get_profile
 
 
 class BaseFeed(Feed):
@@ -215,30 +216,6 @@ class CategoryFeed(BaseFeed):
 
     def _items(self, data):
         return VersionLog.objects.for_category(data["obj"]), 100
-
-
-class UserFeed(BaseFeed):
-    link = "/"
-
-    def description(self, data):
-        return "%s - last euscan changes" % data["user"]
-
-    def title(self, data):
-        return "%s - watched packages" % data["user"]
-
-    def get_object(self, request):
-        return {
-            "user": request.user,
-            "options": request.GET,
-        }
-
-    def _items(self, data):
-        user = data["user"]
-
-        profile = get_profile(user)
-        vlogs = get_account_versionlogs(profile)
-
-        return vlogs, 100
 
 
 class WorldScanFeed(BaseFeed):

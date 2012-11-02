@@ -159,6 +159,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 INSTALLED_APPS = (
     'euscanwww',
     'djeuscan',
+    'euscan_accounts',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -253,7 +254,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-AUTH_PROFILE_MODULE = 'djeuscan.UserProfile'
+AUTH_PROFILE_MODULE = 'euscan_accounts.UserProfile'
 
 try:
     from local_settings import *
