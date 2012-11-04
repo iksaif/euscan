@@ -1,9 +1,10 @@
 import os
+import sys
 
 from django.conf import settings
 
 
-def _launch_command(cmd, logger=None):
+def _launch_command(cmd, env=None, logger=None):
     """
     Helper for launching shell commands inside tasks
     """
@@ -11,7 +12,7 @@ def _launch_command(cmd, logger=None):
     import subprocess
     import select
 
-    fp = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    fp = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     mask = select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR
 
@@ -51,7 +52,7 @@ def emerge_sync(logger):
     """
     cmd = ["emerge", "--sync", "--root", settings.PORTAGE_ROOT,
            "--config-root", settings.PORTAGE_CONFIGROOT]
-    return _launch_command(cmd, logger)
+    return _launch_command(cmd, logger=logger)
 
 
 def emerge_metadata(logger):
@@ -60,7 +61,7 @@ def emerge_metadata(logger):
     """
     cmd = ["emerge", "--metadata", "--root", settings.PORTAGE_ROOT,
            "--config-root", settings.PORTAGE_CONFIGROOT]
-    return _launch_command(cmd, logger)
+    return _launch_command(cmd, logger=logger)
 
 
 def layman_sync(logger, cache=True):
@@ -70,20 +71,23 @@ def layman_sync(logger, cache=True):
     from layman import Layman
     import shutil
 
-    l = Layman(config=settings.LAYMAN_CONFIG)
+    l = Layman(stderr=sys.__stderr__, stdin=sys.__stdin__, stdout=sys.__stdout__,
+               config=settings.LAYMAN_CONFIG, root="/")
 
     installed_overlays = l.get_installed()
 
     for overlay in installed_overlays:
         logger.info('Cleaning cache for overlay %s...' % overlay)
         overlay_path = os.path.join(l.config['storage'], overlay)
-        shutil.rmtree(os.path.join(overlay_path, 'metadata/cache'), True)
-        shutil.rmtree(os.path.join(overlay_path, 'metadata/md5-cache'), True)
+        shutil.rmtree(os.path.join(overlay_path, 'metadata'), True)
+        shutil.rmtree(os.path.join(overlay_path, 'profiles'), True)
 
     # FIXME, try to find a way to log layman output...
     #l.sync(installed_overlays, output_results=False)
+    env = dict(os.environ)
+    env['ROOT'] = '/'
     cmd = ['layman', '-S', '--config', settings.LAYMAN_CONFIG]
-    _launch_command(cmd, logger)
+    _launch_command(cmd, env=env, logger=logger)
 
     cmd = ['egencache', '--jobs', "%s" % settings.EGENCACHE_JOBS,
            '--rsync', '--config-root', settings.PORTAGE_CONFIGROOT,
@@ -95,7 +99,7 @@ def layman_sync(logger, cache=True):
         repo_path = os.path.join(overlay_path, 'profiles/repo_name')
         if not os.path.exists(repo_path):
             continue
-        _launch_command(cmd + ['--repo', overlay], logger)
+        _launch_command(cmd + ['--repo', overlay], logger=logger)
 
 
 def eix_update(logger):
@@ -103,7 +107,7 @@ def eix_update(logger):
     Launches eix-update
     """
     cmd = ["eix-update"]
-    return _launch_command(cmd, logger)
+    return _launch_command(cmd, logger=logger)
 
 
 def update_portage_trees(logger=None):
