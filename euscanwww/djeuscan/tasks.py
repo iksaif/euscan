@@ -185,11 +185,18 @@ def update_portage(packages=None):
         prefetch=True
     )
     scan_metadata(packages=None, populate=True)
-    if updated_packages:
-            group_chunks(scan_upstream, updated_packages,
-                         settings.TASKS_UPSTREAM_GROUPS,
-                         purge_versions=True)()
-    update_counters(fast=False)
+
+    if not updated_packages:
+        # Simple/Fast path
+        update_counters(fast=False)
+        return
+
+    (
+        group_chunks(scan_upstream, updated_packages,
+                     settings.TASKS_UPSTREAM_GROUPS,
+                     purge_versions=True) |
+        update_counters.si(fast=False)
+    )()
 
     """ Currently broken
     update_portage_trees()
