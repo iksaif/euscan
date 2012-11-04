@@ -1,89 +1,17 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
 from south.v2 import SchemaMigration
-from django.db import models
 
 
 class Migration(SchemaMigration):
+    depends_on = (
+        ('euscan_accounts', '0001_initial'),
+    )
 
     def forwards(self, orm):
-        # Deleting model 'UserProfile'
-        db.delete_table('djeuscan_userprofile')
-
-        # Removing M2M table for field overlays on 'UserProfile'
-        db.delete_table('djeuscan_userprofile_overlays')
-
-        # Removing M2M table for field maintainers on 'UserProfile'
-        db.delete_table('djeuscan_userprofile_maintainers')
-
-        # Removing M2M table for field packages on 'UserProfile'
-        db.delete_table('djeuscan_userprofile_packages')
-
-        # Removing M2M table for field herds on 'UserProfile'
-        db.delete_table('djeuscan_userprofile_herds')
-
-        # Removing M2M table for field categories on 'UserProfile'
-        db.delete_table('djeuscan_userprofile_categories')
+        pass
 
     def backwards(self, orm):
-        # Adding model 'UserProfile'
-        db.create_table('djeuscan_userprofile', (
-            ('feed_upstream_info', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('feed_ignore_pre_if_stable', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('feed_ignore_pre', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('email_every', self.gf('django.db.models.fields.IntegerField')(default=1)),
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
-            ('feed_portage_info', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('feed_show_removals', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('last_email', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('feed_show_adds', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('email_ignore_pre_if_stable', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('email_activated', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('email_ignore_pre', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal('djeuscan', ['UserProfile'])
-
-        # Adding M2M table for field overlays on 'UserProfile'
-        db.create_table('djeuscan_userprofile_overlays', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['djeuscan.userprofile'], null=False)),
-            ('overlay', models.ForeignKey(orm['djeuscan.overlay'], null=False))
-        ))
-        db.create_unique('djeuscan_userprofile_overlays', ['userprofile_id', 'overlay_id'])
-
-        # Adding M2M table for field maintainers on 'UserProfile'
-        db.create_table('djeuscan_userprofile_maintainers', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['djeuscan.userprofile'], null=False)),
-            ('maintainer', models.ForeignKey(orm['djeuscan.maintainer'], null=False))
-        ))
-        db.create_unique('djeuscan_userprofile_maintainers', ['userprofile_id', 'maintainer_id'])
-
-        # Adding M2M table for field packages on 'UserProfile'
-        db.create_table('djeuscan_userprofile_packages', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['djeuscan.userprofile'], null=False)),
-            ('package', models.ForeignKey(orm['djeuscan.package'], null=False))
-        ))
-        db.create_unique('djeuscan_userprofile_packages', ['userprofile_id', 'package_id'])
-
-        # Adding M2M table for field herds on 'UserProfile'
-        db.create_table('djeuscan_userprofile_herds', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['djeuscan.userprofile'], null=False)),
-            ('herd', models.ForeignKey(orm['djeuscan.herd'], null=False))
-        ))
-        db.create_unique('djeuscan_userprofile_herds', ['userprofile_id', 'herd_id'])
-
-        # Adding M2M table for field categories on 'UserProfile'
-        db.create_table('djeuscan_userprofile_categories', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['djeuscan.userprofile'], null=False)),
-            ('category', models.ForeignKey(orm['djeuscan.category'], null=False))
-        ))
-        db.create_unique('djeuscan_userprofile_categories', ['userprofile_id', 'category_id'])
+        pass
 
     models = {
         'auth.group': {

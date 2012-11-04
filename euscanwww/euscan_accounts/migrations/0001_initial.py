@@ -1,89 +1,44 @@
 # -*- coding: utf-8 -*-
-import datetime
 from south.db import db
 from south.v2 import SchemaMigration
-from django.db import models
 
 
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'UserProfile'
-        db.create_table('euscan_accounts_userprofile', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
-            ('feed_upstream_info', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('feed_portage_info', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('feed_show_adds', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('feed_show_removals', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('feed_ignore_pre', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('feed_ignore_pre_if_stable', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('email_activated', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('email_every', self.gf('django.db.models.fields.IntegerField')(default=1)),
-            ('email_ignore_pre', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('email_ignore_pre_if_stable', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('last_email', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('euscan_accounts', ['UserProfile'])
+        db.rename_table('djeuscan_userprofile',
+                        'euscan_accounts_userprofile')
+        db.rename_table('djeuscan_userprofile_overlays',
+                        'euscan_accounts_userprofile_overlays')
+        db.rename_table('djeuscan_userprofile_maintainers',
+                        'euscan_accounts_userprofile_maintainers')
+        db.rename_table('djeuscan_userprofile_packages',
+                        'euscan_accounts_userprofile_packages')
+        db.rename_table('djeuscan_userprofile_herds',
+                        'euscan_accounts_userprofile_herds')
+        db.rename_table('djeuscan_userprofile_categories',
+                        'euscan_accounts_userprofile_categories')
 
-        # Adding M2M table for field herds on 'UserProfile'
-        db.create_table('euscan_accounts_userprofile_herds', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['euscan_accounts.userprofile'], null=False)),
-            ('herd', models.ForeignKey(orm['djeuscan.herd'], null=False))
-        ))
-        db.create_unique('euscan_accounts_userprofile_herds', ['userprofile_id', 'herd_id'])
-
-        # Adding M2M table for field maintainers on 'UserProfile'
-        db.create_table('euscan_accounts_userprofile_maintainers', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['euscan_accounts.userprofile'], null=False)),
-            ('maintainer', models.ForeignKey(orm['djeuscan.maintainer'], null=False))
-        ))
-        db.create_unique('euscan_accounts_userprofile_maintainers', ['userprofile_id', 'maintainer_id'])
-
-        # Adding M2M table for field packages on 'UserProfile'
-        db.create_table('euscan_accounts_userprofile_packages', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['euscan_accounts.userprofile'], null=False)),
-            ('package', models.ForeignKey(orm['djeuscan.package'], null=False))
-        ))
-        db.create_unique('euscan_accounts_userprofile_packages', ['userprofile_id', 'package_id'])
-
-        # Adding M2M table for field categories on 'UserProfile'
-        db.create_table('euscan_accounts_userprofile_categories', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['euscan_accounts.userprofile'], null=False)),
-            ('category', models.ForeignKey(orm['djeuscan.category'], null=False))
-        ))
-        db.create_unique('euscan_accounts_userprofile_categories', ['userprofile_id', 'category_id'])
-
-        # Adding M2M table for field overlays on 'UserProfile'
-        db.create_table('euscan_accounts_userprofile_overlays', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['euscan_accounts.userprofile'], null=False)),
-            ('overlay', models.ForeignKey(orm['djeuscan.overlay'], null=False))
-        ))
-        db.create_unique('euscan_accounts_userprofile_overlays', ['userprofile_id', 'overlay_id'])
+        if not db.dry_run:
+            # For permissions to work properly after migrating
+            orm['contenttypes.contenttype'].objects.filter(
+                app_label='djeuscan', model='userprofile'
+            ).update(app_label='euscan_accounts')
 
     def backwards(self, orm):
-        # Deleting model 'UserProfile'
-        db.delete_table('euscan_accounts_userprofile')
+        db.rename_table('euscan_accounts_userprofile',
+                        'djeuscan_userprofile')
+        db.rename_table('euscan_accounts_userprofile_overlays',
+                        'djeuscan_userprofile_overlays')
+        db.rename_table('euscan_accounts_userprofile_maintainers',
+                        'djeuscan_userprofile_maintainers')
+        db.rename_table('euscan_accounts_userprofile_packages',
+                        'djeuscan_userprofile_packages')
+        db.rename_table('euscan_accounts_userprofile_herds',
+                        'djeuscan_userprofile_herds')
+        db.rename_table('euscan_accounts_userprofile_categories',
+                        'djeuscan_userprofile_categories')
 
-        # Removing M2M table for field herds on 'UserProfile'
-        db.delete_table('euscan_accounts_userprofile_herds')
-
-        # Removing M2M table for field maintainers on 'UserProfile'
-        db.delete_table('euscan_accounts_userprofile_maintainers')
-
-        # Removing M2M table for field packages on 'UserProfile'
-        db.delete_table('euscan_accounts_userprofile_packages')
-
-        # Removing M2M table for field categories on 'UserProfile'
-        db.delete_table('euscan_accounts_userprofile_categories')
-
-        # Removing M2M table for field overlays on 'UserProfile'
-        db.delete_table('euscan_accounts_userprofile_overlays')
 
     models = {
         'auth.group': {
