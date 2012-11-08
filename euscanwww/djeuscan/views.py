@@ -3,7 +3,7 @@
 import inspect
 from annoying.decorators import render_to, ajax_request
 
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -58,7 +58,7 @@ def category(request, category):
     packages = Package.objects.for_category(category, last_versions=True)
 
     if not packages:
-        raise Http404
+        return HttpResponseNotFound()
 
     try:
         last_scan = \
@@ -157,7 +157,7 @@ def overlays(request):
 def overlay(request, overlay):
     packages = Package.objects.for_overlay(overlay)
     if not packages:
-        raise Http404
+        return HttpResponseNotFound()
 
     try:
         last_scan = EuscanResult.objects.latest().datetime
@@ -228,7 +228,7 @@ def package_version_metadata(request, category, package, version_tag):
     try:
         ver, rev, slot, over = versiontag_to_attrs(version_tag)
     except TypeError:
-        raise Http404
+        return HttpResponseNotFound()
     version = get_object_or_404(Version, package=package, version=ver,
                                 revision=rev, slot=slot, overlay=over)
     content = ""
@@ -243,7 +243,7 @@ def package_version_ebuild(request, category, package, version_tag):
     try:
         ver, rev, slot, over = versiontag_to_attrs(version_tag)
     except TypeError:
-        raise Http404
+        return HttpResponseNotFound()
     version = get_object_or_404(Version, package=package, version=ver,
                                 revision=rev, slot=slot, overlay=over)
     if version.ebuild_path:
@@ -397,7 +397,7 @@ def chart(request, **kwargs):
     elif chart == 'versions':
         path = charts.versions(**kwargs)
     else:
-        raise Http404
+        return HttpResponseNotFound()
 
     return serve(request, path, document_root=charts.CHARTS_ROOT)
 
