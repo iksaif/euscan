@@ -56,11 +56,11 @@
 <hr/>
 
 {% if user.is_authenticated %}
-    <form class="pull-right" action="{% url "problem" package.category package.name %}" method="get">
-      <button class="btn bug-button">
+    <a class="pull-right" href="{% url "problem" package.category package.name %}">
+      <span class="btn bug-button">
         <img src="{{ STATIC_URL}}/img/bug.png" alt="Report problems" >
-      </button>
-    </form>
+      </span>
+    </a>
 {% endif %}
 
 <script type="text/javascript">
