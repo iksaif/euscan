@@ -62,7 +62,16 @@
           <img src="{{ STATIC_URL }}img/unstable-icon.png" alt="unstable" title="{{ version.vtype }}" />
         {% endif %}
 
-        {{ version.version }}-{{ version.revision }} :{{ version.slot }} [{{ version.overlay }}]
+        {% if version.ebuild_path %}
+          <a href="{% url "package_version_ebuild" package.category package.name version.tag %}">
+            {{ version.version }}-{{ version.revision }} :{{ version.slot }} [{{ version.overlay }}]
+          </a>
+        {% endif %}
+        {% if version.metadata_path %}
+        <a href="{% url "package_version_metadata" package.category package.name version.tag %}">
+          <img src="{{ STATIC_URL }}img/metadata.png" alt="Metadata" />
+        </a>
+        {% endif %}
       </li>
       {% endfor %}
     </ul>

@@ -23,6 +23,10 @@ package_patterns = patterns('djeuscan.views',
     url(r'^unfavourite/$', unfavourite_package, name="unfavourite_package"),
     url(r'^refresh$', "refresh_package", name="refresh_package"),
     url(r'^problem$', 'problem', name="problem"),
+    url(r'^(?P<version_tag>[^/]+)/ebuild$', "package_version_ebuild",
+        name="package_version_ebuild"),
+    url(r'^(?P<version_tag>[^/]+)/metadata$', "package_version_metadata",
+        name="package_version_metadata"),
 )
 
 categories_patterns = patterns('djeuscan.views',

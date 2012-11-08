@@ -3,13 +3,13 @@
 import inspect
 from annoying.decorators import render_to, ajax_request
 
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
 from djeuscan.helpers import version_key, packages_from_names, \
-    get_maintainer_or_404, get_make_conf, get_layman_repos
+    get_maintainer_or_404, get_make_conf, get_layman_repos, versiontag_to_attrs
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog, RefreshPackageQuery, ProblemReport, Category, Overlay
 from djeuscan.forms import WorldForm, PackagesForm, ProblemReportForm
@@ -221,6 +221,35 @@ def package(request, category, package):
         'refresh_requested': refresh_requested,
         'refresh_pos': refresh_pos,
     }
+
+
+def package_version_metadata(request, category, package, version_tag):
+    package = get_object_or_404(Package, category=category, name=package)
+    try:
+        ver, rev, slot, over = versiontag_to_attrs(version_tag)
+    except TypeError:
+        raise Http404
+    version = get_object_or_404(Version, package=package, version=ver,
+                                revision=rev, slot=slot, overlay=over)
+    content = ""
+    if version.metadata_path:
+        with open(version.metadata_path) as meta_file:
+            content = meta_file.read()
+    return HttpResponse(content, content_type="text/plain")
+
+
+def package_version_ebuild(request, category, package, version_tag):
+    package = get_object_or_404(Package, category=category, name=package)
+    try:
+        ver, rev, slot, over = versiontag_to_attrs(version_tag)
+    except TypeError:
+        raise Http404
+    version = get_object_or_404(Version, package=package, version=ver,
+                                revision=rev, slot=slot, overlay=over)
+    if version.ebuild_path:
+        with open(version.ebuild_path) as ebuild_file:
+            content = ebuild_file.read()
+    return HttpResponse(content, content_type="text/plain")
 
 
 @login_required
