@@ -35,9 +35,14 @@
 
   {% if user.is_authenticated %}
     <span class="pull-right">
-      <button class="btn refresh-button {% if refresh_requested %}hide{% endif %}" data-category="{{ package.category }}" data-package="{{ package.name }}">
-        <img src="{{ STATIC_URL}}/img/refresh-active.png" alt="Refresh" />
-      </button>
+      <form class="refresh-form inline"
+            method="POST"
+            action="{% url "refresh_package" package.category package.name %}">
+        <button class="btn refresh-button {% if refresh_requested %}hide{% endif %}" type="submit">
+          <img src="{{ STATIC_URL}}/img/refresh-active.png" alt="Refresh" />
+        </button>
+        <input type="hidden" name="nojs" value="true" />
+      </form>
       <button class="btn refresh-button-disabled disabled {% if not refresh_requested %}hide{% endif %}">
         <img src="{{ STATIC_URL}}/img/refresh-inactive.png" alt="Refresh" />
       </button>
@@ -65,15 +70,19 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
-    $(".refresh-button").click(function() {
-      var url = "{% url "refresh_package" "XXX" "YYY" %}";
-      $.post(url.replace("XXX", $(this).data("category")).replace("YYY", $(this).data("package")),
-        function(data) {
-          $(".refresh-button").addClass("hide");
-          $(".refresh-button-disabled").removeClass("hide");
-          $("#refresh-pos").text(data.position);
-          $(".refresh-alert").show("slow");
-        });
+    $(".refresh-form").submit(function(e) {
+      var url = $(this).attr("action");
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      $.post(url, function(data) {
+        $(".refresh-button").addClass("hide");
+        $(".refresh-button-disabled").removeClass("hide");
+        $("#refresh-pos").text(data.position);
+        $(".refresh-alert").show("slow");
+      });
+      return false;
     });
 
     $(".favourite-button").click(function() {

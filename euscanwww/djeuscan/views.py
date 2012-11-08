@@ -4,7 +4,8 @@ import inspect
 from annoying.decorators import render_to, ajax_request
 
 from django.http import HttpResponse, HttpResponseNotFound
-from django.shortcuts import get_object_or_404
+from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
@@ -450,4 +451,7 @@ def refresh_package(request, category, package):
     if created:
         from djeuscan.tasks import consume_refresh_queue
         consume_refresh_queue.delay()
-    return {"result": "success", "position": obj.position}
+    if "nojs" in request.POST:
+        return redirect(reverse("package", args=(category, package)))
+    else:
+        return {"result": "success", "position": obj.position}

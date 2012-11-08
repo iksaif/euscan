@@ -234,3 +234,7 @@ textarea {
 .errorlist + input {
     border: 1px solid red;
 }
+
+.inline {
+    display: inline;
+}
