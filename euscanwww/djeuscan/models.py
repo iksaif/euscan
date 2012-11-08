@@ -161,6 +161,10 @@ class Version(models.Model):
         return '%s-%s:%s-%s' % (self.version, self.revision, self.slot,
                                 self.overlay)
 
+    @property
+    def urls_list(self):
+        return self.urls.split()
+
     def cpv(self):
         return '%s/%s-%s%s' % (
             self.package.category, self.package.name, self.version,

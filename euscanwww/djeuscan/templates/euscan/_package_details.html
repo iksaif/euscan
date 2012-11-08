@@ -89,7 +89,10 @@
           <img src="{{ STATIC_URL }}img/unstable-icon.png" alt="unstable" title="{{ version.vtype }}" />
         {% endif %}
 
-        {{ version.version }} - {{ version.urls }}
+        {{ version.version }} -
+        {% for url in version.urls_list %}
+          <a href="{{ url }}">{{ url }}</a>
+        {% endfor %}
         {% if confidence < 100 %}({{ version.confidence }}%){% endif %}
       </li>
       {% endfor %}
