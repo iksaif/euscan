@@ -1,6 +1,7 @@
 from annoying.decorators import render_to, ajax_request
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
@@ -113,6 +114,8 @@ def accounts_overlays(request):
 def favourite_package(request, category, package):
     obj = get_object_or_404(Package, category=category, name=package)
     get_profile(request.user).packages.add(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("package", args=(category, package)))
     return {"success": True}
 
 
@@ -120,8 +123,10 @@ def favourite_package(request, category, package):
 @require_POST
 @ajax_request
 def unfavourite_package(request, category, package):
-    package = get_object_or_404(Package, category=category, name=package)
-    get_profile(request.user).packages.remove(package)
+    obj = get_object_or_404(Package, category=category, name=package)
+    get_profile(request.user).packages.remove(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("package", args=(category, package)))
     return {"success": True}
 
 
@@ -131,6 +136,8 @@ def unfavourite_package(request, category, package):
 def favourite_herd(request, herd):
     obj = get_object_or_404(Herd, herd=herd)
     get_profile(request.user).herds.add(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("herd", args=(herd, )))
     return {"success": True}
 
 
@@ -138,8 +145,10 @@ def favourite_herd(request, herd):
 @require_POST
 @ajax_request
 def unfavourite_herd(request, herd):
-    herd = get_object_or_404(Herd, herd=herd)
-    get_profile(request.user).herds.remove(herd)
+    obj = get_object_or_404(Herd, herd=herd)
+    get_profile(request.user).herds.remove(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("herd", args=(herd, )))
     return {"success": True}
 
 
@@ -149,6 +158,8 @@ def unfavourite_herd(request, herd):
 def favourite_maintainer(request, maintainer_id=None, maintainer_email=None):
     obj = get_maintainer_or_404(maintainer_id, maintainer_email)
     get_profile(request.user).maintainers.add(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("maintainer", args=(obj.email, )))
     return {"success": True}
 
 
@@ -158,6 +169,8 @@ def favourite_maintainer(request, maintainer_id=None, maintainer_email=None):
 def unfavourite_maintainer(request, maintainer_id=None, maintainer_email=None):
     obj = get_maintainer_or_404(maintainer_id, maintainer_email)
     get_profile(request.user).maintainers.remove(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("maintainer", args=(obj.email, )))
     return {"success": True}
 
 
@@ -167,6 +180,8 @@ def unfavourite_maintainer(request, maintainer_id=None, maintainer_email=None):
 def favourite_category(request, category):
     obj = Category.objects.get(name=category)
     get_profile(request.user).categories.add(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("category", args=(category, )))
     return {"success": True}
 
 
@@ -176,6 +191,8 @@ def favourite_category(request, category):
 def unfavourite_category(request, category):
     obj = Category.objects.get(name=category)
     get_profile(request.user).categories.remove(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("category", args=(category, )))
     return {"success": True}
 
 
@@ -185,6 +202,8 @@ def unfavourite_category(request, category):
 def favourite_overlay(request, overlay):
     obj = Overlay.objects.get(name=overlay)
     get_profile(request.user).overlays.add(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("overlay", args=(overlay, )))
     return {"success": True}
 
 
@@ -194,6 +213,8 @@ def favourite_overlay(request, overlay):
 def unfavourite_overlay(request, overlay):
     obj = Overlay.objects.get(name=overlay)
     get_profile(request.user).overlays.remove(obj)
+    if "nojs" in request.POST:
+        return redirect(reverse("overlay", args=(overlay, )))
     return {"success": True}
 
 
@@ -206,6 +227,8 @@ def favourite_world(request):
     packages = request.POST.getlist("packages[]")
     objs = Package.objects.filter(id__in=packages)
     get_profile(request.user).packages.add(*objs)
+    if "nojs" in request.POST:
+        return redirect(reverse("world"))
     return {"success": True}
 
 
@@ -218,4 +241,6 @@ def unfavourite_world(request):
     packages = request.POST.getlist("packages[]")
     objs = Package.objects.filter(id__in=packages)
     get_profile(request.user).packages.remove(*objs)
+    if "nojs" in request.POST:
+        return redirect(reverse("world"))
     return {"success": True}

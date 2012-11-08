@@ -313,7 +313,7 @@ def world_scan(request):
     packages_ids = [p.pk for p in packages]
 
     favourited = False
-    if request.user.is_authenticated():
+    if len(packages) > 0 and request.user.is_authenticated():
         profile = get_profile(request.user)
         if len(packages) == len(profile.packages.filter(id__in=packages_ids)):
             favourited = True

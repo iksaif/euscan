@@ -238,3 +238,7 @@ textarea {
 .inline {
     display: inline;
 }
+
+.padding-bottom10 {
+    padding-bottom: 10px;
+}

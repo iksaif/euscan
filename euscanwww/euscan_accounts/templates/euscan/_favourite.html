@@ -1,0 +1,23 @@
+<form class="favourite-form inline"
+      action="{{ favourite_url }}"
+      method="POST">
+  <button type="submit" class="btn favourite-button {% if favourited %}hide{% endif %}">
+    <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" />
+  </button>
+  <input type="hidden" name="nojs" value="true" />
+  {% for pk in packages_ids %}
+    <input type="hidden" name="packages[]" value="{{ pk }}" />
+  {% endfor %}
+</form>
+
+<form class="unfavourite-form inline"
+      action="{{ unfavourite_url }}"
+      method="POST">
+  <button type="submit" class="btn unfavourite-button {% if not favourited %}hide{% endif %}">
+    <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" />
+  </button>
+  <input type="hidden" name="nojs" value="true" />
+  {% for pk in packages_ids %}
+    <input type="hidden" name="packages[]" value="{{ pk }}" />
+  {% endfor %}
+</form>

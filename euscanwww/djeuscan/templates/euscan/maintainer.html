@@ -1,7 +1,8 @@
 {% extends "euscan/_datatable.html" %}
 
-{% load djeuscan_helpers %}
 {% load url from future %}
+{% load djeuscan_helpers %}
+{% load euscan_accounts_helpers %}
 
 {% block title %}
 {{ block.super }} - Maintainer: {{ maintainer.name }}
@@ -21,13 +22,8 @@
 <h2>
   Maintainer: {{ maintainer.name }} &lt;{{ maintainer.email }}&gt;
   {% if user.is_authenticated %}
-    <span class="pull-right">
-      <button class="btn favourite-button {% if favourited %}hide{% endif %}" data-url="{% url "favourite_maintainer" maintainer.email %}">
-        <img src="{{ STATIC_URL}}/img/watch-icon.png" alt="Watch" />
-      </button>
-      <button class="btn unfavourite-button {% if not favourited %}hide{% endif %}" data-url="{% url "unfavourite_maintainer" maintainer.email %}">
-        <img src="{{ STATIC_URL}}/img/unwatch-icon.png" alt="Unwatch" />
-      </button>
+    <span class="pull-right padding-bottom10">
+      {% favourite_buttons "maintainer" maintainer.email %}
     </span>
   {% endif %}
 </h2>
@@ -52,24 +48,7 @@
   <img alt="packages monthly" src="{% url "chart_maintainer" maintainer.email 'packages-monthly' %}" />
 </p>
 
-<script type="text/javascript">
-$(document).ready(function () {
-  $(".favourite-button").click(function() {
-    $.post($(this).data("url"), function() {
-      $(".unfavourite-button").removeClass("hide");
-      $(".favourite-button").addClass("hide");
-    });
-  });
-
-  $(".unfavourite-button").click(function() {
-    $.post($(this).data("url"), function() {
-      $(".favourite-button").removeClass("hide");
-      $(".unfavourite-button").addClass("hide");
-    });
-  });
-});
-</script>
-
+<script src="{{ STATIC_URL }}js/favourite.js" type="text/javascript"></script>
 {% endblock %}
 
 {% block menus %}
