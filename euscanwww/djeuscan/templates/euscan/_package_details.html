@@ -73,7 +73,7 @@
   <dd>
     <ul>
       {% for version in upstream %}
-      <li id="version-{{ version.version }}-{{version.revision }}:{{ version.slot }}-{{ version.overlay }}">
+      <li id="version-{{ version.tag }}">
         <img src="{{ STATIC_URL }}img/upstream-icon.png" alt="upstream" title="Upstream" />
 
         {% if version.vtype and not version.vtype|is_stable %}

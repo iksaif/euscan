@@ -98,3 +98,12 @@ def get_layman_repos():
     lay = Layman(config=settings.LAYMAN_CONFIG)
     installed_overlays = lay.get_installed()
     return lay.get_all_info(installed_overlays)
+
+
+def versiontag_to_attrs(tag):
+    import re
+    match = re.match(r"(.+)-(.+):(\d+)-(.+)", tag)
+    if match:
+        return match.groups()
+    else:
+        None

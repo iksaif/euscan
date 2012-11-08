@@ -44,9 +44,8 @@ class BaseFeed(Feed):
     def item_link(self, vlog):
         kwargs = {'category': vlog.package.category,
                   'package': vlog.package.name}
-        return "%s#version-%s-%s:%s-%s" % (
-            reverse('djeuscan.views.package', kwargs=kwargs),
-            vlog.version, vlog.revision, vlog.slot, vlog.overlay,
+        return "%s#version-%s" % (
+            reverse('djeuscan.views.package', kwargs=kwargs), vlog.tag
         )
 
     def item_pubdate(self, vlog):

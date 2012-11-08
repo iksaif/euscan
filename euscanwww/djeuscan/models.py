@@ -156,6 +156,11 @@ class Version(models.Model):
     class Meta:
         unique_together = ['package', 'slot', 'revision', 'version', 'overlay']
 
+    @property
+    def tag(self):
+        return '%s-%s:%s-%s' % (self.version, self.revision, self.slot,
+                                self.overlay)
+
     def cpv(self):
         return '%s/%s-%s%s' % (
             self.package.category, self.package.name, self.version,
@@ -196,6 +201,11 @@ class VersionLog(models.Model):
 
     objects = VersionLogManager()
 
+    @property
+    def tag(self):
+        return '%s-%s:%s-%s' % (self.version, self.revision, self.slot,
+                                self.overlay)
+
     def __unicode__(self):
         txt = '+ ' if self.action == self.VERSION_ADDED else '- '
         txt += '%s/%s-%s-%s:%s [%s]' % (
@@ -208,10 +218,6 @@ class VersionLog(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(VersionLog, self).save(*args, **kwargs)
-
-    def tag(self):
-        return '%s-%s:%s-[%s]' % (self.version, self.revision, self.slot,
-                                  self.overlay)
 
 
 class EuscanResult(models.Model):
