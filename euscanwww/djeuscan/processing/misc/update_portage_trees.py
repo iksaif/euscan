@@ -79,8 +79,15 @@ def layman_sync(logger, cache=True):
     for overlay in installed_overlays:
         logger.info('Cleaning cache for overlay %s...' % overlay)
         overlay_path = os.path.join(l.config['storage'], overlay)
-        shutil.rmtree(os.path.join(overlay_path, 'metadata'), True)
-        shutil.rmtree(os.path.join(overlay_path, 'profiles'), True)
+        dirs = [os.path.join(overlay_path, 'metadata/cache'),
+                os.path.join(overlay_path, 'metadata/md5-cache')]
+        files = [os.path.join(overlay_path, 'profiles/use.local.desc')]
+        for dirname in dirs:
+            if os.path.isdir(dirname):
+                shutil.rmtree(dirname, True)
+        for filename in files:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     # FIXME, try to find a way to log layman output...
     #l.sync(installed_overlays, output_results=False)
