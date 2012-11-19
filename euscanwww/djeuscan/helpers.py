@@ -102,7 +102,7 @@ def get_layman_repos():
 
 def versiontag_to_attrs(tag):
     import re
-    match = re.match(r"(.+)-(.+):(\d+)-(.+)", tag)
+    match = re.match(r"(.+)-(.+)-(.+)", tag)
     if match:
         return match.groups()
     else:

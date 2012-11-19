@@ -227,11 +227,11 @@ def package(request, category, package):
 def package_version_metadata(request, category, package, version_tag):
     package = get_object_or_404(Package, category=category, name=package)
     try:
-        ver, rev, slot, over = versiontag_to_attrs(version_tag)
+        ver, rev, over = versiontag_to_attrs(version_tag)
     except TypeError:
         return HttpResponseNotFound()
     version = get_object_or_404(Version, package=package, version=ver,
-                                revision=rev, slot=slot, overlay=over)
+                                revision=rev, overlay=over)
     content = ""
     if version.metadata_path:
         with open(version.metadata_path) as meta_file:
@@ -242,11 +242,11 @@ def package_version_metadata(request, category, package, version_tag):
 def package_version_ebuild(request, category, package, version_tag):
     package = get_object_or_404(Package, category=category, name=package)
     try:
-        ver, rev, slot, over = versiontag_to_attrs(version_tag)
+        ver, rev, over = versiontag_to_attrs(version_tag)
     except TypeError:
         return HttpResponseNotFound()
     version = get_object_or_404(Version, package=package, version=ver,
-                                revision=rev, slot=slot, overlay=over)
+                                revision=rev, overlay=over)
     if version.ebuild_path:
         with open(version.ebuild_path) as ebuild_file:
             content = ebuild_file.read()

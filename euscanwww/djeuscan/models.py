@@ -158,8 +158,7 @@ class Version(models.Model):
 
     @property
     def tag(self):
-        return '%s-%s:%s-%s' % (self.version, self.revision, self.slot,
-                                self.overlay)
+        return '%s-%s-%s' % (self.version, self.revision, self.overlay)
 
     @property
     def urls_list(self):
