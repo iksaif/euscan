@@ -24,6 +24,8 @@ euscan
 
 ### metadata.xml
 
+- Create a page to list handlers users, and average confidence
+- Use this page to generate metadata for some packages (handled by deb or brute force for example)
 - Create a subtree of metadata using custom rules
 - Finalize format
 - Write a GLEP
