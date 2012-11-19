@@ -54,7 +54,11 @@ euscan
 euscanwww
 ---------
 
-- Really fix mails
+### misc
+
+- change ebuild/metadata urls. Use <overlay>/<category>/<package>-<version>(-<revision>?).ebuild instead. Use portage code to parse that. Same thing for metadata.xml, without
+  version-revision.
+- Really fix mails: better formating
 - Always keep in db all found versions (when using an API only?). But don't display them if older than current packaged version, except maybe in the "upstream_version" column.
 
 ### packages
@@ -68,7 +72,7 @@ euscanwww
 
 ### logs
 
-Move log models into djeuscanhistory ?
+- Move log models into djeuscanhistory ?
 
 ### models
 
@@ -91,7 +95,7 @@ The scan process should be faster than the one using euscan. gentoo-packages hav
 
 ### Scanning
 
-- Remove alive field
+- Remove alive field in model, it should be possible to do the same thing using only memory. That may even be faster.
 
 ### API (LOW-PRIORITY)
 
