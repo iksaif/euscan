@@ -234,8 +234,13 @@ def package_version_metadata(request, category, package, version_tag):
                                 revision=rev, overlay=over)
     content = ""
     if version.metadata_path:
-        with open(version.metadata_path) as meta_file:
-            content = meta_file.read()
+        try:
+            with open(version.metadata_path) as meta_file:
+                content = meta_file.read()
+        except IOError:
+            return HttpResponseNotFound()
+    else:
+        return HttpResponseNotFound()
     return HttpResponse(content, content_type="text/plain")
 
 
@@ -248,8 +253,13 @@ def package_version_ebuild(request, category, package, version_tag):
     version = get_object_or_404(Version, package=package, version=ver,
                                 revision=rev, overlay=over)
     if version.ebuild_path:
-        with open(version.ebuild_path) as ebuild_file:
-            content = ebuild_file.read()
+        try:
+            with open(version.ebuild_path) as ebuild_file:
+                content = ebuild_file.read()
+        except IOError:
+            return HttpResponseNotFound()
+    else:
+        return HttpResponseNotFound()
     return HttpResponse(content, content_type="text/plain")
 
 
