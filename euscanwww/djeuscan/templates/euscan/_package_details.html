@@ -51,7 +51,7 @@
   <dd>
     <ul>
       {% for version in packaged %}
-      <li id="version-{{ version.version }}-{{version.revision }}:{{ version.slot }}-{{ version.overlay }}">
+      <li id="version-{{ version.tag }}">
         {% if version.overlay == "gentoo" %}
           <img src="{{ STATIC_URL }}img/gentoo-icon.png" alt="gentoo" title="In Gentoo" />
         {% else %}
@@ -64,7 +64,7 @@
 
         {% if version.ebuild_path %}
           <a href="{% url "package_version_ebuild" package.category package.name version.tag %}">
-            {{ version.version }}-{{ version.revision }} :{{ version.slot }} [{{ version.overlay }}]
+            {{ version.version }}{% if version.revision != "r0" %}-{{ version.revision }}{% endif %}{% if version.slot != "0" %}:{{ version.slot }}{% endif %}
           </a>
         {% endif %}
         {% if version.metadata_path %}

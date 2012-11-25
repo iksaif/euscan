@@ -154,11 +154,15 @@ class Version(models.Model):
     metadata_path = models.CharField(blank=True, max_length=256)
 
     class Meta:
-        unique_together = ['package', 'slot', 'revision', 'version', 'overlay']
+        unique_together = ['package', 'revision', 'version', 'overlay']
 
     @property
     def tag(self):
-        return '%s-%s-%s' % (self.version, self.revision, self.overlay)
+        return '%s%s%s' % (
+            self.version,
+            "-" + self.revision if self.revision != "r0" else "",
+            "-" + self.overlay if self.overlay else "-upstream"
+        )
 
     @property
     def urls_list(self):
@@ -171,10 +175,11 @@ class Version(models.Model):
         )
 
     def __unicode__(self):
-        return '%s/%s-%s%s:%s [%s]' % (
+        return '%s/%s-%s%s%s [%s]' % (
             self.package.category, self.package.name, self.version,
             '-' + self.revision if self.revision != '-r0' else '',
-            self.slot, self.overlay or "<upstream>"
+            ':' + self.slot if self.slot and self.slot != '0' else '',
+            self.overlay or "<upstream>"
         )
 
     def save(self, *args, **kwargs):
@@ -206,15 +211,19 @@ class VersionLog(models.Model):
 
     @property
     def tag(self):
-        return '%s-%s:%s-%s' % (self.version, self.revision, self.slot,
-                                self.overlay)
+        return '%s%s%s' % (
+            self.version,
+            "-" + self.revision if self.revision != "r0" else "",
+            "-" + self.overlay if self.overlay else "-upstream"
+        )
 
     def __unicode__(self):
         txt = '+ ' if self.action == self.VERSION_ADDED else '- '
-        txt += '%s/%s-%s-%s:%s [%s]' % (
+        txt += '%s/%s-%s%s%s [%s]' % (
             self.package.category, self.package.name, self.version,
-            self.revision, self.slot,
-            self.overlay or '<upstream>'
+            '-' + self.revision if self.revision != '-r0' else '',
+            ':' + self.slot if self.slot and self.slot != '0' else '',
+            self.overlay or "<upstream>"
         )
         return txt
 
