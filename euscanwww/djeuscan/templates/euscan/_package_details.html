@@ -93,7 +93,7 @@
         {% for url in version.urls_list %}
           <a href="{{ url }}">{{ url }}</a>
         {% endfor %}
-        {% if confidence < 100 %}({{ version.confidence }}%){% endif %}
+        ({% if version.handler != "generic" %}{{ version.handler }} - {% endif %}{{ version.confidence }}%)
       </li>
       {% endfor %}
      </ul>

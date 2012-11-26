@@ -387,6 +387,18 @@ def statistics(request):
     return {"handlers": handlers}
 
 
+@render_to("euscan/statistics_handler.html")
+def statistics_handler(request, handler):
+    package_ids = [
+        elem["package"] for elem in
+        Version.objects.filter(handler=handler)
+                       .values("package")
+                       .distinct()
+    ]
+    packages = Package.objects.filter(pk__in=package_ids)
+    return {"handler": handler, "packages": packages}
+
+
 def chart(request, **kwargs):
     from django.views.static import serve
 

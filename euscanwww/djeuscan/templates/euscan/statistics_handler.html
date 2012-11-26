@@ -1,0 +1,16 @@
+{% extends "euscan/_datatable.html" %}
+
+{% load url from future %}
+{% load djeuscan_helpers %}
+
+{% block title %}
+{{ block.super }} - Handler: {{ handler }}
+{% endblock %}
+
+{% block content %}
+<h2>
+  Handler: {{ handler }}
+</h2>
+{% packages packages %}
+
+{% endblock %}

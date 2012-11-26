@@ -19,7 +19,11 @@
   <tbody>
     {% for handler in handlers %}
       <tr>
-        <td>{{ handler.handler }}</td>
+        <td>
+          <a href="{% url "statistics_handler" handler.handler %}">
+            {{ handler.handler }}
+          </a>
+        </td>
         <td>{{ handler.n }}</td>
         <td>{{ handler.avg_conf }}</td>
       </tr>
