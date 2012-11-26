@@ -147,7 +147,7 @@ class Version(models.Model):
     alive = models.BooleanField(default=True, db_index=True)
 
     vtype = models.CharField(max_length=128, blank=True)
-    handler = models.CharField(max_length=128, blank=True)
+    handler = models.CharField(max_length=128, blank=True, db_index=True)
     confidence = models.IntegerField(default=0)
 
     ebuild_path = models.CharField(blank=True, max_length=256)

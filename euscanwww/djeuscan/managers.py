@@ -109,6 +109,15 @@ class PackageMixin(object):
         )
         return packages.filter(version__overlay=overlay).distinct()
 
+    def for_handler(self, handler):
+        """
+        Returns packages that belong to the given handler
+        """
+        packages = self.values(
+            'id', 'name', 'category', 'n_versions', 'n_packaged', 'n_overlay'
+        )
+        return packages.filter(version__handler=handler,
+                               version__overlay="").distinct()
 
 class PackageQuerySet(models.query.QuerySet, PackageMixin):
     pass

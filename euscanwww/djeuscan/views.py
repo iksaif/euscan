@@ -380,25 +380,29 @@ def config(request):
 
 @render_to("euscan/statistics.html")
 def statistics(request):
-    handlers = (
-        Version.objects.values("handler", "confidence")
-                       .filter(overlay="")
-                       .annotate(n=models.Count("handler"),
-                                 avg_conf=models.Avg("confidence"))
-                       .order_by("-n")
+    # Didn't found a way to do:
+    # SELECT COUNT(*), AVG(confidence) FROM Versions
+    # GROUP BY handler
+    handlers = ( Version.objects.values("handler")
+                        .filter(overlay="")
+                        .annotate(n=models.Count("handler"))
     )
+    for i in xrange(len(handlers)):
+        handler_id = handlers[i]['handler']
+        avg = ( Version.objects.filter(handler=handler_id)
+                               .aggregate(avg=models.Avg("confidence"))
+        )
+        if not handler_id:
+            handlers[i]['handler'] = "None"
+        handlers[i]['avg_conf'] = avg['avg'] if 'avg' in avg else 0
     return {"handlers": handlers}
 
 
 @render_to("euscan/statistics_handler.html")
 def statistics_handler(request, handler):
-    package_ids = [
-        elem["package"] for elem in
-        Version.objects.filter(handler=handler)
-                       .values("package")
-                       .distinct()
-    ]
-    packages = Package.objects.filter(pk__in=package_ids)
+    if handler == "None":
+        handler = ""
+    packages = Package.objects.for_handler(handler)
     return {"handler": handler, "packages": packages}
 
 
