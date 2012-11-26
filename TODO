@@ -24,8 +24,8 @@ euscan
 
 ### metadata.xml
 
-- Create a page to list handlers users, and average confidence
-- Use this page to generate metadata for some packages (handled by deb or brute force for example)
+- Use handler's statistics page to generate metadata for some packages
+  (handled by deb or brute force for example)
 - Create a subtree of metadata using custom rules
 - Finalize format
 - Write a GLEP
@@ -40,7 +40,7 @@ euscan
 ### handlers
 
 - remote-id type deb repository:
-  - find out how to get download url (not sure it's possible)
+-- find out how to get download url (not sure it's possible)
 
 ### remote-id
 - Propose new remote-id: deb
@@ -56,15 +56,12 @@ euscanwww
 
 ### misc
 
-- change ebuild/metadata urls. Use <overlay>/<category>/<package>-<version>(-<revision>?).ebuild instead. Use portage code to parse that. Same thing for metadata.xml, without
-  version-revision.
 - Really fix mails: better formating
 - Always keep in db all found versions (when using an API only?). But don't display them if older than current packaged version, except maybe in the "upstream_version" column.
 
 ### packages
 
 - show additional informations in the web interface (remote-id, etc...)
-- show the content of the ebuild for a particular version
 - Ignore alpha/beta if current is not alpha/beta: per-package setting using metadata.xml ?
 - ~arch / stable support: see "models: keywords"
 - stabilisation candidates: check stabilizations rules, and see how this can be automated

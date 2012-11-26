@@ -23,10 +23,16 @@ package_patterns = patterns('djeuscan.views',
     url(r'^unfavourite/$', unfavourite_package, name="unfavourite_package"),
     url(r'^refresh$', "refresh_package", name="refresh_package"),
     url(r'^problem$', 'problem', name="problem"),
-    url(r'^(?P<version_tag>.*)/ebuild$', "package_version_ebuild",
+)
+
+files_patterns = patterns('djeuscan.views',
+    url(r'^(?P<overlay>[\w+][\w+.-]*)/(?P<cpv>.+).ebuild$',
+        "package_version_ebuild",
         name="package_version_ebuild"),
-    url(r'^(?P<version_tag>.*)/metadata$', "package_version_metadata",
-        name="package_version_metadata"),
+    url(r'^(?P<overlay>[\w+][\w+.-]*)/(?P<category>[\w+][\w+.-]*)/'
+        r'(?P<package>[\w+][\w+.-]*)/metadata.xml$',
+        "package_metadata",
+        name="package_metadata"),
 )
 
 categories_patterns = patterns('djeuscan.views',
@@ -111,6 +117,8 @@ urlpatterns = patterns('djeuscan.views',
 
     url(r'^package/(?P<category>[\w+][\w+.-]*)/(?P<package>[\w+][\w+.-]*)/',
         include(package_patterns)),
+
+    url(r'^files/', include(files_patterns)),
 
     url(r'^tasks/', include(tasks_patterns)),
 )

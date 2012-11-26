@@ -171,13 +171,13 @@ class Version(models.Model):
     def cpv(self):
         return '%s/%s-%s%s' % (
             self.package.category, self.package.name, self.version,
-            '-' + self.revision if self.revision != '-r0' else ''
+            '-' + self.revision if self.revision != 'r0' else ''
         )
 
     def __unicode__(self):
         return '%s/%s-%s%s%s [%s]' % (
             self.package.category, self.package.name, self.version,
-            '-' + self.revision if self.revision != '-r0' else '',
+            '-' + self.revision if self.revision != 'r0' else '',
             ':' + self.slot if self.slot and self.slot != '0' else '',
             self.overlay or "<upstream>"
         )
@@ -221,7 +221,7 @@ class VersionLog(models.Model):
         txt = '+ ' if self.action == self.VERSION_ADDED else '- '
         txt += '%s/%s-%s%s%s [%s]' % (
             self.package.category, self.package.name, self.version,
-            '-' + self.revision if self.revision != '-r0' else '',
+            '-' + self.revision if self.revision != 'r0' else '',
             ':' + self.slot if self.slot and self.slot != '0' else '',
             self.overlay or "<upstream>"
         )

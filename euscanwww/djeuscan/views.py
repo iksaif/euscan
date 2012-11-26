@@ -3,6 +3,8 @@
 import inspect
 from annoying.decorators import render_to, ajax_request
 
+from portage.versions import catpkgsplit
+
 from django.http import HttpResponse, HttpResponseNotFound
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
@@ -11,7 +13,7 @@ from django.views.decorators.http import require_POST
 from django.db import models
 
 from djeuscan.helpers import version_key, packages_from_names, \
-    get_maintainer_or_404, get_make_conf, get_layman_repos, versiontag_to_attrs
+    get_maintainer_or_404, get_make_conf, get_layman_repos
 from djeuscan.models import Version, Package, Herd, Maintainer, EuscanResult, \
     VersionLog, RefreshPackageQuery, ProblemReport, Category, Overlay
 from djeuscan.forms import WorldForm, PackagesForm, ProblemReportForm
@@ -225,14 +227,17 @@ def package(request, category, package):
     }
 
 
-def package_version_metadata(request, category, package, version_tag):
+def package_metadata(request, overlay, category, package):
     package = get_object_or_404(Package, category=category, name=package)
-    try:
-        ver, rev, over = versiontag_to_attrs(version_tag)
-    except TypeError:
+
+    versions = Version.objects.filter(package=package, overlay=overlay)
+    if len(versions) == 0:
         return HttpResponseNotFound()
-    version = get_object_or_404(Version, package=package, version=ver,
-                                revision=rev, overlay=over)
+
+    # XXX: Kinda ugly, it assumes that every version with the same overlay
+    #      has the same metadata path
+    version = versions[0]
+
     content = ""
     if version.metadata_path:
         try:
@@ -245,17 +250,15 @@ def package_version_metadata(request, category, package, version_tag):
     return HttpResponse(content, content_type="text/plain")
 
 
-def package_version_ebuild(request, category, package, version_tag):
-    package = get_object_or_404(Package, category=category, name=package)
-    try:
-        ver, rev, over = versiontag_to_attrs(version_tag)
-    except TypeError:
-        return HttpResponseNotFound()
-    version = get_object_or_404(Version, package=package, version=ver,
-                                revision=rev, overlay=over)
-    if version.ebuild_path:
+def package_version_ebuild(request, overlay, cpv):
+    category, package, version, revision = catpkgsplit(cpv)
+    pkg = get_object_or_404(Package, category=category, name=package)
+    obj = get_object_or_404(Version, package=pkg, version=version,
+                            revision=revision, overlay=overlay)
+
+    if obj.ebuild_path:
         try:
-            with open(version.ebuild_path) as ebuild_file:
+            with open(obj.ebuild_path) as ebuild_file:
                 content = ebuild_file.read()
         except IOError:
             return HttpResponseNotFound()

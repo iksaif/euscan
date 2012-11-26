@@ -63,14 +63,14 @@
         {% endif %}
 
         {% if version.ebuild_path %}
-          <a href="{% url "package_version_ebuild" package.category package.name version.tag %}">
+          <a href="{% url "package_version_ebuild" version.overlay version.cpv %}">
             {{ version.version }}{% if version.revision != "r0" %}-{{ version.revision }}{% endif %}{% if version.slot != "0" %}:{{ version.slot }}{% endif %}
           </a>
         {% endif %}
         {% if version.metadata_path %}
-        <a href="{% url "package_version_metadata" package.category package.name version.tag %}">
-          <img src="{{ STATIC_URL }}img/metadata.png" alt="Metadata" />
-        </a>
+          <a href="{% url "package_metadata" version.overlay package.category package.name %}">
+            <img src="{{ STATIC_URL }}img/metadata.png" alt="Metadata" />
+          </a>
         {% endif %}
       </li>
       {% endfor %}
