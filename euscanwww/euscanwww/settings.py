@@ -237,14 +237,13 @@ EGENCACHE_JOBS = 4
 import djcelery
 djcelery.setup_loader()
 BROKER_URL = "amqp://guest:guest@localhost:5672//"
-CELERY_RESULT_BACKEND = "amqp"
 BROKER_CONNECTION_TIMEOUT = 3600
+CELERY_RESULT_BACKEND = "amqp"
 CELERYD_CONCURRENCY = 4
+CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
 
 TASKS_UPSTREAM_GROUPS = 32
 TASKS_EMAIL_GROUPS = 10
-
-CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
 
 # LDAP authentication
 # TODO: Test data - change me!
