@@ -5,6 +5,30 @@
 {% block content %}
 <h2>Statistics</h2>
 
+<hr>
+
+<h3>Handlers</h3>
+<table class="table">
+  <thead>
+    <tr>
+      <th></th>
+      <th># of found versions</th>
+      <th>average confidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for handler in handlers %}
+      <tr>
+        <td>{{ handler.handler }}</td>
+        <td>{{ handler.n }}</td>
+        <td>{{ handler.avg_conf }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<hr>
+
 <h3>Current statistics</h3>
 <img alt="pie versions" src="{% url "chart" 'pie-versions' %}" />
 <img alt="pie packages" src="{% url "chart" 'pie-packages' %}" />

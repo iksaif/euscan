@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.db import models
 
 from djeuscan.helpers import version_key, packages_from_names, \
     get_maintainer_or_404, get_make_conf, get_layman_repos, versiontag_to_attrs
@@ -376,7 +377,14 @@ def config(request):
 
 @render_to("euscan/statistics.html")
 def statistics(request):
-    return {}
+    handlers = (
+        Version.objects.values("handler", "confidence")
+                       .filter(overlay="")
+                       .annotate(n=models.Count("handler"),
+                                 avg_conf=models.Avg("confidence"))
+                       .order_by("-n")
+    )
+    return {"handlers": handlers}
 
 
 def chart(request, **kwargs):
