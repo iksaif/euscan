@@ -386,12 +386,15 @@ def statistics(request):
                .annotate(n=models.Count("handler"),
                          avg_conf=models.Avg("confidence"))
     )
+    for i in xrange(len(handlers)):
+        if not handlers[i]['handler']:
+             handlers[i]['handler'] = "unknown"
     return {"handlers": handlers}
 
 
 @render_to("euscan/statistics_handler.html")
 def statistics_handler(request, handler):
-    if handler == "None":
+    if handler == "unknown":
         handler = ""
     packages = Package.objects.for_handler(handler)
     return {"handler": handler, "packages": packages}
