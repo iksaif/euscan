@@ -380,21 +380,12 @@ def config(request):
 
 @render_to("euscan/statistics.html")
 def statistics(request):
-    # Didn't found a way to do:
-    # SELECT COUNT(*), AVG(confidence) FROM Versions
-    # GROUP BY handler
-    handlers = ( Version.objects.values("handler")
-                        .filter(overlay="")
-                        .annotate(n=models.Count("handler"))
+    handlers = (
+        Version.objects.values("handler")
+               .filter(overlay="")
+               .annotate(n=models.Count("handler"),
+                         avg_conf=models.Avg("confidence"))
     )
-    for i in xrange(len(handlers)):
-        handler_id = handlers[i]['handler']
-        avg = ( Version.objects.filter(handler=handler_id)
-                               .aggregate(avg=models.Avg("confidence"))
-        )
-        if not handler_id:
-            handlers[i]['handler'] = "None"
-        handlers[i]['avg_conf'] = avg['avg'] if 'avg' in avg else 0
     return {"handlers": handlers}
 
 

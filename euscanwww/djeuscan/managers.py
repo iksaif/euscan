@@ -119,6 +119,7 @@ class PackageMixin(object):
         return packages.filter(version__handler=handler,
                                version__overlay="").distinct()
 
+
 class PackageQuerySet(models.query.QuerySet, PackageMixin):
     pass
 
