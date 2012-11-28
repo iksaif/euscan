@@ -388,7 +388,7 @@ def statistics(request):
     )
     for i in xrange(len(handlers)):
         if not handlers[i]['handler']:
-             handlers[i]['handler'] = "unknown"
+            handlers[i]['handler'] = "unknown"
     return {"handlers": handlers}
 
 
