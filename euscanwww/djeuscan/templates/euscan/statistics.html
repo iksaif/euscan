@@ -63,7 +63,7 @@
           </a>
         </td>
         <td>{{ handler.n }}</td>
-        <td>{{ handler.avg_conf }}</td>
+        <td>{{ handler.avg_conf|floatformat:1 }}</td>
       </tr>
     {% endfor %}
   </tbody>
