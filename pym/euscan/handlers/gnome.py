@@ -34,22 +34,18 @@ def guess_package(cp, url):
 
 def scan_url(pkg, url, options):
     'http://ftp.gnome.org/pub/GNOME/sources/'
-    package = guess_package(pkg.cpv, url)
+    package = {
+        'data': guess_package(pkg.cpv, url),
+        'type': 'gnome',
+    }
     return scan_pkg(pkg, package)
 
 
 def scan_pkg(pkg, options):
-    # For some weird reasons package with no metadata 
-    # will fail without this hack
-    options = {
-        'data': options,
-        'type': 'gnome',
-    }
     package = options['data']
 
     output.einfo("Using Gnome json cache: " + package)
 
-    print 'Opening', '/'.join([GNOME_URL_SOURCE, package, 'cache.json'])
     fp = urllib2.urlopen('/'.join([GNOME_URL_SOURCE, package, 'cache.json']))
     content = fp.read()
     fp.close()
@@ -57,12 +53,13 @@ def scan_pkg(pkg, options):
     cache = json.loads(content, encoding='ascii')
 
     if cache[0] != 4:
-        raise Exception('Unknow cache format detected')
+        output.eerror('Unknow cache format detected')
+        return []
 
     versions = cache[2][package]
 
     if not versions:
-        return versions
+        return []
 
     versions.reverse()
 
@@ -80,6 +77,7 @@ def scan_pkg(pkg, options):
                                  up_files[tarball_comp]])
                 break
         else:
-            raise Exception('No tarball for release ' + up_pv)
+            output.ewarn('No tarball for release %s' % up_pv)
         ret.append((url, pv, HANDLER_NAME, CONFIDENCE))
+
     return ret
