@@ -18,6 +18,7 @@ PRIORITY = 90
 
 GNOME_URL_SOURCE = 'http://ftp.gnome.org/pub/GNOME/sources'
 
+
 def can_handle(_pkg, url=None):
     return url and url.startswith('mirror://gnome/')
 
