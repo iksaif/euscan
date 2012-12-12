@@ -27,7 +27,7 @@ class PackageAdmin(admin.ModelAdmin):
 
 class VersionAdmin(admin.ModelAdmin):
     search_fields = ('package__name', 'package__category')
-    list_filter = ('overlay', 'packaged', 'alive')
+    list_filter = ('overlay', 'packaged')
 
 
 class ProblemReportAdmin(admin.ModelAdmin):

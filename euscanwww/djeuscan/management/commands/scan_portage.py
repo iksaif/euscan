@@ -44,12 +44,6 @@ class Command(BaseCommand):
             dest='no-log',
             default=False,
             help='Don\'t store logs'),
-        make_option('--prefetch',
-            action='store_true',
-            dest='prefetch',
-            default=False,
-            help=('Prefetch all versions and packages from DB to '
-                  'speedup full scan process.')),
         )
     args = '[package package ...]'
     help = 'Scans portage tree and fills database'
@@ -70,7 +64,6 @@ class Command(BaseCommand):
             no_log=options["no-log"],
             purge_packages=options["purge-packages"],
             purge_versions=options["purge-versions"],
-            prefetch=options["prefetch"],
             upstream=options["upstream"],
             logger=logger,
         )

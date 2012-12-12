@@ -14,6 +14,8 @@ class ScanUpstream(object):
     def __init__(self, logger=None, purge_versions=False):
         self.logger = logger or FakeLogger()
         self.purge_versions = purge_versions
+        self._versions = set()
+        self._versions_seen = set()
 
     def scan(self, package):
         CONFIG["format"] = "dict"
@@ -74,12 +76,11 @@ class ScanUpstream(object):
         if created:
             self.logger.info('+ [p] %s/%s' % (cat, pkg))
 
-        # Set all versions dead, then set found versions alive and
-        # delete old versions
-        if self.purge_versions:
-            Version.objects.filter(
-                package=obj, packaged=False
-            ).update(alive=False)
+        versions = Version.objects.filter(
+            package=obj, packaged=False
+        )
+        for version in versions:
+            self._versions.add(version)
 
         return obj
 
@@ -87,19 +88,21 @@ class ScanUpstream(object):
                       confidence):
         obj, created = Version.objects.get_or_create(
             package=package,
-            slot='',
             revision='r0',
             version=ver,
             overlay='',
-            defaults={"alive": True, "urls": url, "packaged": False,
+            defaults={"slot" : '', "urls": url, "packaged": False,
                       "vtype": version_type, "handler": handler,
                       "confidence": confidence}
         )
+
         if not created:
-            obj.alive = True
+            obj.slot = ''
             obj.urls = url
             obj.packaged = False
             obj.save()
+
+        self._versions_seen.add(obj)
 
         # If it's not a new version, just update the object and continue
         if not created:
@@ -124,8 +127,10 @@ class ScanUpstream(object):
         if not self.purge_versions:
             return
 
-        versions = Version.objects.filter(packaged=False, alive=False)
+        versions = self._versions.difference(self._versions_seen)
         for version in versions:
+            if version.packaged == True:
+                continue # Not our job
             VersionLog.objects.create(
                 package=version.package,
                 action=VersionLog.VERSION_REMOVED,
@@ -141,7 +146,7 @@ class ScanUpstream(object):
 
             self.logger.info('- [u] %s %s' % (version, version.urls))
 
-        versions.delete()
+            version.delete()
 
 
 @commit_on_success

@@ -85,6 +85,7 @@ ROBOTS_TXT_BLACKLIST_DOMAINS = [
     '(.*)download\.mono-project\.com(.*)',
     '(.*)fedorahosted\.org(.*)',
     '(.*)download\.tuxfamily\.org(.*)',
+    '(.*)festvox\.org(.*)',
 ]
 
 from out import EuscanOutput
