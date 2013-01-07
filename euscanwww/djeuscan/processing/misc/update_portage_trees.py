@@ -8,11 +8,11 @@ def _launch_command(cmd, env=None, logger=None):
     """
     Helper for launching shell commands inside tasks
     """
-    import sys
     import subprocess
     import select
 
-    fp = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    fp = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
 
     mask = select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR
 
@@ -71,8 +71,8 @@ def layman_sync(logger, cache=True):
     from layman import Layman
     import shutil
 
-    l = Layman(stderr=sys.__stderr__, stdin=sys.__stdin__, stdout=sys.__stdout__,
-               config=settings.LAYMAN_CONFIG, root="/")
+    l = Layman(stderr=sys.__stderr__, stdin=sys.__stdin__,
+               stdout=sys.__stdout__, config=settings.LAYMAN_CONFIG, root="/")
 
     installed_overlays = l.get_installed()
 

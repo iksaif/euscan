@@ -91,7 +91,7 @@ class ScanUpstream(object):
             revision='r0',
             version=ver,
             overlay='',
-            defaults={"slot" : '', "urls": url, "packaged": False,
+            defaults={"slot": '', "urls": url, "packaged": False,
                       "vtype": version_type, "handler": handler,
                       "confidence": confidence}
         )
@@ -130,7 +130,7 @@ class ScanUpstream(object):
         versions = self._versions.difference(self._versions_seen)
         for version in versions:
             if version.packaged == True:
-                continue # Not our job
+                continue  # Not our job
             VersionLog.objects.create(
                 package=version.package,
                 action=VersionLog.VERSION_REMOVED,
