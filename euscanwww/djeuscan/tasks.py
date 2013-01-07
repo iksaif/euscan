@@ -115,7 +115,7 @@ def scan_metadata(packages=[], category=None, populate=False):
 @task
 def scan_portage(packages=None, category=None,
                  no_log=False, purge_packages=False,
-                 purge_versions=False, prefetch=False):
+                 purge_versions=False):
     """
     Scans portage for the given set of packages
     """
@@ -136,7 +136,6 @@ def scan_portage(packages=None, category=None,
         no_log=no_log,
         purge_packages=purge_packages,
         purge_versions=purge_versions,
-        prefetch=prefetch,
         logger=logger,
     )
 
@@ -182,7 +181,6 @@ def update_portage(packages=None):
         packages=None,
         purge_packages=True,
         purge_versions=True,
-        prefetch=True
     )
     scan_metadata(packages=None, populate=True)
 
@@ -204,7 +202,7 @@ def update_portage(packages=None):
     (
         group_one(scan_portage, categories,
                   attr_name="category", purge_packages=True,
-                  purge_versions=True, prefetch=True) |
+                  purge_versions=True) |
         group_one(scan_metadata, categories,
                   attr_name="category") |
         update_counters.si(fast=True)

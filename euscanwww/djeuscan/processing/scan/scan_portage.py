@@ -8,6 +8,7 @@ import portage
 from xml.etree.ElementTree import iterparse, ParseError
 
 from django.db.transaction import commit_on_success
+from django.db import models
 from django.core.management.color import color_style
 
 from euscan.version import get_version_type
@@ -29,42 +30,45 @@ class ScanPortage(object):
 
         self._cache = {'packages': {}, 'versions': {}}
         self._overlays = None
-        self._updated_packages = set()
+        self._packages_updated = set()
+        self._versions = set()
+        self._versions_seen = set()
 
-    def updated_packages(self):
-        return list(self._updated_packages)
+    def packages_updated(self):
+        return list(self._packages_updated)
 
-    def cache_hash_package(self, category, name):
+    def hash_package(self, category, name):
         return '%s/%s' % (category, name)
 
     def cache_store_package(self, package):
-        key = self.cache_hash_package(package.category, package.name)
+        key = self.hash_package(package.category, package.name)
         self._cache['packages'][key] = package
 
     def cache_get_package(self, category, name):
         return self._cache['packages'].get(
-            self.cache_hash_package(category, name)
+            self.hash_package(category, name)
         )
 
-    def cache_hash_version(self, category, name, version, revision, slot,
+    def hash_version(self, category, name, version, revision,
                            overlay):
-        key = '%s/%s-%s-r%s %s %s' % (category, name,
-                                      version, revision,
-                                      slot, overlay)
+        key = '%s/%s-%s-r%s %s' % (category, name,
+                                   version, revision,
+                                   overlay)
         return key
 
-    def cache_get_version(self, category, name, version, revision, slot,
+    def cache_get_version(self, category, name, version, revision,
                           overlay):
-        key = self.cache_hash_version(category, name, version, revision, slot,
+        key = self.hash_version(category, name, version, revision,
                                       overlay)
         return self._cache['versions'].get(key)
 
     def cache_store_version(self, version):
-        key = self.cache_hash_version(
+        key = self.hash_version(
             version.package.category, version.package.name, version.version,
-            version.revision, version.slot, version.overlay
+            version.revision, version.overlay
         )
         self._cache['versions'][key] = version
+        self._versions.add(version)
 
     def scan_gentoopm(self, query, category=None):
         import gentoopm
@@ -160,60 +164,28 @@ class ScanPortage(object):
                     category = ""
             elem.clear()
 
-    def prepare_purge_versions(self, packages, query=None, category=None):
-        if not self.purge_versions:
-            return
-
-        # Set all versions dead, then set found versions alive and
-        # delete old versions
-        if not query:
-            # Optimisation for --all or --category
-            self.logger.info('Killing existing versions...')
-            qs = Version.objects.filter(packaged=True)
-            if category:
-                qs = qs.filter(package__category=category)
-            qs.update(alive=False)
-            self.logger.info('done')
-        else:
-            for package in packages:
-                Version.objects.filter(package=package, packaged=True).\
-                    update(alive=False)
-
     def scan(self, query=None, category=None):
-        if not query:
-            current_packages = Package.objects.all()
-        elif '/' in query:
-            cat, pkg = portage.catsplit(query)
-            current_packages = Package.objects.filter(category=cat, name=pkg)
-        else:
-            current_packages = Package.objects.filter(name=query)
-        if category:
-            current_packages = current_packages.filter(category=category)
-
-        self.prepare_purge_versions(current_packages, query, category)
-
-        packages_alive = set()
-
         for data in self.scan_eix_xml(query, category):
         #for data in self.scan_gentoopm(query, category):
             cat, pkg = data['category'], data['package']
             package = self.store_package(
                 cat, pkg, data['homepage'], data['description']
             )
-            packages_alive.add("%s/%s" % (cat, pkg))
+
             new_version = False
             for cpv, slot, overlay, overlay_path in data['versions']:
                 obj, created = self.store_version(
                     package, cpv, slot, overlay, overlay_path
                 )
+                self._versions_seen.add(obj)
                 new_version = created or new_version
 
             # If the package has at least one new version scan upstream for it
             if new_version:
-                self._updated_packages.add(package)
+                self._packages_updated.add(package)
 
-        self.purge_old_packages(current_packages, packages_alive)
         self.purge_old_versions()
+        self.purge_old_packages()
 
     def store_package(self, cat, pkg, homepage, description):
         created = False
@@ -239,7 +211,7 @@ class ScanPortage(object):
 
         created = False
         obj = self.cache_get_version(
-            package.category, package.name, ver, rev, slot, overlay
+            package.category, package.name, ver, rev, overlay
         )
 
         overlay_path = overlay_path or portage.settings["PORTDIR"]
@@ -249,11 +221,12 @@ class ScanPortage(object):
 
         if not obj:
             obj, created = Version.objects.get_or_create(
-                package=package, slot=slot,
-                revision=rev, version=ver,
+                package=package,
+                revision=rev,
+                version=ver,
                 overlay=overlay,
                 defaults={
-                    "alive": True,
+                    "slot": slot,
                     "packaged": True,
                     "vtype": get_version_type(ver),
                     "confidence": 100,
@@ -263,9 +236,10 @@ class ScanPortage(object):
                 }
             )
         if not created:  # Created objects have defaults values
-            obj.alive = True
-            obj.packaged = True
-            obj.save()
+            if obj.slot != slot or obj.package != True:
+                obj.slot = slot
+                obj.packaged = True
+                obj.save()
 
         if created:
             self.cache_store_version(obj)
@@ -298,30 +272,57 @@ class ScanPortage(object):
 
         return obj, created
 
-    def purge_old_packages(self, packages, alive):
+    def purge_old_packages(self):
         if not self.purge_packages:
             return
 
+        packages = (
+            Package.objects.values("id")
+                           .annotate(version_count=models.Count("version"))
+                           .filter(version_count=0)
+        )
+        packages = (
+            Package.objects.filter(id__in=[package['id'] for package in packages])
+        )
+
         for package in packages:
-            cp = "%s/%s" % (package.category, package.name)
-            if cp not in alive:
-                self.logger.info('- [p] %s' % (package))
-                package.delete()
+            self.logger.info('- [p] %s' % (package))
+            package.delete()
+
+    def version_hack(self, version):
+        try:
+            if version.package.last_version_gentoo:
+                version.package.last_version_gentoo.pk
+            if version.package.last_version_overlay:
+                version.package.last_version_overlay.pk
+            if version.package.last_version_upstream:
+                version.package.last_version_upstream.pk
+        except Version.DoesNotExist:
+            version.package.last_version_gentoo = None
+            version.package.last_version_overlay = None
+            version.package.last_version_upstream = None
 
     def purge_old_versions(self):
         if not self.purge_versions:
             return
 
-        versions = Version.objects.filter(packaged=True, alive=False)
+        versions = self._versions.difference(self._versions_seen)
+
         for version in versions:
+            self.logger.info('- [v] %s' % (version))
+
+            if version.packaged == False:
+                continue # Not our job
+
+            # Fix last_version_ stuff that is sometime broken
+            self.version_hack(version)
+
             if version.overlay == 'gentoo':
                 version.package.n_packaged -= 1
             else:
                 version.package.n_overlay -= 1
             version.package.n_versions -= 1
             version.package.save()
-
-            self.logger.info('- [v] %s' % (version))
 
             if self.no_log:
                 continue
@@ -335,19 +336,54 @@ class ScanPortage(object):
                 overlay=version.overlay,
                 vtype=version.vtype,
             )
+            # remove from last version ?
+            version.delete()
 
-        versions.delete()
+    def prefetch(self, packages, category):
+        self.logger.info('Prefetching current objects...')
+
+        ppackages = Package.objects.all()
+        pversions = Version.objects.filter(packaged=True).select_related('package').all()
+
+        if category:
+            ppackages = ppackages.filter(category=category)
+            pversions = pversions.filter(package__category=category)
+        if packages:
+            ids = [ package.id for package in packages ]
+            ppackages = ppackages.filter(pk__in=ids)
+            pversions = pversions.filter(package__pk__in=ids)
+
+        for package in ppackages:
+            self.cache_store_package(package)
+        for version in pversions:
+            self.cache_store_version(version)
+
+        self.logger.info('done')
+
+def populate_categories(logger):
+    # Populate Category and Overlay
+    # TODO: - use portage.settings.categories()
+    #       - read metadata.xml to add description
+    for cat in Package.objects.values('category').distinct():
+        obj, created = Category.objects.get_or_create(name=cat["category"])
+        if created:
+            logger.info("+ [c] %s", cat["category"])
+
+def populate_overlays(logger):
+    # TODO: - get informations from layman and portage (path, url)
+    for overlay in Version.objects.values('overlay').distinct():
+        if not overlay["overlay"]:
+            continue
+        obj, created = Overlay.objects.get_or_create(name=overlay["overlay"])
+        if created:
+            logger.info("+ [o] %s", overlay["overlay"])
 
 
 @commit_on_success
 def scan_portage(packages=None, category=None, no_log=False, upstream=False,
-                 purge_packages=False, purge_versions=False, prefetch=False,
-                 logger=None):
+                 purge_packages=False, purge_versions=False, logger=None):
 
     logger = logger or FakeLogger()
-
-    if packages is None:
-        prefetch = True
 
     scan_handler = ScanPortage(
         logger=logger,
@@ -358,18 +394,28 @@ def scan_portage(packages=None, category=None, no_log=False, upstream=False,
 
     logger.info('Scanning portage tree...')
 
-    if prefetch:
-        logger.info('Prefetching objects...')
-        ppackages = Package.objects.all()
-        pversions = Version.objects.select_related('package').all()
+    if not packages:
+        qs = Package.objects.all()
         if category:
-            ppackages = ppackages.filter(category=category)
-            pversions = pversions.filter(package__category=category)
-        for package in ppackages:
-            scan_handler.cache_store_package(package)
-        for version in pversions:
-            scan_handler.cache_store_version(version)
-        logger.info('done')
+            qs = qs.filter(category=category)
+        prefetch_packages = qs
+    else:
+        results = []
+        for package in packages:
+            if isinstance(package, Package):
+                results.append(package)
+            else:
+                if '/' in package:
+                    cat, pkg = portage.catsplit(package)
+                    qs = Package.objects.filter(category=cat, name=pkg)
+                else:
+                    qs = Package.objects.filter(name=package)
+                for package in qs:
+                    results.append(package)
+        prefetch_packages = results
+
+
+    scan_handler.prefetch(prefetch_packages, category)
 
     if not packages and category:
         scan_handler.scan(category=category)
@@ -382,21 +428,8 @@ def scan_portage(packages=None, category=None, no_log=False, upstream=False,
             else:
                 scan_handler.scan(pkg)
 
-    # Populate Category and Overlay
-    # TODO: - use portage.settings.categories()
-    #       - read metadata.xml to add description
-    for cat in Package.objects.values('category').distinct():
-        obj, created = Category.objects.get_or_create(name=cat["category"])
-        if created:
-            logger.info("+ [c] %s", cat["category"])
-
-    # TODO: - get informations from layman and portage (path, url)
-    for overlay in Version.objects.values('overlay').distinct():
-        if not overlay["overlay"]:
-            continue
-        obj, created = Overlay.objects.get_or_create(name=overlay["overlay"])
-        if created:
-            logger.info("+ [o] %s", overlay["overlay"])
+    populate_categories(logger)
+    populate_overlays(logger)
 
     logger.info('Done.')
-    return scan_handler.updated_packages()
+    return scan_handler.packages_updated()

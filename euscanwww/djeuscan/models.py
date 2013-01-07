@@ -144,7 +144,6 @@ class Version(models.Model):
     overlay = models.CharField(max_length=128, default='gentoo', db_index=True,
                                validators=[validate_name], blank=True)
     urls = models.TextField(blank=True)
-    alive = models.BooleanField(default=True, db_index=True)
 
     vtype = models.CharField(max_length=128, blank=True)
     handler = models.CharField(max_length=128, blank=True, db_index=True)
