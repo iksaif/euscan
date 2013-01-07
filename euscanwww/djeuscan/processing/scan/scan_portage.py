@@ -282,7 +282,9 @@ class ScanPortage(object):
                            .filter(version_count=0)
         )
         packages = (
-            Package.objects.filter(id__in=[package['id'] for package in packages])
+            Package.objects.filter(
+                id__in=[package['id'] for package in packages]
+            )
         )
 
         for package in packages:
@@ -312,7 +314,7 @@ class ScanPortage(object):
             self.logger.info('- [v] %s' % (version))
 
             if version.packaged == False:
-                continue # Not our job
+                continue  # Not our job
 
             # Fix last_version_ stuff that is sometime broken
             self.version_hack(version)
@@ -343,13 +345,14 @@ class ScanPortage(object):
         self.logger.info('Prefetching current objects...')
 
         ppackages = Package.objects.all()
-        pversions = Version.objects.filter(packaged=True).select_related('package').all()
+        pversions = Version.objects.filter(packaged=True)\
+                                   .select_related('package').all()
 
         if category:
             ppackages = ppackages.filter(category=category)
             pversions = pversions.filter(package__category=category)
         if packages:
-            ids = [ package.id for package in packages ]
+            ids = [package.id for package in packages]
             ppackages = ppackages.filter(pk__in=ids)
             pversions = pversions.filter(package__pk__in=ids)
 
@@ -360,6 +363,7 @@ class ScanPortage(object):
 
         self.logger.info('done')
 
+
 def populate_categories(logger):
     # Populate Category and Overlay
     # TODO: - use portage.settings.categories()
@@ -368,6 +372,7 @@ def populate_categories(logger):
         obj, created = Category.objects.get_or_create(name=cat["category"])
         if created:
             logger.info("+ [c] %s", cat["category"])
+
 
 def populate_overlays(logger):
     # TODO: - get informations from layman and portage (path, url)
@@ -413,7 +418,6 @@ def scan_portage(packages=None, category=None, no_log=False, upstream=False,
                 for package in qs:
                     results.append(package)
         prefetch_packages = results
-
 
     scan_handler.prefetch(prefetch_packages, category)
 
