@@ -43,8 +43,9 @@ class ScanUpstream(object):
             return {}
 
         obj = self.store_package(cpv)
-
         for res in out[package]["result"]:
+            if not res['version']:
+                continue
             self.store_version(
                 obj,
                 res["version"],
