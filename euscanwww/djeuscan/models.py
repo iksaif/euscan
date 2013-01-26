@@ -269,6 +269,10 @@ class EuscanResult(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=128, validators=[validate_category],
                             unique=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name_plural = "categories"
 
     def __unicode__(self):
         return self.name
@@ -277,6 +281,9 @@ class Category(models.Model):
 class Overlay(models.Model):
     name = models.CharField(max_length=128, validators=[validate_name],
                             unique=True)
+    description = models.TextField(blank=True)
+    homepage = models.TextField(blank=True)
+    overlay_path = models.CharField(blank=True, max_length=256)
 
     def __unicode__(self):
         return self.name

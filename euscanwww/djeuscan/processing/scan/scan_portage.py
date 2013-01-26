@@ -2,14 +2,20 @@ import subprocess
 
 import os
 from os.path import join
+import sys
 
 import portage
+
+from gentoolkit.metadata import MetaData
+
+from layman import Layman
 
 from xml.etree.ElementTree import iterparse, ParseError
 
 from django.db.transaction import commit_on_success
 from django.db import models
 from django.core.management.color import color_style
+from django.conf import settings
 
 from euscan.version import get_version_type
 
@@ -365,23 +371,36 @@ class ScanPortage(object):
 
 
 def populate_categories(logger):
-    # Populate Category and Overlay
-    # TODO: - use portage.settings.categories()
-    #       - read metadata.xml to add description
-    for cat in Package.objects.values('category').distinct():
-        obj, created = Category.objects.get_or_create(name=cat["category"])
+    portdir = portage.settings["PORTDIR"]
+    for cat in portage.settings.categories:
+        try:
+            meta = MetaData(join(portdir, cat, "metadata.xml"))
+            desc = meta.descriptions()[0]
+        except (IOError, IndexError):
+            desc = ""
+        obj, created = Category.objects.get_or_create(name=cat)
+        obj.description = desc.strip()
+        obj.save()
         if created:
-            logger.info("+ [c] %s", cat["category"])
+            logger.info("+ [c] %s", cat)
 
 
 def populate_overlays(logger):
-    # TODO: - get informations from layman and portage (path, url)
-    for overlay in Version.objects.values('overlay').distinct():
-        if not overlay["overlay"]:
+    l = Layman(stderr=sys.__stderr__, stdin=sys.__stdin__,
+               stdout=sys.__stdout__, config=settings.LAYMAN_CONFIG, root="/")
+    installed_overlays = l.get_installed()
+    info = l.get_all_info(installed_overlays)
+    for overlay in installed_overlays:
+        if not overlay:
             continue
-        obj, created = Overlay.objects.get_or_create(name=overlay["overlay"])
+        obj, created = Overlay.objects.get_or_create(name=overlay)
+        if overlay in info:
+            obj.description = info[overlay]["description"]
+            obj.homepage = info[overlay]["homepage"]
+        obj.overlay_path = join(l.config['storage'], overlay)
+        obj.save()
         if created:
-            logger.info("+ [o] %s", overlay["overlay"])
+            logger.info("+ [o] %s", overlay)
 
 
 @commit_on_success
