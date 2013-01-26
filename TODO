@@ -74,8 +74,6 @@ euscanwww
 ### models
 
 - Repository (added or not, from layman + repositories.xml)
-- Category (read metadata.xml)
-- Url ad ManyToMany
 - Arches and Keyword
 - Metadata, herds, maintainers and homepage are per-version, not per package. Store it in Version instead.
 
@@ -89,10 +87,6 @@ euscanwww
 The application should be easy to use, and we should be able to launch the scan process in a celery worker using "logging" for logs.
 The application should also be usable for p.g.o and gentoostats later...
 The scan process should be faster than the one using euscan. gentoo-packages have some interesting ideas for that (keeping metadata and ebuild hash, etc..)
-
-### Scanning
-
-- Remove alive field in model, it should be possible to do the same thing using only memory. That may even be faster.
 
 ### API (LOW-PRIORITY)
 
