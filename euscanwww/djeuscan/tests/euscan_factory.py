@@ -81,7 +81,6 @@ class VersionFactory(factory.Factory):
     packaged = True
     overlay = "gentoo"
     urls = "http://packageurl.com"
-    alive = True
 
     @classmethod
     def _prepare(cls, create, **kwargs):
