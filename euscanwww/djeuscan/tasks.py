@@ -360,6 +360,15 @@ def send_monthly_email():
     group_chunks(process_emails, profiles, settings.TASKS_EMAIL_GROUPS)()
     return True
 
+
+@task
+def collect_stabilization_candidates():
+    """
+    This task collects the packages that are stabilization candidates
+    """
+    pass
+
+
 admin_tasks = [
     regen_rrds,
     update_counters,

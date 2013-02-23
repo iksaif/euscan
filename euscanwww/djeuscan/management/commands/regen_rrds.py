@@ -6,6 +6,7 @@ from djeuscan.processing.misc import regen_rrds
 
 logger = logging.getLogger(__name__)
 
+
 class Command(BaseCommand):
     _overlays = {}
     help = 'Regenerate rrd database'
