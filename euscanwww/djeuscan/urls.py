@@ -10,8 +10,7 @@ from euscan_accounts.views import favourite_package, unfavourite_package, \
     favourite_overlay, unfavourite_overlay, favourite_world, unfavourite_world
 
 from djeuscan.feeds import PackageFeed, CategoryFeed, HerdFeed, \
-    MaintainerFeed, GlobalFeed, WorldScanFeed
-
+    MaintainerFeed, GlobalFeed, WorldScanFeed, StabilizationCandidatesFeed
 
 admin_required = user_passes_test(lambda u: u.is_superuser)
 
@@ -83,6 +82,8 @@ urlpatterns = patterns('djeuscan.views',
 
     url(r'^$', 'index', name="index"),
     url(r'^feed/$', GlobalFeed(), name='global_feed'),
+    url(r'^feed/stabilization_candidates$', StabilizationCandidatesFeed(),
+        name='stabilization_candidates_feed'),
     url(r'^about/$', 'about', name="about"),
     url(r'^about/api$', 'api', name="api"),
     url(r'^about/feeds$', 'feeds', name="feeds"),

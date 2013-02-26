@@ -152,6 +152,9 @@ class Version(models.Model):
     ebuild_path = models.CharField(blank=True, max_length=256)
     metadata_path = models.CharField(blank=True, max_length=256)
 
+    # If this is not null then the version is a stabilization candidate
+    stabilization_candidate = models.DateField(blank=True, null=True, default=None)
+
     class Meta:
         unique_together = ['package', 'revision', 'version', 'overlay']
 

@@ -366,7 +366,11 @@ def collect_stabilization_candidates():
     """
     This task collects the packages that are stabilization candidates
     """
-    pass
+    logger = collect_stabilization_candidates.get_logger()
+    misc.stabilization_candidates(
+        days_to_stabilization=settings.DAYS_TO_STABILIZATION,
+        logger=logger
+    )
 
 
 admin_tasks = [
@@ -382,4 +386,5 @@ admin_tasks = [
     send_update_email,
     send_weekly_email,
     send_monthly_email,
+    collect_stabilization_candidates,
 ]

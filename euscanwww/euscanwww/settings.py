@@ -245,6 +245,8 @@ CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
 TASKS_UPSTREAM_GROUPS = 32
 TASKS_EMAIL_GROUPS = 10
 
+DAYS_TO_STABILIZATION = 30
+
 # LDAP authentication
 # TODO: Test data - change me!
 AUTH_LDAP_SERVER_URI = "ldap://localhost"

@@ -1,4 +1,5 @@
 import json
+from urllib import urlencode
 
 from django.contrib.syndication.views import Feed, FeedDoesNotExist
 from django.shortcuts import get_object_or_404
@@ -8,9 +9,93 @@ from django.db.models import Q
 
 from euscan.version import gentoo_unstable
 
-from djeuscan.models import Package, Herd, Maintainer, VersionLog
+from djeuscan.models import Package, Herd, Maintainer, Version, VersionLog
 
 from euscan_accounts.helpers import get_profile
+
+
+class StabilizationCandidatesFeed(Feed):
+    feed_type = Atom1Feed
+    author_name = 'euscan'
+    item_author_name = author_name
+    title = 'Stabilization candidates'
+    link = "/"
+    description = "Stabilization candidates"
+    ttl = 3600
+
+    def item_title(self, version):
+        return version.cpv()
+
+    def item_description(self, version):
+        cpv = version.cpv()
+        maintainers = herds = ""
+
+        if version.package.maintainers.all():
+            maintainers = "Maintainers: {}\n".format(
+                ", ".join(version.package.maintainers.all())
+            )
+
+        if version.package.herds.all():
+            herds = "Herds: {}\n".format(
+                ", ".join(version.package.herds.all())
+            )
+
+        bugs_link = "https://bugs.gentoo.org/buglist.cgi?quicksearch={}"
+
+        comment = """
+            This bug was filed via euscan
+
+            How much have you used the package in question?
+
+            Have you had any problems with the package?
+
+            emerge --info:
+
+            Other info:
+            {} {}
+        """.format(herds, maintainers)
+        comment = "\n".join([line.lstrip() for line in comment.split("\n")])
+        description = """
+            Added to tree: {date}<br/>
+            {herds} <br />
+            {maintainers}<br />
+            Open bugs for {cat_pn}:
+                <a href="{cat_bugs}">Show</a><br />
+            Open bugs for {pn}:
+                <a href="{pn_bugs}">Show</a><br />
+            <a href="{submit_bug}">File bug </a>
+        """.format(
+            date=version.stabilization_candidate,
+            herds=herds,
+            maintainers=maintainers,
+            cat_pn=version.package.category,
+            cat_bugs=bugs_link.format(version.package.category),
+            pn=version.package,
+            pn_bugs=bugs_link.format(version.package),
+            submit_bug='https://bugs.gentoo.org/enter_bug.cgi?{}'.format(
+                urlencode({
+                    "product": 'Gentoo Linux',
+                    "short_desc": "Stable request for {}".format(cpv),
+                    "comment": comment,
+                    "keywords": 'STABLEREQ',
+                })
+            ),
+        )
+        return description
+
+    def item_link(self, version):
+        kwargs = {'category': version.package.category,
+                  'package': version.package.name}
+        return "%s#version-%s" % (
+            reverse('djeuscan.views.package', kwargs=kwargs), version.tag
+        )
+
+    def item_categories(self):
+        return ["stabilization_candidate"]
+
+    def items(self):
+        versions = Version.objects.exclude(stabilization_candidate=None)
+        return versions.order_by("stabilization_candidate")
 
 
 class BaseFeed(Feed):
