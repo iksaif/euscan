@@ -68,10 +68,10 @@ class StabilizationCandidatesFeed(Feed):
             date=version.stabilization_candidate,
             herds=herds,
             maintainers=maintainers,
-            cat_pn=version.package.category,
-            cat_bugs=bugs_link.format(version.package.category),
-            pn=version.package,
-            pn_bugs=bugs_link.format(version.package),
+            cat_pn=version.package.cp(),
+            cat_bugs=bugs_link.format(version.package.cp()),
+            pn=version.package.name,
+            pn_bugs=bugs_link.format(version.package.name),
             submit_bug='https://bugs.gentoo.org/enter_bug.cgi?{}'.format(
                 urlencode({
                     "product": 'Gentoo Linux',
