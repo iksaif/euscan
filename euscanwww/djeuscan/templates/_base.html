@@ -73,6 +73,13 @@
                         <a title="Global Feed" href="{% url "global_feed" %}">Global Feed</a>
                       </li>
 
+                      <li>
+                        <img src="{{ STATIC_URL }}img/feed.png" alt="feed" />
+                        <a title="Stabilization Candidates Feed" href="{% url "stabilization_candidates_feed" %}">
+                          Stabilization Feed
+                        </a>
+                      </li>
+
                       {% if user.is_authenticated %}
                         <li>
                           <img src="{{ STATIC_URL }}/img/feed.png" alt="feed" />
