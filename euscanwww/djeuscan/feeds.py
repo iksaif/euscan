@@ -32,12 +32,12 @@ class StabilizationCandidatesFeed(Feed):
 
         if version.package.maintainers.all():
             maintainers = "Maintainers: {}\n".format(
-                ", ".join(version.package.maintainers.all())
+                ", ".join(str(m) for m in version.package.maintainers.all())
             )
 
         if version.package.herds.all():
             herds = "Herds: {}\n".format(
-                ", ".join(version.package.herds.all())
+                ", ".join(str(h) for h in version.package.herds.all())
             )
 
         bugs_link = "https://bugs.gentoo.org/buglist.cgi?quicksearch={}"
@@ -95,7 +95,7 @@ class StabilizationCandidatesFeed(Feed):
 
     def items(self):
         versions = Version.objects.exclude(stabilization_candidate=None)
-        return versions.order_by("stabilization_candidate")
+        return versions.order_by("-stabilization_candidate")
 
 
 class BaseFeed(Feed):
