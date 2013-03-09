@@ -153,7 +153,9 @@ class Version(models.Model):
     metadata_path = models.CharField(blank=True, max_length=256)
 
     # If this is not null then the version is a stabilization candidate
-    stabilization_candidate = models.DateField(blank=True, null=True, default=None)
+    stabilization_candidate = models.DateField(
+        blank=True, null=True, default=None, db_index=True
+    )
 
     class Meta:
         unique_together = ['package', 'revision', 'version', 'overlay']

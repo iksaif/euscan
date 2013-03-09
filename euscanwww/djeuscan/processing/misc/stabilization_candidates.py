@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 from gentoolkit.package import Package
 from dateutil.parser import parse
 
+from django.db.models import Q
+
+from gentoolkit.errors import GentoolkitFatalError
+
 from djeuscan.processing import FakeLogger
 from djeuscan.models import Version
 
@@ -50,11 +54,15 @@ def stabilization_candidates(days_to_candidate=30, logger=None):
 
     # For every version check if it's unstable.
     # If it is then check if can be a stabilization candidate
-    versions = Version.objects.filter(overlay='gentoo')\
-        .exclude(version='9999').exclude(version='99999999')
+    versions = Version.objects.filter(overlay='gentoo').filter(
+        Q(vtype='release') | Q(vtype='p'))
     for version in versions:
         pkg = Package(version.cpv())
-        keywords = pkg.environment("KEYWORDS").split()
+        try:
+            keywords = pkg.environment("KEYWORDS").split()
+        except GentoolkitFatalError:
+            logger.warning("Error while processing %s!", version)
+            continue
         if all([x.startswith("~") for x in keywords]):
             version_date = get_version_date(version, date_limit)
             if version_date:
