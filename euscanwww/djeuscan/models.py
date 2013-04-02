@@ -150,7 +150,7 @@ class Version(models.Model):
     confidence = models.IntegerField(default=0)
 
     ebuild_path = models.CharField(blank=True, max_length=256)
-    metadata_path = models.CharField(blank=True, max_length=256)
+    metadata_path = models.CharField(null=True, blank=True, max_length=256)
 
     # If this is not null then the version is a stabilization candidate
     stabilization_candidate = models.DateField(
@@ -274,7 +274,7 @@ class EuscanResult(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=128, validators=[validate_category],
                             unique=True)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "categories"
@@ -286,9 +286,9 @@ class Category(models.Model):
 class Overlay(models.Model):
     name = models.CharField(max_length=128, validators=[validate_name],
                             unique=True)
-    description = models.TextField(blank=True)
-    homepage = models.TextField(blank=True)
-    overlay_path = models.CharField(blank=True, max_length=256)
+    description = models.TextField(blank=True, null=True)
+    homepage = models.TextField(blank=True, null=True)
+    overlay_path = models.CharField(blank=True, null=True, max_length=256)
 
     def __unicode__(self):
         return self.name

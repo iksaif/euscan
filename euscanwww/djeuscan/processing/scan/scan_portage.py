@@ -1,7 +1,6 @@
 import subprocess
 
 import os
-from os.path import join
 import sys
 
 import portage
@@ -221,9 +220,11 @@ class ScanPortage(object):
         )
 
         overlay_path = overlay_path or portage.settings["PORTDIR"]
-        package_path = join(overlay_path, package.category, package.name)
-        ebuild_path = join(package_path, "%s.ebuild" % cpv.split("/")[-1])
-        metadata_path = join(package_path, "metadata.xml")
+        package_path = os.path.join(overlay_path, package.category, package.name)
+        ebuild_path = os.path.join(package_path, "%s.ebuild" % cpv.split("/")[-1])
+        metadata_path = os.path.join(package_path, "metadata.xml")
+        if not os.path.exists(metadata_path):
+            metadata_path = None
 
         if not obj:
             obj, created = Version.objects.get_or_create(
@@ -282,16 +283,7 @@ class ScanPortage(object):
         if not self.purge_packages:
             return
 
-        packages = (
-            Package.objects.values("id")
-                           .annotate(version_count=models.Count("version"))
-                           .filter(version_count=0)
-        )
-        packages = (
-            Package.objects.filter(
-                id__in=[package['id'] for package in packages]
-            )
-        )
+        packages = Package.objects.filter(n_packaged=0, n_overlay=0)
 
         for package in packages:
             self.logger.info('- [p] %s' % (package))
@@ -374,7 +366,7 @@ def populate_categories(logger):
     portdir = portage.settings["PORTDIR"]
     for cat in portage.settings.categories:
         try:
-            meta = MetaData(join(portdir, cat, "metadata.xml"))
+            meta = MetaData(os.path.join(portdir, cat, "metadata.xml"))
             desc = meta.descriptions()[0]
         except (IOError, IndexError):
             desc = ""
@@ -397,7 +389,7 @@ def populate_overlays(logger):
         if overlay in info:
             obj.description = info[overlay]["description"]
             obj.homepage = info[overlay]["homepage"]
-        obj.overlay_path = join(l.config['storage'], overlay)
+        obj.overlay_path = os.path.join(l.config['storage'], overlay)
         obj.save()
         if created:
             logger.info("+ [o] %s", overlay)
