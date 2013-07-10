@@ -135,8 +135,14 @@ class ScanMetadata(object):
             pkg.herds.add(herd)
 
         for maintainer in pkg.maintainers.all():
-            if maintainer.email in old_maintainers:
+            email = maintainer.email
+            if email in old_maintainers:
                 pkg.maintainers.remove(maintainer)
+            if (email in maintainers and
+                email == maintainer.name and
+                maintainers[email].name != maintainer.name):
+                maintainer.name = maintainers[email].name
+                maintainer.save()
 
         for maintainer in new_maintainers:
             maintainer = maintainers[maintainer]
@@ -215,9 +221,15 @@ class ScanMetadata(object):
                     maintainer_name = maintainer_node.findtext('name')
                     maintainer_email = maintainer_node.findtext('email')
 
-                    maintainer = self.store_maintainer(
-                        maintainer_name, maintainer_email
-                    )
+                    try:
+                        maintainer = self.store_maintainer(
+                            maintainer_name, maintainer_email
+                        )
+                    except ValidationError:
+                        self.logger.error(
+                            self.style.ERROR("Bad maintainer: '%s' '%s'" % \
+                                             (maintainer_name, maintainer_email))
+                            )
 
                     herd.maintainers.add(maintainer)
 

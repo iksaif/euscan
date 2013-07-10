@@ -386,7 +386,7 @@ def populate_overlays(logger):
         if not overlay:
             continue
         obj, created = Overlay.objects.get_or_create(name=overlay)
-        if overlay in info:
+        if overlay in info and type(info[overlay]) == dict:
             obj.description = info[overlay]["description"]
             obj.homepage = info[overlay]["homepage"]
         obj.overlay_path = os.path.join(l.config['storage'], overlay)
