@@ -45,6 +45,21 @@
       </p>
     {% endfor %}
   </dd>
+  <dt>Q&amp;A</dt>
+  <dd>
+    <ul>
+      <li>
+        <a href="https://bugs.gentoo.org/buglist.cgi?quicksearch={{ package.cp }}">
+          {{ package.cp }} on bugs.g.o
+        </a>
+      </li>
+      <li>
+        <a href="http://qa-reports.gentoo.org/output/genrdeps/rindex/{{ package.cp }}">
+          {{ package.cp }} on qa-reports.g.o
+        </a>
+      </li>
+    </ul>
+  </dd>
   {% endif %}
   {% if packaged %}
   <dt>Packaged Versions</dt>

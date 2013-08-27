@@ -121,7 +121,7 @@ def print_usage(_error=None, help=None):
             " " * 38 + "0 means disabled", file=out)
         print(yellow(" -f, --format=<format>") +
             "              - define the output " + yellow("<format>") +
-            " (available: json)", file=out)
+            " (available: json, xml)", file=out)
         print(yellow(" -p, --progress") +
             "                     - display a progress bar", file=out)
         print(yellow(" -i, --ignore-pre-release") +
