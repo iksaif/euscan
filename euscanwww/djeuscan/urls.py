@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import url, patterns, include
+from django.conf.urls import url, patterns, include
 from django.contrib.auth.decorators import user_passes_test
 
 from djcelery.views import apply as apply_task

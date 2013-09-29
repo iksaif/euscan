@@ -1,12 +1,10 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
-from registration.views import register
+from views import RecaptchaRegistrationView
 
-urlpatterns = patterns('',
-    url(
+urlpatterns = patterns(
+    '', url(
         r'^register/$',
-        register,
-        {'backend': 'euscanwww.captcha.CaptchaDefaultBackend'},
-        name='registration_register'
-    ),
+        RecaptchaRegistrationView.as_view(),
+        name='registration_register'),
 )
