@@ -136,11 +136,13 @@ class ScanMetadata(object):
 
         for maintainer in pkg.maintainers.all():
             email = maintainer.email
+            name = maintainer.name
             if email in old_maintainers:
                 pkg.maintainers.remove(maintainer)
             if (email in maintainers and
-                email == maintainer.name and
-                maintainers[email].name != maintainer.name):
+                email == name and
+                maintainers[email].name != name and
+                maintainers[email].name):
                 maintainer.name = maintainers[email].name
                 maintainer.save()
 
