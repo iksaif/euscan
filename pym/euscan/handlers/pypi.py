@@ -28,7 +28,7 @@ def scan_url(pkg, url, options):
     'http://wiki.python.org/moin/PyPiXmlRpc'
 
     package = guess_package(pkg.cpv, url)
-    return scan_pkg(pkg, [package])
+    return scan_pkg(pkg, {'data': package})
 
 
 def scan_pkg(pkg, options):
