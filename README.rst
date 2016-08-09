@@ -86,7 +86,8 @@ euscan-www: euscan as a service
 
 euscan-www is a web application that aggregates euscan results. For example
 there is an instance of euscan-www that monitors gentoo-x86 + some official
-overlays currently hosted at http://euscan.iksaif.net/ .
+overlays currently hosted at http://euscan.gentooexperimental.org/
+ (was http://euscan.iksaif.net/ previously) .
 
 euscan-www uses django and provides some custom commands to feed the database.
 You can use euscan-www on you system tree, or preferably you can use a local
