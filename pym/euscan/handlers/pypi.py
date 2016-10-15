@@ -36,7 +36,7 @@ def scan_pkg(pkg, options):
 
     output.einfo("Using PyPi XMLRPC: " + package)
 
-    client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
+    client = xmlrpclib.ServerProxy('https://pypi.python.org/pypi')
     versions = client.package_releases(package)
 
     if not versions:
